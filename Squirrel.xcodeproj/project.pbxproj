@@ -289,6 +289,9 @@
 		D26434542706A15100857391 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		E93074B60A5C264700470842 /* InputMethodKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InputMethodKit.framework; path = /System/Library/Frameworks/InputMethodKit.framework; sourceTree = "<absolute>"; };
 		F45E005E2B8CA81C00179B75 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		F4A90994297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		F4A90995297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		F4A90996297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "zh-HK"; path = "zh-HK.lproj/MainMenu.xib"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -533,6 +536,7 @@
 				en,
 				"zh-Hans",
 				"zh-Hant",
+				"zh-HK",
 				Base,
 			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* Squirrel */;
@@ -581,6 +585,42 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		089C165CFE840E0CC02AAC07 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				089C165DFE840E0CC02AAC07 /* en */,
+				446D18E014F0191200EC3116 /* zh-Hans */,
+				446D18E114F0193100EC3116 /* zh-Hant */,
+				F4A90995297F63AE00D9F520 /* zh-HK */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		A45578F41146A75200592C6E /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				44DA191A152B8CB600FB8EF0 /* zh-Hans */,
+				44DA191B152B8CBC00FB8EF0 /* zh-Hant */,
+				F4A90996297F63AE00D9F520 /* zh-HK */,
+				44CB5E872585EFAE0022654F /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+		A4FC48C90F6530EF0069BE81 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A4FC48CA0F6530EF0069BE81 /* en */,
+				44FA4D891685997300116C1F /* zh-Hans */,
+				44FA4D8E16859B2900116C1F /* zh-Hant */,
+				F4A90994297F63AE00D9F520 /* zh-HK */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		C01FCF4B08A954540054247B /* Debug */ = {
