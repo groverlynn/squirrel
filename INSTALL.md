@@ -96,8 +96,14 @@ port install boost -no_static
 
 * Make sure you have updated all the dependencies. If you cloned squirrel with the command in this guide, you've already done it. But if not, this command will update submodules.
 
-```
+``` sh
 git submodule update --init --recursive
+
+export BUILD_UNIVERSAL=1
+export CMAKE_GENERATOR=Ninja
+
+make -C librime
+make deps
 ```
 
 * There are a few environmental variables that you can define. Here's a list and possible values they may take:
