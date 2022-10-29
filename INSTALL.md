@@ -61,9 +61,11 @@ Choose one of the following options.
 ``` sh
 export BUILD_UNIVERSAL=1
 
-make -C librime xcode/deps/boost
+export BOOST_ROOT="$(pwd)/librime/deps/boost_1_83_0"
 
-export BOOST_ROOT="$(pwd)/librime/deps/boost_1_78_0"
+export CMAKE_GENERATOR=Ninja
+
+bash librime/install-boost.sh
 ```
 
 Let's set `BUILD_UNIVERSAL` to tell `make` that we are building Boost as
@@ -96,8 +98,14 @@ port install boost -no_static
 
 * Make sure you have updated all the dependencies. If you cloned squirrel with the command in this guide, you've already done it. But if not, this command will update submodules.
 
-```
+``` sh
 git submodule update --init --recursive
+
+export BUILD_UNIVERSAL=1
+export CMAKE_GENERATOR=Ninja
+
+make -C librime
+make deps
 ```
 
 * With all dependencies ready, build `Squirrel.app`:
@@ -109,11 +117,14 @@ make
 To build only for the native architecture, and/or specify the lowest supported macOS version, pass variable `ARCHS`/`MACOSX_DEPLOYMENT_TARGET` to `make`:
 
 ``` sh
-# for Universal macOS App, targetting Ventura
-make ARCHS='arm64 x86_64' MACOSX_DEPLOYMENT_TARGET='13.0'
+# for Universal macOS App
+make ARCHS='arm64 x86_64' MACOSX_DEPLOYMENT_TARGET='10.15'
 
-# for ARM macOS App, targetting Ventura
-make ARCHS='arm64' MACOSX_DEPLOYMENT_TARGET='13.0'
+# for Mac computers with Apple Silicon
+make ARCHS='arm64' MACOSX_DEPLOYMENT_TARGET='10.15'
+
+# for Intel-based Mac
+make ARCHS='x86_64' MACOSX_DEPLOYMENT_TARGET='10.15'
 ```
 
 ## Install it on your Mac
@@ -123,7 +134,7 @@ make ARCHS='arm64' MACOSX_DEPLOYMENT_TARGET='13.0'
 Just add `package` after `make`
 
 ```
-make package ARCHS='arm64' MACOSX_DEPLOYMENT_TARGET='13.0'
+make package ARCHS='arm64' MACOSX_DEPLOYMENT_TARGET='10.14'
 ```
 
 Define or echo `DEV_ID` to automatically handle code signing and [notarization](https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution) (Apple Developer ID needed)
