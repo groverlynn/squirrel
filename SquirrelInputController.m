@@ -10,7 +10,7 @@
 @interface SquirrelInputController(Private)
 -(void)createSession;
 -(void)destroySession;
--(void)rimeConsumeCommittedText;
+-(BOOL)rimeConsumeCommittedText;
 -(void)rimeUpdate;
 -(void)updateAppOptions;
 @end
@@ -18,8 +18,7 @@
 const int N_KEY_ROLL_OVER = 50;
 
 @implementation SquirrelInputController {
-  id _currentClient;
-  NSString *_preeditString;
+  NSMutableAttributedString *_preeditString;
   NSRange _selRange;
   NSUInteger _caretPos;
   NSArray *_candidates;
@@ -29,6 +28,9 @@ const int N_KEY_ROLL_OVER = 50;
   NSString *_schemaId;
   BOOL _inlinePreedit;
   BOOL _inlineCandidate;
+  // app-specific bug fix
+  BOOL _inlinePlaceHolder;
+  BOOL _panellessCommitFix;
   // for chord-typing
   int _chordKeyCodes[N_KEY_ROLL_OVER];
   int _chordModifiers[N_KEY_ROLL_OVER];
@@ -49,9 +51,6 @@ const int N_KEY_ROLL_OVER = 50;
   // Key processing will not continue in that case.  In other words the
   // system will not deliver a key down event to the application.
   // Returning NO means the original key down will be passed on to the client.
-
-  _currentClient = sender;
-
   NSUInteger modifiers = event.modifierFlags;
 
   BOOL handled = NO;
@@ -64,7 +63,7 @@ const int N_KEY_ROLL_OVER = 50;
       }
     }
 
-    NSString* app = [_currentClient bundleIdentifier];
+    NSString* app = [sender bundleIdentifier];
 
     if (![_currentApp isEqualToString:app]) {
       _currentApp = [app copy];
@@ -319,14 +318,13 @@ const int N_KEY_ROLL_OVER = 50;
   if (keyboardLayout) {
     [sender overrideKeyboardWithKeyboardNamed:keyboardLayout];
   }
-  _preeditString = @"";
+  _preeditString = nil;
 }
 
 -(instancetype)initWithServer:(IMKServer*)server delegate:(id)delegate client:(id)inputClient
 {
   //NSLog(@"initWithServer:delegate:client:");
   if (self = [super initWithServer:server delegate:delegate client:inputClient]) {
-    _currentClient = inputClient;
     [self createSession];
   }
   return self;
@@ -335,7 +333,6 @@ const int N_KEY_ROLL_OVER = 50;
 -(void)deactivateServer:(id)sender
 {
   //NSLog(@"deactivateServer:");
-  [NSApp.squirrelAppDelegate.panel hide];
   [self commitComposition:sender];
 }
 
@@ -402,20 +399,41 @@ const int N_KEY_ROLL_OVER = 50;
   return _candidates;
 }
 
--(void)dealloc
+- (void)hidePalettes
+{
+  [NSApp.squirrelAppDelegate.panel hide];
+}
+
+- (void)dealloc
 {
   [self destroySession];
 }
 
--(void)commitString:(NSString*)string
+- (NSRange)selectionRange
+{
+  return NSMakeRange(_caretPos, 0);
+}
+
+- (NSRange)replacementRange
+{
+  return NSMakeRange(NSNotFound, NSNotFound);
+}
+
+- (void)commitString:(id)string
 {
   //NSLog(@"commitString:");
-  [_currentClient insertText:string
-            replacementRange:NSMakeRange(NSNotFound, 0)];
+  [self.client insertText:string
+         replacementRange:self.replacementRange];
+  [self hidePalettes];
 
-  _preeditString = @"";
+  _preeditString = nil;
+}
 
-  [NSApp.squirrelAppDelegate.panel hide];
+- (void)updateComposition
+{
+  [self.client setMarkedText:_preeditString
+              selectionRange:self.selectionRange
+            replacementRange:self.replacementRange];
 }
 
 -(void)showPreeditString:(NSString*)preedit
@@ -423,33 +441,30 @@ const int N_KEY_ROLL_OVER = 50;
                 caretPos:(NSUInteger)pos
 {
   //NSLog(@"showPreeditString: '%@'", preedit);
-
-  if ([_preeditString isEqualToString:preedit] &&
-      _caretPos == pos && _selRange.location == range.location && _selRange.length == range.length)
+  if ([preedit isEqualToString:_preeditString.string] &&
+      NSEqualRanges(range, _selRange) && pos == _caretPos) {
+    if (_inlinePlaceHolder) {
+      [self updateComposition];
+    }
     return;
-
-  _preeditString = preedit;
+  }
   _selRange = range;
   _caretPos = pos;
 
   //NSLog(@"selRange.location = %ld, selRange.length = %ld; caretPos = %ld",
   //      range.location, range.length, pos);
-  NSDictionary* attrs;
-  NSMutableAttributedString* attrString = [[NSMutableAttributedString alloc] initWithString:preedit];
+  NSDictionary *attrs;
+  _preeditString = [[NSMutableAttributedString alloc] initWithString:preedit];
   if (range.location > 0) {
     NSRange convertedRange = NSMakeRange(0, range.location);
     attrs = [self markForStyle:kTSMHiliteConvertedText atRange:convertedRange];
-    [attrString setAttributes:attrs range:convertedRange];
+    [_preeditString addAttributes:attrs range:convertedRange];
   }
-  {
-    NSRange remainingRange = NSMakeRange(range.location, preedit.length - range.location);
-    attrs = [self markForStyle:kTSMHiliteSelectedRawText atRange:remainingRange];
-    [attrString setAttributes:attrs range:remainingRange];
+  if (range.location < pos) {
+    attrs = [self markForStyle:kTSMHiliteSelectedRawText atRange:range];
+    [_preeditString addAttributes:attrs range:range];
   }
-  [_currentClient setMarkedText:attrString
-                 selectionRange:NSMakeRange(pos, 0)
-               replacementRange:NSMakeRange(NSNotFound, 0)];
-
+  [self updateComposition];
 }
 
 -(void)showPanelWithPreedit:(NSString*)preedit
@@ -463,7 +478,7 @@ const int N_KEY_ROLL_OVER = 50;
   //NSLog(@"showPanelWithPreedit:...:");
   _candidates = candidates;
   NSRect inputPos;
-  [_currentClient attributesForCharacterIndex:0 lineHeightRectangle:&inputPos];
+  [self.client attributesForCharacterIndex:0 lineHeightRectangle:&inputPos];
   SquirrelPanel* panel = NSApp.squirrelAppDelegate.panel;
   panel.position = inputPos;
   panel.inputController = self;
@@ -485,7 +500,7 @@ const int N_KEY_ROLL_OVER = 50;
 
 -(void)createSession
 {
-  NSString* app = [_currentClient bundleIdentifier];
+  NSString* app = [self.client bundleIdentifier];
   NSLog(@"createSession: %@", app);
   _currentApp = [app copy];
   _session = rime_get_api()->create_session();
@@ -508,6 +523,8 @@ const int N_KEY_ROLL_OVER = 50;
       NSLog(@"set app option: %@ = %d", key, value);
       rime_get_api()->set_option(_session, key.UTF8String, value);
     }
+    _panellessCommitFix = (appOptions[@"panelless_commit_fix"] ? : @(NO)).boolValue;
+    _inlinePlaceHolder = (appOptions[@"inline_placeholder"] ? : @(NO)).boolValue;
   }
 }
 
@@ -521,14 +538,19 @@ const int N_KEY_ROLL_OVER = 50;
   [self clearChord];
 }
 
--(void)rimeConsumeCommittedText
+-(BOOL)rimeConsumeCommittedText
 {
   RIME_STRUCT(RimeCommit, commit);
   if (rime_get_api()->get_commit(_session, &commit)) {
     NSString *commitText = @(commit.text);
-    [self commitString: commitText];
+    if (_preeditString.length == 0 && _panellessCommitFix) {
+      [self showPreeditString:@"　" selRange:NSMakeRange(0, 0) caretPos:0];
+    }
+    [self commitString:commitText];
     rime_get_api()->free_commit(&commit);
+    return YES;
   }
+  return NO;
 }
 
 NSString *substr(const char *str, int length) {
@@ -541,7 +563,9 @@ NSString *substr(const char *str, int length) {
 -(void)rimeUpdate
 {
   //NSLog(@"rimeUpdate");
-  [self rimeConsumeCommittedText];
+  if ([self rimeConsumeCommittedText]) {
+    return;
+  }
 
   RIME_STRUCT(RimeStatus, status);
   if (rime_get_api()->get_status(_session, &status)) {
@@ -591,11 +615,11 @@ NSString *substr(const char *str, int length) {
       if (_inlinePreedit) {
         [self showPreeditString:preeditText selRange:selRange caretPos:caretPos];
       } else {
-        NSRange empty = {0, 0};
         // TRICKY: display a non-empty string to prevent iTerm2 from echoing each character in preedit.
         // note this is a full-shape space U+3000; using half shape characters like "..." will result in
         // an unstable baseline when composing Chinese characters.
-        [self showPreeditString:(preedit ? @"　" : @"") selRange:empty caretPos:0];
+        [self showPreeditString:(preedit && _inlinePlaceHolder ? @"　" : @"")
+                       selRange:NSMakeRange(0, 0) caretPos:0];
       }
     }
     // update candidates

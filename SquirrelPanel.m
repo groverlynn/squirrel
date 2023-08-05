@@ -961,28 +961,32 @@ NSAttributedString *insert(NSString *separator, NSAttributedString *betweenText)
 
   NSColor *secondaryTextColor = [[self class] secondaryTextColor];
 
-  NSMutableDictionary *attrs = [[NSMutableDictionary alloc] init];
+  NSMutableDictionary *defaultAttrs = [[NSMutableDictionary alloc] init];
+  // solve terminal hijack when non-inline
+  defaultAttrs[IMKCandidatesSendServerKeyEventFirst] = @(YES);
+
+  NSMutableDictionary *attrs = [defaultAttrs mutableCopy];
   attrs[NSForegroundColorAttributeName] = [NSColor controlTextColor];
   attrs[NSFontAttributeName] = [NSFont userFontOfSize:kDefaultFontSize];
 
-  NSMutableDictionary *highlightedAttrs = [[NSMutableDictionary alloc] init];
+  NSMutableDictionary *highlightedAttrs = [defaultAttrs mutableCopy];
   highlightedAttrs[NSForegroundColorAttributeName] = [NSColor selectedControlTextColor];
   highlightedAttrs[NSFontAttributeName] = [NSFont userFontOfSize:kDefaultFontSize];
 
   NSMutableDictionary *labelAttrs = [attrs mutableCopy];
   NSMutableDictionary *labelHighlightedAttrs = [highlightedAttrs mutableCopy];
 
-  NSMutableDictionary *commentAttrs = [[NSMutableDictionary alloc] init];
+  NSMutableDictionary *commentAttrs = [defaultAttrs mutableCopy];
   commentAttrs[NSForegroundColorAttributeName] = secondaryTextColor;
   commentAttrs[NSFontAttributeName] = [NSFont userFontOfSize:kDefaultFontSize];
 
   NSMutableDictionary *commentHighlightedAttrs = [commentAttrs mutableCopy];
 
-  NSMutableDictionary *preeditAttrs = [[NSMutableDictionary alloc] init];
+  NSMutableDictionary *preeditAttrs = [defaultAttrs mutableCopy];
   preeditAttrs[NSForegroundColorAttributeName] = secondaryTextColor;
   preeditAttrs[NSFontAttributeName] = [NSFont userFontOfSize:kDefaultFontSize];
 
-  NSMutableDictionary *preeditHighlightedAttrs = [[NSMutableDictionary alloc] init];
+  NSMutableDictionary *preeditHighlightedAttrs = [defaultAttrs mutableCopy];
   preeditHighlightedAttrs[NSForegroundColorAttributeName] = [NSColor controlTextColor];
   preeditHighlightedAttrs[NSFontAttributeName] = [NSFont userFontOfSize:kDefaultFontSize];
 
