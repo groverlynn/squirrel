@@ -2,11 +2,11 @@
 
 static const unsigned char kInstallLocation[] =
   "/Library/Input Methods/Squirrel.app";
-static NSString *const kHansInputModeID =
+static NSString *kHansInputModeID =
   @"im.rime.inputmethod.Squirrel.Hans";
-static NSString *const kHantInputModeID =
+static NSString *kHantInputModeID =
     @"im.rime.inputmethod.Squirrel.Hant";
-static NSString *const kCantInputModeID =
+static NSString *kCantInputModeID =
     @"im.rime.inputmethod.Squirrel.Cant";
 
 #define HANS_INPUT_MODE (1 << 0)

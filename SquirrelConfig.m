@@ -11,7 +11,7 @@
 
 - (instancetype)initWithSchemaId:(NSString *)schemaId
                         switcher:(NSDictionary<NSString *, NSString *> *)switcher
-                    optionGroups:(NSDictionary<NSString *, NSArray<NSString *> *> *)optionGroups{
+                    optionGroups:(NSDictionary<NSString *, NSArray<NSString *> *> *)optionGroups {
   self = [super init];
   if (self) {
     _schemaId = schemaId;

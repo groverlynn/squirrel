@@ -4,7 +4,7 @@
 #import "SquirrelConfig.h"
 #import "SquirrelPanel.h"
 
-static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
+static NSString *kRimeWikiURL = @"https://github.com/rime/home/wiki";
 
 @implementation SquirrelApplicationDelegate
 
