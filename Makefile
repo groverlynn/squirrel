@@ -3,8 +3,8 @@
 all: release
 install: install-release
 
-# Change to `xcode/dist-with-icu` if boost is linked to icu libraries.
-RIME_DIST_TARGET = xcode/dist
+# Change to `dist-with-icu` if boost is linked to icu libraries.
+RIME_DIST_TARGET = install
 
 RIME_BIN_DIR = librime/dist/bin
 RIME_LIB_DIR = librime/dist/lib
@@ -39,7 +39,7 @@ $(RIME_LIBRARY):
 	$(MAKE) librime
 
 $(RIME_DEPS):
-	$(MAKE) -C librime xcode/deps
+	$(MAKE) -C librime deps
 
 librime: $(RIME_DEPS)
 	$(MAKE) -C librime $(RIME_DIST_TARGET)
@@ -67,7 +67,7 @@ plum-data:
 	$(MAKE) copy-plum-data
 
 opencc-data:
-	$(MAKE) -C librime xcode/deps/opencc
+	$(MAKE) -C librime deps/opencc
 	$(MAKE) copy-opencc-data
 
 copy-plum-data:
@@ -88,9 +88,9 @@ _=$() $()
 export CMAKE_OSX_ARCHITECTURES = $(subst $(_),;,$(ARCHS))
 endif
 
-ifdef MACOSX_DEPLOYMENT_TARGET
+# https://cmake.org/cmake/help/latest/envvar/MACOSX_DEPLOYMENT_TARGET.html
+MACOSX_DEPLOYMENT_TARGET ?= 10.15
 BUILD_SETTINGS += MACOSX_DEPLOYMENT_TARGET="$(MACOSX_DEPLOYMENT_TARGET)"
-endif
 
 release: $(DEPS_CHECK)
 	bash package/add_data_files
@@ -170,5 +170,5 @@ clean:
 
 clean-deps:
 	$(MAKE) -C plum clean
-	$(MAKE) -C librime xcode/clean
+	$(MAKE) -C librime clean
 	$(MAKE) clean-sparkle

@@ -1,9 +1,9 @@
 #import <Carbon/Carbon.h>
 
 static const unsigned char kInstallLocation[] =
-    "/Library/Input Methods/Squirrel.app";
+  "/Library/Input Methods/Squirrel.app";
 static NSString *const kHansInputModeID =
-    @"im.rime.inputmethod.Squirrel.Hans";
+  @"im.rime.inputmethod.Squirrel.Hans";
 static NSString *const kHantInputModeID =
     @"im.rime.inputmethod.Squirrel.Hant";
 static NSString *const kCantInputModeID =
@@ -15,7 +15,7 @@ static NSString *const kCantInputModeID =
 
 void RegisterInputSource(void) {
   CFURLRef installedLocationURL = CFURLCreateFromFileSystemRepresentation(
-      NULL, kInstallLocation, strlen((const char *)kInstallLocation), NO);
+    NULL, kInstallLocation, strlen((const char *)kInstallLocation), NO);
   if (installedLocationURL) {
     TISRegisterInputSource(installedLocationURL);
     CFRelease(installedLocationURL);
@@ -32,7 +32,7 @@ void ActivateInputSource(int enabled_modes) {
         inputSource, kTISPropertyInputSourceID));
     //NSLog(@"Examining input source: %@", sourceID);
     if (([sourceID isEqualToString:kHansInputModeID] &&
-        ((enabled_modes & HANS_INPUT_MODE) != 0)) ||
+         ((enabled_modes & HANS_INPUT_MODE) != 0)) ||
         ([sourceID isEqualToString:kHantInputModeID] &&
         ((enabled_modes & HANT_INPUT_MODE) != 0)) ||
         ([sourceID isEqualToString:kCantInputModeID] &&
@@ -40,7 +40,7 @@ void ActivateInputSource(int enabled_modes) {
       TISEnableInputSource(inputSource);
       NSLog(@"Enabled input source: %@", sourceID);
       CFBooleanRef isSelectable = (CFBooleanRef)TISGetInputSourceProperty(
-          inputSource, kTISPropertyInputSourceIsSelectCapable);
+        inputSource, kTISPropertyInputSourceIsSelectCapable);
       if (CFBooleanGetValue(isSelectable)) {
         TISSelectInputSource(inputSource);
         NSLog(@"Selected input source: %@", sourceID);
@@ -87,10 +87,11 @@ int GetEnabledInputModes(void) {
       CFBooleanRef isEnabled = (CFBooleanRef)(TISGetInputSourceProperty(
           inputSource, kTISPropertyInputSourceIsEnabled));
       if (CFBooleanGetValue(isEnabled)) {
-        if ([sourceID isEqualToString:kHansInputModeID])
+        if ([sourceID isEqualToString:kHansInputModeID]) {
           input_modes |= HANS_INPUT_MODE;
-        else if ([sourceID isEqualToString:kHantInputModeID])
+        } else if ([sourceID isEqualToString:kHantInputModeID]) {
           input_modes |= HANT_INPUT_MODE;
+        }
       }
     }
   }
