@@ -1,13 +1,14 @@
 #import <Carbon/Carbon.h>
 
-static const unsigned char kInstallLocation[] =
+static const char kInstallLocation[] =
   "/Library/Input Methods/Squirrel.app";
+
 static NSString *kHansInputModeID =
   @"im.rime.inputmethod.Squirrel.Hans";
 static NSString *kHantInputModeID =
-    @"im.rime.inputmethod.Squirrel.Hant";
+  @"im.rime.inputmethod.Squirrel.Hant";
 static NSString *kCantInputModeID =
-    @"im.rime.inputmethod.Squirrel.Cant";
+  @"im.rime.inputmethod.Squirrel.Cant";
 
 #define HANS_INPUT_MODE (1 << 0)
 #define HANT_INPUT_MODE (1 << 1)
@@ -15,7 +16,7 @@ static NSString *kCantInputModeID =
 
 void RegisterInputSource(void) {
   CFURLRef installedLocationURL = CFURLCreateFromFileSystemRepresentation(
-    NULL, kInstallLocation, strlen((const char *)kInstallLocation), NO);
+    NULL, (UInt8 *)kInstallLocation, (CFIndex)strlen(kInstallLocation), FALSE);
   if (installedLocationURL) {
     TISRegisterInputSource(installedLocationURL);
     CFRelease(installedLocationURL);
@@ -24,7 +25,7 @@ void RegisterInputSource(void) {
 }
 
 void ActivateInputSource(int enabled_modes) {
-  CFArrayRef sourceList = TISCreateInputSourceList(NULL, true);
+  CFArrayRef sourceList = TISCreateInputSourceList(NULL, TRUE);
   for (CFIndex i = 0; i < CFArrayGetCount(sourceList); ++i) {
     TISInputSourceRef inputSource = (TISInputSourceRef)(CFArrayGetValueAtIndex(
         sourceList, i));
@@ -51,7 +52,7 @@ void ActivateInputSource(int enabled_modes) {
 }
 
 void DeactivateInputSource(void) {
-  CFArrayRef sourceList = TISCreateInputSourceList(NULL, true);
+  CFArrayRef sourceList = TISCreateInputSourceList(NULL, TRUE);
   for (CFIndex i = CFArrayGetCount(sourceList); i > 0; --i) {
     TISInputSourceRef inputSource = (TISInputSourceRef)(CFArrayGetValueAtIndex(
         sourceList, i - 1));
@@ -74,7 +75,7 @@ void DeactivateInputSource(void) {
 
 int GetEnabledInputModes(void) {
   int input_modes = 0;
-  CFArrayRef sourceList = TISCreateInputSourceList(NULL, true);
+  CFArrayRef sourceList = TISCreateInputSourceList(NULL, TRUE);
   for (CFIndex i = 0; i < CFArrayGetCount(sourceList); ++i) {
     TISInputSourceRef inputSource = (TISInputSourceRef)(CFArrayGetValueAtIndex(
         sourceList, i));

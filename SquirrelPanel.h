@@ -3,6 +3,12 @@
 @class SquirrelConfig;
 @class SquirrelOptionSwitcher;
 
+typedef enum {
+  defaultAppear = 0,
+  lightAppear = 0,
+  darkAppear = 1
+} SquirrelAppear;
+
 @interface SquirrelPanel : NSPanel
 
 // Linear candidate list, as opposed to stacked candidate list.
@@ -29,9 +35,7 @@
            comments:(NSArray<NSString *> *)comments
         highlighted:(NSUInteger)index
             pageNum:(NSUInteger)pageNum
-           lastPage:(BOOL)lastPage
-           turnPage:(NSUInteger)turnPage
-             update:(BOOL)update;
+           lastPage:(BOOL)lastPage;
 
 - (void)hide;
 
@@ -39,7 +43,7 @@
              statusShort:(NSString *)messageShort;
 
 - (void)loadConfig:(SquirrelConfig *)config
-       forDarkMode:(BOOL)isDark;
+     forAppearance:(SquirrelAppear)appear;
 
 - (void)loadLabelConfig:(SquirrelConfig *)config;
 

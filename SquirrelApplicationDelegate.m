@@ -147,9 +147,9 @@ void notification_handler(void *context_object, RimeSessionId session_id,
 
   _enableNotifications =
     ![[_config getString:@"show_notifications_when"] isEqualToString:@"never"];
-  [self.panel loadConfig:_config forDarkMode:NO];
+  [self.panel loadConfig:_config forAppearance:defaultAppear];
   if (@available(macOS 10.14, *)) {
-    [self.panel loadConfig:_config forDarkMode:YES];
+    [self.panel loadConfig:_config forAppearance:darkAppear];
   }
 }
 
@@ -160,16 +160,16 @@ void notification_handler(void *context_object, RimeSessionId session_id,
   SquirrelConfig *schema = [[SquirrelConfig alloc] init];
   if ([schema openWithSchemaId:schemaId baseConfig:self.config] &&
       [schema hasSection:@"style"]) {
-    [self.panel loadConfig:schema forDarkMode:NO];
+    [self.panel loadConfig:schema forAppearance:defaultAppear];
   } else {
-    [self.panel loadConfig:self.config forDarkMode:NO];
+    [self.panel loadConfig:self.config forAppearance:defaultAppear];
   }
   if (@available(macOS 10.14, *)) {
     if ([schema openWithSchemaId:schemaId baseConfig:self.config] &&
         [schema hasSection:@"style"]) {
-      [self.panel loadConfig:schema forDarkMode:YES];
+      [self.panel loadConfig:schema forAppearance:darkAppear];
     } else {
-      [self.panel loadConfig:self.config forDarkMode:YES];
+      [self.panel loadConfig:self.config forAppearance:darkAppear];
     }
   }
   [schema close];

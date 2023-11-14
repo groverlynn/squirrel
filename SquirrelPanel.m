@@ -20,12 +20,12 @@ static NSString *kFullWidthSpace = @"　";
   // Need to begin a path here.
   CGPathRef immutablePath = NULL;
   // Then draw the path elements.
-  NSUInteger numElements = self.elementCount;
+  NSInteger numElements = self.elementCount;
   if (numElements > 0) {
     CGMutablePathRef path = CGPathCreateMutable();
     NSPoint points[3];
     BOOL didClosePath = YES;
-    for (NSUInteger i = 0; i < numElements; i++) {
+    for (NSInteger i = 0; i < numElements; i++) {
       switch ([self elementAtIndex:i associatedPoints:points]) {
         case NSBezierPathElementMoveTo:
           CGPathMoveToPoint(path, NULL, points[0].x, points[0].y);
@@ -61,7 +61,8 @@ static NSString *kFullWidthSpace = @"　";
   return immutablePath;
 }
 
-@end
+@end // NSBezierPath (BezierPathQuartzUtilities)
+
 
 @implementation NSMutableAttributedString (NSMutableAttributedStringMarkDownFormatting)
 
@@ -131,7 +132,7 @@ static NSString *kFullWidthSpace = @"　";
       // base string must use only one font so that all fall within one glyph run and the ruby annotation is aligned with no duplicates
       NSFont *baseFont = [self attribute:NSFontAttributeName atIndex:baseRange.location effectiveRange:NULL];
       baseFont = CFBridgingRelease(CTFontCreateForString((CTFontRef)baseFont, (CFStringRef)self.string,
-                                                         CFRangeMake(baseRange.location, baseRange.length)));
+                                                         CFRangeMake((int)baseRange.location, (int)baseRange.length)));
       [self addAttribute:NSFontAttributeName value:baseFont range:baseRange];
 
       CGFloat rubyScale = 0.5;
@@ -179,7 +180,8 @@ static NSString *kFullWidthSpace = @"　";
   return rubyLineHeight;
 }
 
-@end
+@end // NSMutableAttributedString (NSMutableAttributedStringMarkDownFormatting)
+
 
 @interface SquirrelTheme : NSObject
 
@@ -229,6 +231,7 @@ static NSString *kFullWidthSpace = @"　";
 @property(nonatomic, strong, readonly) NSAttributedString *symbolForwardFill;
 @property(nonatomic, strong, readonly) NSAttributedString *symbolForwardStroke;
 
+@property(nonatomic, strong, readonly) NSString *selectKeys;
 @property(nonatomic, strong, readonly) NSArray<NSString *> *labels;
 @property(nonatomic, strong, readonly) NSArray<NSAttributedString *> *candidateFormats;
 @property(nonatomic, strong, readonly) NSArray<NSAttributedString *> *candidateHighlightedFormats;
@@ -275,7 +278,8 @@ static NSString *kFullWidthSpace = @"　";
      pagingParagraphStyle:(NSParagraphStyle *)pagingParagraphStyle
      statusParagraphStyle:(NSParagraphStyle *)statusParagraphStyle;
 
-- (void)setLabels:(NSArray<NSString *> *)labels;
+- (void)setSelectKeys:(NSString *)selectKeys
+               labels:(NSArray<NSString *> *)labels;
 
 - (void)setCandidateFormat:(NSString *)candidateFormat;
 
@@ -524,7 +528,9 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format, 
   _statusParagraphStyle = statusParagraphStyle;
 }
 
-- (void)setLabels:(NSArray<NSString *> *)labels {
+- (void)setSelectKeys:(NSString *)selectKeys 
+               labels:(NSArray<NSString *> *)labels {
+  _selectKeys = selectKeys;
   _labels = labels;
 }
 
@@ -589,7 +595,8 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format, 
   }
 }
 
-@end
+@end // SquirrelTheme
+
 
 @interface SquirrelLayoutManager : NSLayoutManager <NSLayoutManagerDelegate>
 @end
@@ -621,7 +628,7 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format, 
         matrix.ty = - origin.y - NSMinY(lineRect) - position.y;
         CGContextSetTextMatrix(context, matrix);
         CTRunDraw(run, context, CFRangeMake(0, 0));
-        glyphIndex += CTRunGetGlyphCount(run);
+        glyphIndex += (NSUInteger)CTRunGetGlyphCount(run);
       }
       CGContextRestoreGState(context);
       CFRelease(line);
@@ -665,7 +672,8 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format, 
   return NSMakeRect(glyphPosition.x, 0.0, width, glyphPosition.y);
 }
 
-@end
+@end // SquirrelLayoutManager
+
 
 API_AVAILABLE(macos(12.0))
 @interface SquirrelTextLayoutFragment : NSTextLayoutFragment
@@ -684,7 +692,8 @@ API_AVAILABLE(macos(12.0))
   }
 }
 
-@end
+@end // SquirrelTextLayoutFragment
+
 
 API_AVAILABLE(macos(12.0))
 @interface SquirrelTextLayoutManager : NSTextLayoutManager <NSTextLayoutManagerDelegate>
@@ -698,7 +707,8 @@ API_AVAILABLE(macos(12.0))
   return [[SquirrelTextLayoutFragment alloc] initWithTextElement:textElement range:textElement.elementRange];
 }
 
-@end
+@end // SquirrelTextLayoutManager
+
 
 @interface SquirrelView : NSView
 
@@ -716,7 +726,7 @@ API_AVAILABLE(macos(12.0))
 @property(nonatomic, readonly) NSUInteger pagingButton;
 @property(nonatomic, readonly) CAShapeLayer *shape;
 @property(nonatomic, readonly, strong) SquirrelTheme *currentTheme;
-@property(nonatomic, readonly) BOOL isDark;
+@property(nonatomic, readonly) SquirrelAppear appear;
 
 - (void)drawViewWithInsets:(NSEdgeInsets)insets
            candidateRanges:(NSArray<NSValue *> *)candidateRanges
@@ -744,25 +754,26 @@ SquirrelTheme *_darkTheme;
   return YES;
 }
 
-- (BOOL)isDark {
+- (SquirrelAppear)appear {
   if (@available(macOS 10.14, *)) {
-    if ([NSApp.effectiveAppearance bestMatchFromAppearancesWithNames:@[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]] == NSAppearanceNameDarkAqua) {
-      return YES;
+    if ([NSApp.effectiveAppearance bestMatchFromAppearancesWithNames:
+         @[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]] == NSAppearanceNameDarkAqua) {
+      return darkAppear;
     }
   }
-  return NO;
+  return defaultAppear;
 }
 
 - (BOOL)allowsVibrancy {
   return YES;
 }
 
-- (SquirrelTheme *)selectTheme:(BOOL)isDark {
-  return isDark ? _darkTheme : _defaultTheme;
+- (SquirrelTheme *)selectTheme:(SquirrelAppear)appear {
+  return appear == darkAppear ? _darkTheme : _defaultTheme;
 }
 
 - (SquirrelTheme *)currentTheme {
-  return [self selectTheme:self.isDark];
+  return [self selectTheme:self.appear];
 }
 
 - (instancetype)initWithFrame:(NSRect)frameRect {
@@ -820,8 +831,10 @@ SquirrelTheme *_darkTheme;
     return nil;
   } else {
     NSTextContentStorage *contentStorage = _textView.textContentStorage;
-    id<NSTextLocation> startLocation = [contentStorage locationFromLocation:contentStorage.documentRange.location withOffset:charRange.location];
-    id<NSTextLocation> endLocation = [contentStorage locationFromLocation:startLocation withOffset:charRange.length];
+    id<NSTextLocation> startLocation = [contentStorage locationFromLocation:contentStorage.documentRange.location
+                                                                 withOffset:(NSInteger)charRange.location];
+    id<NSTextLocation> endLocation = [contentStorage locationFromLocation:startLocation
+                                                               withOffset:(NSInteger)charRange.length];
     return [[NSTextRange alloc] initWithLocation:startLocation endLocation:endLocation];
   }
 }
@@ -1085,21 +1098,21 @@ static NSArray<NSValue *> * multilineRectVertex(NSRect leadingRect, NSRect bodyR
   }
 }
 
-static inline NSColor * hooverColor(NSColor *color, BOOL darkTheme) {
+static inline NSColor * hooverColor(NSColor *color, SquirrelAppear appear) {
   if (@available(macOS 10.14, *)) {
     return [color colorWithSystemEffect:NSColorSystemEffectRollover];
   }
-  if (darkTheme) {
+  if (appear == darkAppear) {
     return [color highlightWithLevel:0.3];
   } else {
     return [color shadowWithLevel:0.3];
   }
 }
-static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
+static inline NSColor * disabledColor(NSColor *color, SquirrelAppear appear) {
   if (@available(macOS 10.14, *)) {
     return [color colorWithSystemEffect:NSColorSystemEffectDisabled];
   }
-  if (darkTheme) {
+  if (appear == darkAppear) {
     return [color shadowWithLevel:0.3];
   } else {
     return [color highlightWithLevel:0.3];
@@ -1404,7 +1417,7 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
   }
   if (@available(macOS 10.14, *)) {
     if (theme.translucency > 0) {
-      panelLayer.opacity = 1.0 - theme.translucency;
+      panelLayer.opacity = (float)(1.0 - theme.translucency);
     }
   }
   if (_highlightedIndex < _candidatePaths.count && theme.highlightedStripColor) {
@@ -1424,19 +1437,19 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
     switch (_pagingButton) {
       case NSPageUpFunctionKey:
         pagingLayer.path = [pageUpPath quartzPath];
-        pagingLayer.fillColor = [hooverColor(buttonColor, self.isDark) CGColor];
+        pagingLayer.fillColor = [hooverColor(buttonColor, self.appear == darkAppear) CGColor];
         break;
       case NSBeginFunctionKey:
         pagingLayer.path = [pageUpPath quartzPath];
-        pagingLayer.fillColor = [disabledColor(buttonColor, self.isDark) CGColor];
+        pagingLayer.fillColor = [disabledColor(buttonColor, self.appear == darkAppear) CGColor];
         break;
       case NSPageDownFunctionKey:
         pagingLayer.path = [pageDownPath quartzPath];
-        pagingLayer.fillColor = [hooverColor(buttonColor, self.isDark) CGColor];
+        pagingLayer.fillColor = [hooverColor(buttonColor, self.appear == darkAppear) CGColor];
         break;
       case NSEndFunctionKey:
         pagingLayer.path = [pageDownPath quartzPath];
-        pagingLayer.fillColor = [disabledColor(buttonColor, self.isDark) CGColor];
+        pagingLayer.fillColor = [disabledColor(buttonColor, self.appear == darkAppear) CGColor];
         break;
     }
     pagingLayer.mask = textContainerLayer;
@@ -1454,13 +1467,15 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
   if (theme.tabled) {
     CAShapeLayer *horzGridLayer = [[CAShapeLayer alloc] init];
     horzGridLayer.path = [candidateHorzGridPath quartzPath];
-    horzGridLayer.strokeColor = [[theme.backgroundColor blendedColorWithFraction:kBlendedBackgroundColorFraction ofColor:(self.isDark ? [NSColor lightGrayColor] : [NSColor blackColor])] CGColor];
+    horzGridLayer.strokeColor = [[theme.backgroundColor blendedColorWithFraction:kBlendedBackgroundColorFraction
+                                  ofColor:(self.appear == darkAppear ? [NSColor lightGrayColor] : [NSColor blackColor])] CGColor];
     horzGridLayer.lineWidth = theme.edgeInset.height / 2;
     horzGridLayer.lineCap = kCALineCapRound;
     [panelLayer addSublayer:horzGridLayer];
     CAShapeLayer *vertGridLayer = [[CAShapeLayer alloc] init];
     vertGridLayer.path = [candidateVertGridPath quartzPath];
-    vertGridLayer.strokeColor = [[theme.backgroundColor blendedColorWithFraction:kBlendedBackgroundColorFraction ofColor:(self.isDark ? [NSColor lightGrayColor] : [NSColor blackColor])] CGColor];
+    vertGridLayer.strokeColor = [[theme.backgroundColor blendedColorWithFraction:kBlendedBackgroundColorFraction 
+                                  ofColor:(self.appear == darkAppear ? [NSColor lightGrayColor] : [NSColor blackColor])] CGColor];
     vertGridLayer.lineWidth = theme.edgeInset.width / 2;
     vertGridLayer.lineCap = kCALineCapRound;
     [panelLayer addSublayer:vertGridLayer];
@@ -1497,7 +1512,8 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
   return NO;
 }
 
-@end
+@end // SquirrelView
+
 
 @implementation SquirrelPanel {
   SquirrelView *_view;
@@ -1507,17 +1523,12 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
   NSSize _maxSize;
   CGFloat _textWidthLimit;
 
-  NSString *_preedit;
-  NSRange _selRange;
-  NSUInteger _caretPos;
-  NSArray<NSString *> *_candidates;
-  NSArray<NSString *> *_comments;
+  NSUInteger _numCandidates;
   NSUInteger _index;
-  NSUInteger _pageNum;
   NSUInteger _turnPage;
+  BOOL _firstPage;
   BOOL _lastPage;
 
-  BOOL _mouseDown;
   NSPoint _scrollLocus;
   BOOL _initPosition;
 
@@ -1564,8 +1575,8 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
   }
 }
 
-- (void)initializeUIStyleForDarkMode:(BOOL)isDark {
-  SquirrelTheme *theme = [_view selectTheme:isDark];
+- (void)initializeUIStyleForAppearance:(SquirrelAppear)appear {
+  SquirrelTheme *theme = [_view selectTheme:appear];
 
   NSColor *secondaryTextColor = [SquirrelPanel secondaryTextColor];
   NSColor *accentColor = [SquirrelPanel accentColor];
@@ -1662,7 +1673,8 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
       pagingParagraphStyle:pagingParagraphStyle
       statusParagraphStyle:statusParagraphStyle];
 
-  [theme setLabels:@[@"１", @"２", @"３", @"４", @"５", @"６", @"７", @"８", @"９", @"０"]];
+  [theme setSelectKeys:@"12345"
+                labels:@[@"１", @"２", @"３", @"４", @"５"]];
   [theme setCandidateFormat:kDefaultCandidateFormat];
 }
 
@@ -1695,9 +1707,9 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
     [contentView addSubview:_view.textView];
 
     self.contentView = contentView;
-    [self initializeUIStyleForDarkMode:NO];
+    [self initializeUIStyleForAppearance:defaultAppear];
     if (@available(macOS 10.14, *)) {
-      [self initializeUIStyleForDarkMode:YES];
+      [self initializeUIStyleForAppearance:darkAppear];
     }
     _maxSize = NSZeroSize;
     _initPosition = YES;
@@ -1706,72 +1718,59 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
 }
 
 - (void)sendEvent:(NSEvent *)event {
+  NSPoint spot = [_view convertPoint:self.mouseLocationOutsideOfEventStream
+                            fromView:nil];
+  NSUInteger cursorIndex = NSNotFound;
   switch (event.type) {
-    case NSEventTypeLeftMouseDown:
-    case NSEventTypeRightMouseDown: {
-      NSPoint spot = [_view convertPoint:self.mouseLocationOutsideOfEventStream
-                                fromView:nil];
-      NSUInteger cursorIndex = NSNotFound;
+    case NSEventTypeLeftMouseUp:
+      if (event.clickCount == 1 && [_view convertClickSpot:spot toIndex:&cursorIndex]) {
+        if (cursorIndex == _index) {
+          rimeIndex indexChar = [_view.currentTheme.selectKeys characterAtIndex:cursorIndex];
+          [_inputController perform:kSELECT onIndex:indexChar];
+        } else if (cursorIndex == _turnPage) {
+          rimeIndex indexChar = cursorIndex == NSPageUpFunctionKey ? kPageUp :
+                                (cursorIndex == NSPageDownFunctionKey ? kPageDown : kVoidSymbol);
+          [_inputController perform:kSELECT onIndex:indexChar];
+        }
+      }
+      break;
+    case NSEventTypeRightMouseUp:
+      if (event.clickCount == 1 && [_view convertClickSpot:spot toIndex:&cursorIndex]) {
+        if (cursorIndex == _index) {
+          [_inputController perform:kDELETE onIndex:(rimeIndex)cursorIndex];
+        }
+      }
+      break;
+    case NSEventTypeMouseMoved:
       if ([_view convertClickSpot:spot toIndex:&cursorIndex]) {
-        if ((cursorIndex >= 0 && cursorIndex < _candidates.count) ||
-            cursorIndex == NSPageUpFunctionKey || cursorIndex == NSPageDownFunctionKey) {
+        if (cursorIndex >= 0 && cursorIndex < _numCandidates && _index != cursorIndex) {
           _index = cursorIndex;
-          _mouseDown = YES;
-        }
-      }
-    } break;
-    case NSEventTypeLeftMouseUp: {
-      NSPoint spot = [_view convertPoint:self.mouseLocationOutsideOfEventStream
-                                fromView:nil];
-      NSUInteger cursorIndex = NSNotFound;
-      if (_mouseDown && [_view convertClickSpot:spot toIndex:&cursorIndex]) {
-        if (cursorIndex == _index || cursorIndex == _turnPage) {
-          [_inputController perform:kSELECT onIndex:cursorIndex];
-        }
-      }
-      _mouseDown = NO;
-    } break;
-    case NSEventTypeRightMouseUp: {
-      NSPoint spot = [_view convertPoint:self.mouseLocationOutsideOfEventStream
-                                fromView:nil];
-      NSUInteger cursorIndex = NSNotFound;
-      if (_mouseDown && [_view convertClickSpot:spot toIndex:&cursorIndex]) {
-        if (cursorIndex == _index && (cursorIndex >= 0 && cursorIndex < _candidates.count)) {
-          [_inputController perform:kDELETE onIndex:cursorIndex];
-        }
-      }
-      _mouseDown = NO;
-    } break;
-    case NSEventTypeMouseEntered: {
-      self.acceptsMouseMovedEvents = YES;
-    } break;
-    case NSEventTypeMouseExited: {
-      self.acceptsMouseMovedEvents = NO;
-    } break;
-    case NSEventTypeMouseMoved: {
-      NSPoint spot = [_view convertPoint:self.mouseLocationOutsideOfEventStream
-                                fromView:nil];
-      NSUInteger cursorIndex = NSNotFound;
-      if ([_view convertClickSpot:spot toIndex:&cursorIndex]) {
-        if (cursorIndex >= 0 && cursorIndex < _candidates.count && _index != cursorIndex) {
-          [_inputController perform:kCHOOSE onIndex:cursorIndex];
-          _index = cursorIndex;
-          [self showPreedit:_preedit    selRange:_selRange    caretPos:_caretPos
-                 candidates:_candidates comments:_comments highlighted:cursorIndex
-                    pageNum:_pageNum    lastPage:_lastPage    turnPage:NSNotFound update:NO];
+          rimeIndex indexChar = [_view.currentTheme.selectKeys characterAtIndex:cursorIndex];
+          [_inputController perform:kCHOOSE onIndex:indexChar];
         } else if ((cursorIndex == NSPageUpFunctionKey || cursorIndex == NSPageDownFunctionKey) && _turnPage != cursorIndex) {
           _turnPage = cursorIndex;
-          [self showPreedit:_preedit    selRange:_selRange    caretPos:_caretPos
-                 candidates:_candidates comments:_comments highlighted:_index
-                    pageNum:_pageNum    lastPage:_lastPage    turnPage:cursorIndex update:NO];
+          if (_turnPage == NSPageUpFunctionKey) {
+            [_view.textStorage addAttributes:_view.currentTheme.pagingHighlightedAttrs range:NSMakeRange(_view.pagingRange.location, 1)];
+            cursorIndex = _firstPage ? NSBeginFunctionKey : NSPageUpFunctionKey;
+          } else if (_turnPage == NSPageDownFunctionKey) {
+            [_view.textStorage addAttributes:_view.currentTheme.pagingHighlightedAttrs range:NSMakeRange(NSMaxRange(_view.pagingRange) - 1, 1)];
+            cursorIndex = _lastPage ? NSEndFunctionKey : NSPageDownFunctionKey;
+          }
+          [_view drawViewWithInsets:_view.insets 
+                    candidateRanges:_view.candidateRanges
+                   highlightedIndex:_view.highlightedIndex
+                       preeditRange:_view.preeditRange
+            highlightedPreeditRange:_view.highlightedPreeditRange
+                        pagingRange:_view.pagingRange
+                       pagingButton:cursorIndex];
+          [self show];
         }
       }
-    } break;
-    case NSEventTypeLeftMouseDragged: {
-      _mouseDown = NO;
+      break;
+    case NSEventTypeLeftMouseDragged:
       _maxSize = NSZeroSize; // reset the remember_size references after moving the panel
       [self performWindowDragWithEvent:event];
-    } break;
+      break;
     case NSEventTypeScrollWheel: {
       SquirrelTheme *theme = _view.currentTheme;
       CGFloat scrollThreshold = [theme.attrs[NSParagraphStyleAttributeName] maximumLineHeight] +
@@ -1788,24 +1787,24 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
         }
         // compare accumulated locus length against threshold and limit paging to max once
         if (_scrollLocus.x > scrollThreshold) {
-          [_inputController perform:kSELECT onIndex:(theme.vertical ? NSPageDownFunctionKey : NSPageUpFunctionKey)];
+          [_inputController perform:kSELECT onIndex:(theme.vertical ? kPageDown : kPageUp)];
           _scrollLocus = NSMakePoint(NSNotFound, NSNotFound);
         } else if (_scrollLocus.y > scrollThreshold) {
-          [_inputController perform:kSELECT onIndex:NSPageUpFunctionKey];
+          [_inputController perform:kSELECT onIndex:kPageUp];
           _scrollLocus = NSMakePoint(NSNotFound, NSNotFound);
         } else if (_scrollLocus.x < -scrollThreshold) {
-          [_inputController perform:kSELECT onIndex:(theme.vertical ? NSPageUpFunctionKey : NSPageDownFunctionKey)];
+          [_inputController perform:kSELECT onIndex:(theme.vertical ? kPageUp : kPageDown)];
           _scrollLocus = NSMakePoint(NSNotFound, NSNotFound);
         } else if (_scrollLocus.y < -scrollThreshold) {
-          [_inputController perform:kSELECT onIndex:NSPageDownFunctionKey];
+          [_inputController perform:kSELECT onIndex:kPageDown];
           _scrollLocus = NSMakePoint(NSNotFound, NSNotFound);
         }
       }
     } break;
     default:
+      [super sendEvent:event];
       break;
   }
-  [super sendEvent:event];
 }
 
 - (void)getCurrentScreen {
@@ -1839,7 +1838,7 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
 - (void)show {
   if (@available(macOS 10.14, *)) {
     NSAppearance *requestedAppearance = [NSAppearance appearanceNamed:
-                                         (_view.isDark ? NSAppearanceNameDarkAqua : NSAppearanceNameAqua)];
+                                         (_view.appear == darkAppear ? NSAppearanceNameDarkAqua : NSAppearanceNameAqua)];
     if (self.appearance != requestedAppearance) {
       self.appearance = requestedAppearance;
     }
@@ -1849,7 +1848,6 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
   SquirrelTheme *theme = _view.currentTheme;
   NSTextContainer *textContainer = _view.textView.textContainer;
   NSEdgeInsets insets = _view.insets;
-  CGFloat offsetHeight = MAX(kOffsetHeight, round(MAX(NSWidth(_position), NSHeight(_position)) / 2));
   CGFloat textWidthRatio = MIN(1.0, 1.0 / (theme.vertical ? 4 : 3) + [theme.attrs[NSFontAttributeName] pointSize] / 144.0);
   NSRect screenRect = _screen.visibleFrame;
   CGFloat textHeightLimit = (theme.vertical ? NSWidth(screenRect) : NSHeight(screenRect)) * textWidthRatio - insets.top - insets.bottom;
@@ -1864,8 +1862,8 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
     }
   }
   if (theme.rememberSize) { // remember panel size (fix the top leading anchor of the panel in screen coordiantes)
-    if ((theme.vertical ? (NSMinY(_position) - NSMinY(screenRect) <= NSHeight(screenRect) * textWidthRatio + offsetHeight)
-         : (sweepVertical ? (NSMinX(_position) - NSMinX(screenRect) > NSWidth(screenRect) * textWidthRatio + offsetHeight)
+    if ((theme.vertical ? (NSMinY(_position) - NSMinY(screenRect) <= NSHeight(screenRect) * textWidthRatio + kOffsetHeight)
+         : (sweepVertical ? (NSMinX(_position) - NSMinX(screenRect) > NSWidth(screenRect) * textWidthRatio + kOffsetHeight)
             : (NSMinX(_position) + MAX(NSWidth(maxContentRect), _maxSize.width) + insets.right > NSMaxX(screenRect)))) &&
         theme.lineLength == 0) {
       if (NSWidth(maxContentRect) >= _maxSize.width) {
@@ -1875,8 +1873,8 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
         [textContainer setSize:NSMakeSize(_maxSize.width, textHeightLimit)];
       }
     }
-    if (theme.vertical ? (NSMinX(_position) - NSMinX(screenRect) < MAX(NSHeight(maxContentRect), _maxSize.height) + insets.top + insets.bottom + (sweepVertical ? offsetHeight : 0))
-        : (NSMinY(_position) - NSMinY(screenRect) < MAX(NSHeight(maxContentRect), _maxSize.height) + insets.top + insets.bottom + (sweepVertical ? 0 : offsetHeight))) {
+    if (theme.vertical ? (NSMinX(_position) - NSMinX(screenRect) < MAX(NSHeight(maxContentRect), _maxSize.height) + insets.top + insets.bottom + (sweepVertical ? kOffsetHeight : 0))
+        : (NSMinY(_position) - NSMinY(screenRect) < MAX(NSHeight(maxContentRect), _maxSize.height) + insets.top + insets.bottom + (sweepVertical ? 0 : kOffsetHeight))) {
       if (NSHeight(maxContentRect) >= _maxSize.height) {
         _maxSize.height = NSHeight(maxContentRect);
       } else {
@@ -1885,61 +1883,78 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
     }
   }
 
-  _initPosition |= NSIntersectsRect(self.frame, _position);
   NSRect windowRect;
-  if (theme.vertical) {
-    windowRect = NSMakeRect(NSMaxX(self.frame) - NSHeight(maxContentRect) - insets.top - insets.bottom,
-                            NSMaxY(self.frame) - NSWidth(maxContentRect) - insets.left - insets.right,
-                            NSHeight(maxContentRect) + insets.top + insets.bottom,
-                            NSWidth(maxContentRect) + insets.left + insets.right);
-    _initPosition |= NSIntersectsRect(windowRect, _position);
-    if (_initPosition) {
-      // To avoid jumping up and down while typing, use the lower screen when typing on upper, and vice versa
-      if (NSMinY(_position) - NSMinY(screenRect) > NSHeight(screenRect) * textWidthRatio + offsetHeight) {
-        windowRect.origin.y = NSMinY(_position) + (sweepVertical ? insets.left : -offsetHeight) - NSHeight(windowRect);
-      } else {
-        windowRect.origin.y = NSMaxY(_position) + (sweepVertical ? 0 : offsetHeight);
-      }
-      // Make the right edge of candidate block fixed at the left of cursor
-      windowRect.origin.x = NSMinX(_position) - (sweepVertical ? offsetHeight : 0) - NSWidth(windowRect);
-      if (!sweepVertical && _view.preeditRange.length > 0) {
-        NSRect preeditRect = [_view contentRectForRange:_view.preeditRange];
-        windowRect.origin.x += round(NSHeight(preeditRect) + [theme.preeditAttrs[NSFontAttributeName] descender] + insets.top);
-      }
+  if (_statusMessage != nil) { // following system UI, middle-align status message with cursor
+    _initPosition = YES;
+    if (theme.vertical) {
+      windowRect.size.width = NSHeight(maxContentRect) + insets.top + insets.bottom;
+      windowRect.size.height = NSWidth(maxContentRect) + insets.left + insets.right;
+    } else {
+      windowRect.size.width = NSWidth(maxContentRect) + insets.left + insets.right;
+      windowRect.size.height =NSHeight(maxContentRect) + insets.top + insets.bottom;
+    }
+    if (sweepVertical) { // vertically centre-align (MidY) in screen coordinates
+      windowRect.origin.x = NSMinX(_position) - kOffsetHeight - windowRect.size.width;
+      windowRect.origin.y = NSMidY(_position) - windowRect.size.height / 2;
+    } else { // horizontally centre-align (MidX) in screen coordinates
+      windowRect.origin.x = NSMidX(_position) - windowRect.size.width / 2;
+      windowRect.origin.y = NSMinY(_position) - kOffsetHeight - windowRect.size.height;
     }
   } else {
-    windowRect = NSMakeRect(NSMinX(self.frame),
-                            NSMaxY(self.frame) - NSHeight(maxContentRect) - insets.top - insets.bottom,
-                            NSWidth(maxContentRect) + insets.left + insets.right,
-                            NSHeight(maxContentRect) + insets.top + insets.bottom);
-    _initPosition |= NSIntersectsRect(windowRect, _position);
-    if (_initPosition) {
-      if (sweepVertical) {
-        // To avoid jumping left and right while typing, use the lefter screen when typing on righter, and vice versa
-        if (NSMinX(_position) - NSMinX(screenRect) > NSWidth(screenRect) * textWidthRatio + offsetHeight) {
-          windowRect.origin.x = NSMinX(_position) - offsetHeight - NSWidth(windowRect);
+    if (theme.vertical) { // anchor is the top right corner in screen coordinates (MaxX, MaxY)
+      windowRect = NSMakeRect(NSMaxX(self.frame) - NSHeight(maxContentRect) - insets.top - insets.bottom,
+                              NSMaxY(self.frame) - NSWidth(maxContentRect) - insets.left - insets.right,
+                              NSHeight(maxContentRect) + insets.top + insets.bottom,
+                              NSWidth(maxContentRect) + insets.left + insets.right);
+      _initPosition |= NSIntersectsRect(windowRect, _position);
+      if (_initPosition) {
+        // To avoid jumping up and down while typing, use the lower screen when typing on upper, and vice versa
+        if (NSMinY(_position) - NSMinY(screenRect) > NSHeight(screenRect) * textWidthRatio + kOffsetHeight) {
+          windowRect.origin.y = NSMinY(_position) - (sweepVertical ? 0 : insets.left + kOffsetHeight) - NSWidth(maxContentRect) - insets.right;
         } else {
-          windowRect.origin.x = NSMaxX(_position) + offsetHeight;
+          windowRect.origin.y = NSMaxY(_position) + (sweepVertical ? 0 : kOffsetHeight);
         }
-        windowRect.origin.y = NSMinY(_position) - NSHeight(windowRect);
-      } else {
-        windowRect.origin = NSMakePoint(NSMinX(_position) - insets.left,
-                                        NSMinY(_position) - offsetHeight - NSHeight(windowRect));
+        // Make the right edge of candidate block fixed at the left of cursor
+        windowRect.origin.x = NSMinX(_position) - (sweepVertical ? kOffsetHeight : 0) - NSHeight(maxContentRect) - insets.top - insets.bottom;
+        if (!sweepVertical && _view.preeditRange.length > 0) {
+          NSRect preeditRect = [_view contentRectForRange:_view.preeditRange];
+          windowRect.origin.x += round(NSHeight(preeditRect) + [theme.preeditAttrs[NSFontAttributeName] descender] + insets.top);
+        }
+      }
+    } else { // anchor is the top left corner in screen coordinates (MinX, MaxY)
+      windowRect = NSMakeRect(NSMinX(self.frame),
+                              NSMaxY(self.frame) - NSHeight(maxContentRect) - insets.top - insets.bottom,
+                              NSWidth(maxContentRect) + insets.left + insets.right,
+                              NSHeight(maxContentRect) + insets.top + insets.bottom);
+      _initPosition |= NSIntersectsRect(windowRect, _position);
+      if (_initPosition) {
+        if (sweepVertical) {
+          // To avoid jumping left and right while typing, use the lefter screen when typing on righter, and vice versa
+          if (NSMinX(_position) - NSMinX(screenRect) > NSWidth(screenRect) * textWidthRatio + kOffsetHeight) {
+            windowRect.origin.x = NSMinX(_position) - kOffsetHeight - NSWidth(windowRect);
+          } else {
+            windowRect.origin.x = NSMaxX(_position) + kOffsetHeight;
+          }
+          windowRect.origin.y = NSMinY(_position) - NSHeight(windowRect);
+        } else {
+          windowRect.origin.x = NSMinX(_position) - insets.left;
+          windowRect.origin.y = NSMinY(_position) - kOffsetHeight - NSHeight(windowRect);
+        }
       }
     }
   }
 
   if (NSMaxX(windowRect) > NSMaxX(screenRect)) {
-    windowRect.origin.x = (_initPosition && sweepVertical ? NSMinX(_position) - offsetHeight : NSMaxX(screenRect)) - NSWidth(windowRect);
+    windowRect.origin.x = (_initPosition && sweepVertical ? MIN(NSMinX(_position) - kOffsetHeight, NSMaxX(screenRect)) : NSMaxX(screenRect)) - NSWidth(windowRect);
   }
   if (NSMinX(windowRect) < NSMinX(screenRect)) {
-    windowRect.origin.x = _initPosition && sweepVertical ? NSMaxX(_position) + offsetHeight : NSMinX(screenRect);
+    windowRect.origin.x = _initPosition && sweepVertical ? MAX(NSMaxX(_position) + kOffsetHeight, NSMinX(screenRect)) : NSMinX(screenRect);
   }
   if (NSMinY(windowRect) < NSMinY(screenRect)) {
-    windowRect.origin.y = _initPosition && !sweepVertical ? NSMaxY(_position) + offsetHeight : NSMinY(screenRect);
+    windowRect.origin.y = _initPosition && !sweepVertical ? MAX(NSMaxY(_position) + kOffsetHeight, NSMinY(screenRect)) : NSMinY(screenRect);
   }
   if (NSMaxY(windowRect) > NSMaxY(screenRect)) {
-    windowRect.origin.y = (_initPosition && !sweepVertical ? NSMinY(_position) - offsetHeight : NSMaxY(screenRect)) - NSHeight(windowRect);
+    windowRect.origin.y = (_initPosition && !sweepVertical ? MIN(NSMinY(_position) - kOffsetHeight, NSMaxY(screenRect)) : NSMaxY(screenRect)) - NSHeight(windowRect);
   }
 
   if (theme.vertical) {
@@ -1981,7 +1996,8 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
   }
   [self setAlphaValue:theme.alpha];
   [self orderFront:nil];
-  _initPosition = NO;
+  // reset to initial position after showing status message
+  _initPosition = _statusMessage != nil;
   // voila !
 }
 
@@ -1997,8 +2013,11 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
 
 - (void)setLayoutForRange:(NSRange)charRange {
   BOOL verticalLayout = _view.currentTheme.vertical;
-  NSFont *refFont = [_view.textStorage attribute:CFBridgingRelease(kCTBaselineReferenceInfoAttributeName) atIndex:charRange.location effectiveRange:NULL][CFBridgingRelease(kCTBaselineReferenceFont)];
-  NSParagraphStyle *style = [_view.textStorage attribute:NSParagraphStyleAttributeName atIndex:charRange.location effectiveRange:NULL];
+  NSFont *refFont = [_view.textStorage attribute:CFBridgingRelease(kCTBaselineReferenceInfoAttributeName)
+                                         atIndex:charRange.location
+                                  effectiveRange:NULL][CFBridgingRelease(kCTBaselineReferenceFont)];
+  NSParagraphStyle *style = [_view.textStorage attribute:NSParagraphStyleAttributeName
+                                                 atIndex:charRange.location effectiveRange:NULL];
   CGFloat refFontHeight = refFont.ascender - refFont.descender;
   CGFloat lineHeight = MAX(style.lineHeightMultiple > 0 ? refFontHeight * style.lineHeightMultiple : refFontHeight,
                            style.minimumLineHeight);
@@ -2131,23 +2150,14 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
            comments:(NSArray<NSString *> *)comments
         highlighted:(NSUInteger)index
             pageNum:(NSUInteger)pageNum
-           lastPage:(BOOL)lastPage
-           turnPage:(NSUInteger)turnPage
-             update:(BOOL)update {
-  if (update) {
-    _preedit = preedit;
-    _selRange = selRange;
-    _caretPos = caretPos;
-    _candidates = candidates;
-    _comments = comments;
-    _index = index;
-    _pageNum = pageNum;
-    _lastPage = lastPage;
-  }
-
+           lastPage:(BOOL)lastPage {
   [self getTextWidthLimit];
-  NSUInteger numCandidates = candidates.count;
-  if (numCandidates > 0 || (preedit && preedit.length)) {
+  _numCandidates = candidates.count;
+  _index = _numCandidates == 0 ? NSNotFound : index;
+  _firstPage = pageNum == 0;
+  _lastPage = lastPage;
+  _turnPage = NSNotFound;
+  if (_numCandidates > 0 || (preedit && preedit.length)) {
     _statusMessage = nil;
     if (_statusTimer) {
       [_statusTimer invalidate];
@@ -2163,16 +2173,6 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
     return;
   }
 
-  if (numCandidates == 0) {
-    _index = index = NSNotFound;
-  }
-  _turnPage = turnPage;
-  if (_turnPage == NSPageUpFunctionKey) {
-    turnPage = pageNum ? NSPageUpFunctionKey : NSBeginFunctionKey;
-  } else if (_turnPage == NSPageDownFunctionKey) {
-    turnPage = lastPage ? NSEndFunctionKey : NSPageDownFunctionKey;
-  }
-
   SquirrelTheme *theme = _view.currentTheme;
   _view.textView.layoutOrientation = theme.vertical ?
     NSTextLayoutOrientationVertical : NSTextLayoutOrientationHorizontal;
@@ -2184,7 +2184,7 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
   [text setAttributedString:[[NSMutableAttributedString alloc] init]];
   NSRange preeditRange = NSMakeRange(NSNotFound, 0);
   NSRange highlightedPreeditRange = NSMakeRange(NSNotFound, 0);
-  NSMutableArray<NSValue *> *candidateRanges = [[NSMutableArray alloc] initWithCapacity:numCandidates];
+  NSMutableArray<NSValue *> *candidateRanges = [[NSMutableArray alloc] initWithCapacity:_numCandidates];
   NSRange pagingRange = NSMakeRange(NSNotFound, 0);
   NSMutableParagraphStyle *paragraphStyleCandidate;
 
@@ -2211,13 +2211,13 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
     }
     // force caret to be rendered horizontally in vertical layout
     if (caretPos != NSNotFound) {
-      [preeditLine addAttributes:@{NSVerticalGlyphFormAttributeName: @NO}
-                           range:NSMakeRange(caretPos - (caretPos < NSMaxRange(selRange)), 1)];
+      [preeditLine addAttribute:NSVerticalGlyphFormAttributeName value:@NO
+                          range:NSMakeRange(caretPos - (caretPos < NSMaxRange(selRange)), 1)];
     }
     preeditRange = NSMakeRange(0, preeditLine.length);
     [text appendAttributedString:preeditLine];
 
-    if (numCandidates > 0) {
+    if (_numCandidates > 0) {
       [text appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n" attributes:theme.preeditAttrs]];
     } else {
       goto typesetter;
@@ -2231,7 +2231,7 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
     paragraphStyleCandidate = [theme.paragraphStyle copy];
   }
   CGFloat tabInterval = theme.separatorWidth * 2;
-  for (NSUInteger idx = 0; idx < numCandidates; ++idx) {
+  for (NSUInteger idx = 0; idx < _numCandidates; ++idx) {
     // attributed labels are already included in candidateFormats
     NSMutableAttributedString *item = (idx == index) ? [theme.candidateHighlightedFormats[idx] mutableCopy] : [theme.candidateFormats[idx] mutableCopy];
     NSRange candidateRange = [item.string rangeOfString:@"%@"];
@@ -2278,7 +2278,7 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
       NSMutableAttributedString *separator = [theme.separator mutableCopy];
       if (theme.tabled) { // fill gaps to make cells 2^n tabs wide
         CGFloat widthInTabs = (ceil([text attributedSubstringFromRange:candidateRanges.lastObject.rangeValue].size.width) + theme.separatorWidth) / tabInterval;
-        NSUInteger numPaddingTabs = ceil(widthInTabs / 2) * 2 - ceil(widthInTabs);
+        NSUInteger numPaddingTabs = (NSUInteger)(ceil(widthInTabs / 2) * 2 - ceil(widthInTabs));
         [separator replaceCharactersInRange:NSMakeRange(2, 0) withString:[@"\t" stringByPaddingToLength:numPaddingTabs withString:@"\t" startingAtIndex:0]];
       }
       [text appendAttributedString:separator];
@@ -2293,7 +2293,7 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
     }
     // for linear layout, middle-truncate candidates that are longer than one line
     if (theme.linear && ceil(item.size.width + theme.separatorWidth) > _textWidthLimit) {
-      if (idx < numCandidates - 1 || theme.showPaging) {
+      if (idx < _numCandidates - 1 || theme.showPaging) {
         [text appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n" attributes:theme.commentAttrs]];
       }
       NSMutableParagraphStyle *paragraphStyleTruncating = [paragraphStyleCandidate mutableCopy];
@@ -2314,11 +2314,6 @@ static inline NSColor * disabledColor(NSColor *color, BOOL darkTheme) {
                                     initWithString:[NSString stringWithFormat:@" %lu ", pageNum + 1] attributes:theme.pagingAttrs]];
     [paging appendAttributedString:[[NSAttributedString alloc]
                                     initWithAttributedString:(lastPage ? theme.symbolForwardStroke : theme.symbolForwardFill)]];
-    if (_turnPage == NSPageUpFunctionKey) {
-      [paging addAttributes:theme.pagingHighlightedAttrs range:NSMakeRange(0, 1)];
-    } else if (_turnPage == NSPageDownFunctionKey) {
-      [paging addAttributes:theme.pagingHighlightedAttrs range:NSMakeRange(paging.length - 1, 1)];
-    }
 
     [text appendAttributedString:theme.separator];
     NSUInteger pagingStart = text.length;
@@ -2370,7 +2365,7 @@ typesetter:
     [self setLayoutForRange:preeditRange];
     insets.top = theme.edgeInset.height;
   }
-  if (numCandidates > 0) {
+  if (_numCandidates > 0) {
     NSRange candidateBlockRange = NSMakeRange(candidateBlockStart, (!theme.linear && pagingRange.length > 0 ? pagingRange.location : text.length) - candidateBlockStart);
     [self setLayoutForRange:candidateBlockRange];
     if (!theme.linear && pagingRange.length > 0) {
@@ -2390,7 +2385,7 @@ typesetter:
                preeditRange:preeditRange
     highlightedPreeditRange:highlightedPreeditRange
                 pagingRange:pagingRange
-               pagingButton:turnPage];
+               pagingButton:_turnPage];
   [self show];
 }
 
@@ -2570,57 +2565,60 @@ static void updateTextOrientation(BOOL *isVerticalText, SquirrelConfig *config, 
 }
 
 - (void)setAnnotationHeight:(CGFloat)height {
-  [[_view selectTheme:NO] setAnnotationHeight:height];
-  [[_view selectTheme:YES] setAnnotationHeight:height];
+  [[_view selectTheme:defaultAppear] setAnnotationHeight:height];
+  if (@available(macOS 10.14, *)) {
+    [[_view selectTheme:darkAppear] setAnnotationHeight:height];
+  }
 }
 
 - (void)loadLabelConfig:(SquirrelConfig *)config {
-  SquirrelTheme *theme = [_view selectTheme:NO];
+  SquirrelTheme *theme = [_view selectTheme:defaultAppear];
   [SquirrelPanel updateTheme:theme withLabelConfig:config];
   if (@available(macOS 10.14, *)) {
-    SquirrelTheme *darkTheme = [_view selectTheme:YES];
+    SquirrelTheme *darkTheme = [_view selectTheme:darkAppear];
     [SquirrelPanel updateTheme:darkTheme withLabelConfig:config];
   }
 }
 
 + (void)updateTheme:(SquirrelTheme *)theme
     withLabelConfig:(SquirrelConfig *)config {
-  int menuSize = [config getInt:@"menu/page_size"] ? : 5;
+  NSUInteger menuSize = (NSUInteger)[config getInt:@"menu/page_size"] ? : 5;
   NSMutableArray<NSString *> *labels = [[NSMutableArray alloc] initWithCapacity:menuSize];
   NSString *selectKeys = [config getString:@"menu/alternative_select_keys"];
   if (selectKeys) {
     NSString *keyCaps = [[selectKeys uppercaseString]
                          stringByApplyingTransform:NSStringTransformFullwidthToHalfwidth reverse:YES];
-    for (int i = 0; i < menuSize; ++i) {
+    for (NSUInteger i = 0; i < menuSize; ++i) {
       labels[i] = [keyCaps substringWithRange:NSMakeRange(i, 1)];
     }
   } else {
+    selectKeys = [@"1234567890" substringToIndex:menuSize];
     NSArray<NSString *> *selectLabels = [config getList:@"menu/alternative_select_labels"];
     if (selectLabels) {
-      for (int i = 0; i < menuSize; ++i) {
+      for (NSUInteger i = 0; i < menuSize; ++i) {
         labels[i] = selectLabels[i];
       }
     } else {
-      NSString *numerals = @"１２３４５６７８９０";
-      for (int i = 0; i < menuSize; ++i) {
+      NSString *numerals = [selectKeys stringByApplyingTransform:NSStringTransformFullwidthToHalfwidth reverse:YES];
+      for (NSUInteger i = 0; i < menuSize; ++i) {
         labels[i] = [numerals substringWithRange:NSMakeRange(i, 1)];
       }
     }
   }
-  [theme setLabels:labels];
+  [theme setSelectKeys:selectKeys labels:labels];
 }
 
 - (void)loadConfig:(SquirrelConfig *)config
-       forDarkMode:(BOOL)isDark {
-  SquirrelTheme *theme = [_view selectTheme:isDark];
+       forAppearance:(SquirrelAppear)appear {
+  SquirrelTheme *theme = [_view selectTheme:appear];
   NSSet<NSString *> *styleOptions = [NSSet setWithArray:self.optionSwitcher.optionStates];
-  [SquirrelPanel updateTheme:theme withConfig:config styleOptions:styleOptions forDarkMode:isDark];
+  [SquirrelPanel updateTheme:theme withConfig:config styleOptions:styleOptions forAppearance:appear];
 }
 
 + (void)updateTheme:(SquirrelTheme *)theme
          withConfig:(SquirrelConfig *)config
        styleOptions:(NSSet<NSString *> *)styleOptions
-        forDarkMode:(BOOL)isDark {
+      forAppearance:(SquirrelAppear)appear {
   // INTERFACE
   BOOL linear = NO;
   BOOL tabled = NO;
@@ -2667,7 +2665,7 @@ static void updateTextOrientation(BOOL *isVerticalText, SquirrelConfig *config, 
   NSColor *highlightedCommentTextColor;
 
   NSString *colorScheme;
-  if (isDark) {
+  if (appear == darkAppear) {
     for (NSString *option in styleOptions) {
       if ((colorScheme = [config getString:[NSString stringWithFormat:@"style/%@/color_scheme_dark", option]])) break;
     }
@@ -2756,7 +2754,7 @@ static void updateTextOrientation(BOOL *isVerticalText, SquirrelConfig *config, 
   NSFont *labelFont = labelFontDescriptor ? [NSFont fontWithDescriptor:labelFontDescriptor size:MAX(labelFontSize.doubleValue, 0)]
     : [NSFont monospacedDigitSystemFontOfSize:MAX(labelFontSize.doubleValue, 0) weight:NSFontWeightRegular];
   NSString *labelString = [theme.labels componentsJoinedByString:@""];
-  labelFont = CFBridgingRelease(CTFontCreateForString((CTFontRef)labelFont, (CFStringRef)labelString, CFRangeMake(0, labelString.length)));
+  labelFont = CFBridgingRelease(CTFontCreateForString((CTFontRef)labelFont, (CFStringRef)labelString, CFRangeMake(0, (int)labelString.length)));
 
   NSFontDescriptor *commentFontDescriptor = getFontDescriptor(commentFontName);
   NSFont *commentFont = [NSFont fontWithDescriptor:(commentFontDescriptor ? : fontDescriptor)
@@ -2861,9 +2859,7 @@ static void updateTextOrientation(BOOL *isVerticalText, SquirrelConfig *config, 
   NSColor *secondaryTextColor = [SquirrelPanel secondaryTextColor];
   NSColor *accentColor = [SquirrelPanel accentColor];
   if (@available(macOS 10.14, *)) {
-    if (theme.translucency > 0 &&
-        ((backgroundColor.brightnessComponent >= 0.5 && isDark) ||
-         (backgroundColor.brightnessComponent < 0.5 && !isDark))) {
+    if (theme.translucency > 0 && ABS(backgroundColor.brightnessComponent - (appear == darkAppear)) <= 0.4) {
       backgroundColor = inverseColor(backgroundColor);
       borderColor = inverseColor(borderColor);
       preeditBackgroundColor = inverseColor(preeditBackgroundColor);
@@ -2917,7 +2913,7 @@ static void updateTextOrientation(BOOL *isVerticalText, SquirrelConfig *config, 
          preeditLinespace:MAX(spacing.doubleValue, 0)
                     alpha:(alpha ? MIN(MAX(alpha.doubleValue, 0.0), 1.0) : 1.0)
              translucency:(translucency ? MIN(MAX(translucency.doubleValue, 0.0), 1.0) : 0.0)
-               lineLength:lineLength.doubleValue ? MAX(lineLength.doubleValue, separatorWidth * 5) : 0.0
+               lineLength:lineLength.doubleValue > 0 ? MAX(lineLength.doubleValue, separatorWidth * 5) : 0.0
                showPaging:showPaging.boolValue
              rememberSize:rememberSize.boolValue
                    tabled:tabled
@@ -2954,4 +2950,4 @@ static void updateTextOrientation(BOOL *isVerticalText, SquirrelConfig *config, 
   [theme setStatusMessageType:statusMessageType];
 }
 
-@end
+@end // SquirrelPanel
