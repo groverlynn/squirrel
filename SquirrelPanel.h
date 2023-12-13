@@ -45,6 +45,7 @@ typedef enum {
 - (void)loadConfig:(SquirrelConfig *)config
      forAppearance:(SquirrelAppear)appear;
 
-- (void)loadLabelConfig:(SquirrelConfig *)config;
+- (void)loadLabelConfig:(SquirrelConfig *)config
+           directUpdate:(BOOL)update;
 
 @end

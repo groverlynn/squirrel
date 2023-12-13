@@ -294,19 +294,6 @@ const int N_KEY_ROLL_OVER = 50;
   if (keyboardLayout) {
     [sender overrideKeyboardWithKeyboardNamed:keyboardLayout];
   }
-  
-  if (!_session || !RimeFindSession(_session)) {
-    [self createSession];
-  }
-  NSString *app = [sender bundleIdentifier];
-  if (![_currentApp isEqualToString:app]) {
-    _currentApp = [app copy];
-    [self updateAppOptions];
-  }
-
-  SquirrelPanel *panel = NSApp.squirrelAppDelegate.panel;
-  panel.inputController = self;
-  panel.level = self.client.windowLevel + 1;
   [super activateServer:sender];
 }
 
@@ -455,8 +442,13 @@ const int N_KEY_ROLL_OVER = 50;
     [_preeditString addAttributes:attrs range:convertedRange];
   }
   if (range.location < pos) {
-    attrs = [self markForStyle:kTSMHiliteSelectedRawText atRange:range];
+    attrs = [self markForStyle:kTSMHiliteSelectedConvertedText atRange:range];
     [_preeditString addAttributes:attrs range:range];
+  }
+  if (NSMaxRange(range) < preedit.length) {
+    NSRange rawRange = NSMakeRange(NSMaxRange(range), preedit.length - NSMaxRange(range));
+    attrs = [self markForStyle:kTSMHiliteSelectedRawText atRange:rawRange];
+    [_preeditString addAttributes:attrs range:rawRange];
   }
   [self updateComposition];
 }
@@ -499,6 +491,7 @@ const int N_KEY_ROLL_OVER = 50;
     }
   }
   panel.position = inputPos;
+  panel.inputController = self;
   [panel showPreedit:preedit
             selRange:selRange
             caretPos:caretPos
@@ -611,9 +604,10 @@ const int N_KEY_ROLL_OVER = 50;
   RIME_STRUCT(RimeStatus, status);
   if (rime_get_api()->get_status(_session, &status)) {
     // enable schema specific ui style
-    if ((!_schemaId || strcmp(_schemaId.UTF8String, status.schema_id))) {
+    if (!_schemaId || strcmp(_schemaId.UTF8String, status.schema_id)) {
       _schemaId = @(status.schema_id);
-      if (!(_showingSwitcherMenu = RimeGetOption(_session, "dumb"))) {
+      _showingSwitcherMenu = RimeGetOption(_session, "dumb");
+      if (!_showingSwitcherMenu) {
         [self updateStyleOptions];
         [NSApp.squirrelAppDelegate loadSchemaSpecificLabels:_schemaId];
         [NSApp.squirrelAppDelegate loadSchemaSpecificSettings:_schemaId];
@@ -625,6 +619,8 @@ const int N_KEY_ROLL_OVER = 50;
                             !rime_get_api()->get_option(_session, "no_inline"));
         // if not inline, embed soft cursor in preedit string
         rime_get_api()->set_option(_session, "soft_cursor", !_inlinePreedit);
+      } else {
+        [NSApp.squirrelAppDelegate loadSchemaSpecificLabels:@""];
       }
     }
     rime_get_api()->free_status(&status);
@@ -650,7 +646,7 @@ const int N_KEY_ROLL_OVER = 50;
         }
         [self showPreeditString:candidatePreviewText
                        selRange:NSMakeRange(start, candidatePreviewText.length - (length - end) - start)
-                       caretPos:caretPos <= start ? caretPos - 1 : candidatePreviewText.length - (length - caretPos)];
+                       caretPos:caretPos <= start ? caretPos : candidatePreviewText.length - (length - caretPos)];
       } else {
         if ((end < caretPos) && (caretPos > start)) {
           candidatePreviewText = [candidatePreviewText substringWithRange:
@@ -661,7 +657,7 @@ const int N_KEY_ROLL_OVER = 50;
         }
         [self showPreeditString:candidatePreviewText
                        selRange:NSMakeRange(start - (caretPos < end), candidatePreviewText.length - start + (caretPos < end))
-                       caretPos:caretPos == 0 ? 0 : (caretPos < end ? caretPos - 1 : candidatePreviewText.length)];
+                       caretPos:(caretPos < end ? caretPos : candidatePreviewText.length)];
       }
     } else {
       if (_inlinePreedit && !_showingSwitcherMenu) {
