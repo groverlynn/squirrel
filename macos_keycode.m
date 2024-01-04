@@ -1,144 +1,227 @@
 
 #import "macos_keycode.h"
 #import <rime/key_table.h>
+#import <Carbon/Carbon.h>
 
-
-int osx_modifiers_to_rime_modifiers(unsigned long modifiers) {
+int get_rime_modifiers(NSEventModifierFlags modifiers) {
   int ret = 0;
-  
-  if (modifiers & OSX_CAPITAL_MASK)
+
+  if (modifiers & NSEventModifierFlagCapsLock)
     ret |= kLockMask;
-  if (modifiers & OSX_SHIFT_MASK)
+  if (modifiers & NSEventModifierFlagShift)
     ret |= kShiftMask;
-  if (modifiers & OSX_CTRL_MASK)
+  if (modifiers & NSEventModifierFlagControl)
     ret |= kControlMask;
-  if (modifiers & OSX_ALT_MASK)
+  if (modifiers & NSEventModifierFlagOption)
     ret |= kAltMask;
-  if (modifiers & OSX_COMMAND_MASK)
+  if (modifiers & NSEventModifierFlagCommand)
     ret |= kSuperMask;
-  if (modifiers & OSX_FN_MASK)
+  if (modifiers & NSEventModifierFlagFunction)
     ret |= kHyperMask;
   
   return ret;
 }
 
-static struct keycode_mapping_t {
-  int osx_keycode, rime_keycode;
-} keycode_mappings[] = {
-  // modifiers
-  { OSX_VK_CAPSLOCK,          XK_Caps_Lock    },
-  { OSX_VK_COMMAND_L,         XK_Super_L      }, // XK_Meta_L?
-  { OSX_VK_COMMAND_R,         XK_Super_R      }, // XK_Meta_R?
-  { OSX_VK_CONTROL_L,         XK_Control_L    },
-  { OSX_VK_CONTROL_R,         XK_Control_R    },
-  { OSX_VK_FN,                XK_Hyper_L      },
-  { OSX_VK_OPTION_L,          XK_Alt_L        },
-  { OSX_VK_OPTION_R,          XK_Alt_R        },
-  { OSX_VK_SHIFT_L,           XK_Shift_L      },
-  { OSX_VK_SHIFT_R,           XK_Shift_R      },
-
-  // special
-  { OSX_VK_DELETE,            XK_BackSpace    },
-  { OSX_VK_ENTER,             XK_KP_Enter     },
-  //OSX_VK_ENTER_POWERBOOK -> ?
-  { OSX_VK_ESCAPE,            XK_Escape       },
-  { OSX_VK_FORWARD_DELETE,    XK_Delete       },
-  //{OSX_VK_HELP, XK_Help}, // the same keycode as OSX_VK_PC_INSERT
-  { OSX_VK_RETURN,            XK_Return       },
-  { OSX_VK_SPACE,             XK_space        },
-  { OSX_VK_TAB,               XK_Tab          },
-
-  // function
-  { OSX_VK_F1,                XK_F1           },
-  { OSX_VK_F2,                XK_F2           },
-  { OSX_VK_F3,                XK_F3           },
-  { OSX_VK_F4,                XK_F4           },
-  { OSX_VK_F5,                XK_F5           },
-  { OSX_VK_F6,                XK_F6           },
-  { OSX_VK_F7,                XK_F7           },
-  { OSX_VK_F8,                XK_F8           },
-  { OSX_VK_F9,                XK_F9           },
-  { OSX_VK_F10,               XK_F10          },
-  { OSX_VK_F11,               XK_F11          },
-  { OSX_VK_F12,               XK_F12          },
-  { OSX_VK_F13,               XK_F13          },
-  { OSX_VK_F14,               XK_F14          },
-  { OSX_VK_F15,               XK_F15          },
-  { OSX_VK_F16,               XK_F16          },
-  { OSX_VK_F17,               XK_F17          },
-  { OSX_VK_F18,               XK_F18          },
-  { OSX_VK_F19,               XK_F19          },
-
-  // cursor
-  { OSX_VK_CURSOR_UP,         XK_Up           },
-  { OSX_VK_CURSOR_DOWN,       XK_Down         },
-  { OSX_VK_CURSOR_LEFT,       XK_Left         },
-  { OSX_VK_CURSOR_RIGHT,      XK_Right        },
-  { OSX_VK_PAGEUP,            XK_Page_Up      },
-  { OSX_VK_PAGEDOWN,          XK_Page_Down    },
-  { OSX_VK_HOME,              XK_Home         },
-  { OSX_VK_END,               XK_End          },
-
-  // keypad
-  {OSX_VK_KEYPAD_0, XK_KP_0},
-  {OSX_VK_KEYPAD_1, XK_KP_1},
-  {OSX_VK_KEYPAD_2, XK_KP_2},
-  {OSX_VK_KEYPAD_3, XK_KP_3},
-  {OSX_VK_KEYPAD_4, XK_KP_4},
-  {OSX_VK_KEYPAD_5, XK_KP_5},
-  {OSX_VK_KEYPAD_6, XK_KP_6},
-  {OSX_VK_KEYPAD_7, XK_KP_7},
-  {OSX_VK_KEYPAD_8, XK_KP_8},
-  {OSX_VK_KEYPAD_9, XK_KP_9},
-  {OSX_VK_KEYPAD_CLEAR, XK_Clear},
-  {OSX_VK_KEYPAD_COMMA, XK_KP_Separator},
-  {OSX_VK_KEYPAD_DOT, XK_KP_Decimal},
-  {OSX_VK_KEYPAD_EQUAL, XK_KP_Equal},
-  {OSX_VK_KEYPAD_MINUS, XK_KP_Subtract},
-  {OSX_VK_KEYPAD_MULTIPLY, XK_KP_Multiply},
-  {OSX_VK_KEYPAD_PLUS, XK_KP_Add},
-  {OSX_VK_KEYPAD_SLASH, XK_KP_Divide},
-
-  // pc keyboard
-  { OSX_VK_PC_APPLICATION,    XK_Menu         },
-  { OSX_VK_PC_INSERT,         XK_Insert       },
-  //OSX_VK_PC_KEYPAD_NUMLOCK, // the same keycode as OSX_VK_KEYPAD_CLEAR
-  { OSX_VK_PC_PAUSE,          XK_Pause        },
-  //OSX_VK_PC_POWER -> ?
-  { OSX_VK_PC_PRINTSCREEN,    XK_Print        },
-  { OSX_VK_PC_SCROLLLOCK,     XK_Scroll_Lock  },
-
-  // JIS keyboard
-  { OSX_VK_JIS_EISUU,         XK_Eisu_toggle  },
-
-  { -1,                       -1              }
+struct mapping_t {
+  int from_osx;
+  int to_rime;
 };
 
-int osx_keycode_to_rime_keycode(int keycode, int keychar, int shift, int caps) {
-  for (struct keycode_mapping_t *mapping = keycode_mappings;
-       mapping->osx_keycode >= 0;
+static struct mapping_t keycode_mappings[] = {
+  // modifiers
+  { kVK_CapsLock,              XK_Caps_Lock    },
+  { kVK_Command,               XK_Super_L      }, // XK_Meta_L?
+  { kVK_RightCommand,          XK_Super_R      }, // XK_Meta_R?
+  { kVK_Control,               XK_Control_L    },
+  { kVK_RightControl,          XK_Control_R    },
+  { kVK_Function,              XK_Hyper_L      },
+  { kVK_Option,                XK_Alt_L        },
+  { kVK_RightOption,           XK_Alt_R        },
+  { kVK_Shift,                 XK_Shift_L      },
+  { kVK_RightShift,            XK_Shift_R      },
+
+  // special
+  { kVK_Delete,                XK_BackSpace    },
+  //OSX_VK_ENTER_POWERBOOK -> ?
+  { kVK_Escape,                XK_Escape       },
+  { kVK_ForwardDelete,         XK_Delete       },
+  //{kVK_Help, XK_Help}, // the same keycode as kVK_PC_INSERT
+  { kVK_Return,                XK_Return       },
+  { kVK_Space,                 XK_space        },
+  { kVK_Tab,                   XK_Tab          },
+
+  // function
+  { kVK_F1,                    XK_F1           },
+  { kVK_F2,                    XK_F2           },
+  { kVK_F3,                    XK_F3           },
+  { kVK_F4,                    XK_F4           },
+  { kVK_F5,                    XK_F5           },
+  { kVK_F6,                    XK_F6           },
+  { kVK_F7,                    XK_F7           },
+  { kVK_F8,                    XK_F8           },
+  { kVK_F9,                    XK_F9           },
+  { kVK_F10,                   XK_F10          },
+  { kVK_F11,                   XK_F11          },
+  { kVK_F12,                   XK_F12          },
+  { kVK_F13,                   XK_F13          },
+  { kVK_F14,                   XK_F14          },
+  { kVK_F15,                   XK_F15          },
+  { kVK_F16,                   XK_F16          },
+  { kVK_F17,                   XK_F17          },
+  { kVK_F18,                   XK_F18          },
+  { kVK_F19,                   XK_F19          },
+  { kVK_F20,                   XK_F20          },
+
+  // cursor
+  { kVK_UpArrow,               XK_Up           },
+  { kVK_DownArrow,             XK_Down         },
+  { kVK_LeftArrow,             XK_Left         },
+  { kVK_RightArrow,            XK_Right        },
+  { kVK_PageUp,                XK_Page_Up      },
+  { kVK_PageDown,              XK_Page_Down    },
+  { kVK_Home,                  XK_Home         },
+  { kVK_End,                   XK_End          },
+
+  // keypad
+  { kVK_ANSI_Keypad0,          XK_KP_0         },
+  { kVK_ANSI_Keypad1,          XK_KP_1         },
+  { kVK_ANSI_Keypad2,          XK_KP_2         },
+  { kVK_ANSI_Keypad3,          XK_KP_3         },
+  { kVK_ANSI_Keypad4,          XK_KP_4         },
+  { kVK_ANSI_Keypad5,          XK_KP_5         },
+  { kVK_ANSI_Keypad6,          XK_KP_6         },
+  { kVK_ANSI_Keypad7,          XK_KP_7         },
+  { kVK_ANSI_Keypad8,          XK_KP_8         },
+  { kVK_ANSI_Keypad9,          XK_KP_9         },
+  { kVK_ANSI_KeypadEnter,      XK_KP_Enter     },
+  { kVK_ANSI_KeypadClear,      XK_Clear        },
+  { kVK_ANSI_KeypadDecimal,    XK_KP_Decimal   },
+  { kVK_ANSI_KeypadEquals,     XK_KP_Equal     },
+  { kVK_ANSI_KeypadMinus,      XK_KP_Subtract  },
+  { kVK_ANSI_KeypadMultiply,   XK_KP_Multiply  },
+  { kVK_ANSI_KeypadPlus,       XK_KP_Add       },
+  { kVK_ANSI_KeypadDivide,     XK_KP_Divide    },
+
+  // pc keyboard
+  { kVK_PC_Application,        XK_Menu         },
+  { kVK_PC_Insert,             XK_Insert       },
+  //{kVK_PC_Keypad NumLock, XK_Num_Lock}, // the same keycode as kVK_ANSI_KeypadClear
+  { kVK_PC_Pause,              XK_Pause        },
+  //OSX_VK_PC_Power -> ?
+  { kVK_PC_PrintScreen,        XK_Print        },
+  { kVK_PC_ScrollLock,         XK_Scroll_Lock  },
+
+  // JIS keyboard
+  { kVK_JIS_KeypadComma,       XK_KP_Separator },
+  { kVK_JIS_Eisu,              XK_Eisu_toggle  },
+  { kVK_JIS_Kana,              XK_Kana_Shift   },
+
+  { -1,                        -1             }
+};
+
+static struct mapping_t keychar_mappings[] = {
+  // ASCII control characters
+  { NSEnterCharacter,          XK_KP_Enter     },
+  { NSBackspaceCharacter,      XK_BackSpace    },
+  { NSTabCharacter,            XK_Tab          },
+  { NSNewlineCharacter,        XK_Linefeed     },
+  { NSCarriageReturnCharacter, XK_Return       },
+  { NSBackTabCharacter,        XK_ISO_Left_Tab },
+  { NSDeleteCharacter,         XK_Delete       },
+  // Nagivator key characters
+  { NSUpArrowFunctionKey,      XK_Up           },
+  { NSDownArrowFunctionKey,    XK_Down         },
+  { NSLeftArrowFunctionKey,    XK_Left         },
+  { NSRightArrowFunctionKey,   XK_Right        },
+  // Function key characters
+  { NSF1FunctionKey,           XK_F1           },
+  { NSF2FunctionKey,           XK_F2           },
+  { NSF3FunctionKey,           XK_F3           },
+  { NSF4FunctionKey,           XK_F4           },
+  { NSF5FunctionKey,           XK_F5           },
+  { NSF6FunctionKey,           XK_F6           },
+  { NSF7FunctionKey,           XK_F7           },
+  { NSF8FunctionKey,           XK_F8           },
+  { NSF9FunctionKey,           XK_F9           },
+  { NSF10FunctionKey,          XK_F10          },
+  { NSF11FunctionKey,          XK_F11          },
+  { NSF12FunctionKey,          XK_F12          },
+  { NSF13FunctionKey,          XK_F13          },
+  { NSF14FunctionKey,          XK_F14          },
+  { NSF15FunctionKey,          XK_F15          },
+  { NSF16FunctionKey,          XK_F16          },
+  { NSF17FunctionKey,          XK_F17          },
+  { NSF18FunctionKey,          XK_F18          },
+  { NSF19FunctionKey,          XK_F19          },
+  { NSF20FunctionKey,          XK_F20          },
+  { NSF21FunctionKey,          XK_F21          },
+  { NSF22FunctionKey,          XK_F22          },
+  { NSF23FunctionKey,          XK_F23          },
+  { NSF24FunctionKey,          XK_F24          },
+  { NSF25FunctionKey,          XK_F25          },
+  { NSF26FunctionKey,          XK_F26          },
+  { NSF27FunctionKey,          XK_F27          },
+  { NSF28FunctionKey,          XK_F28          },
+  { NSF29FunctionKey,          XK_F29          },
+  { NSF30FunctionKey,          XK_F30          },
+  { NSF31FunctionKey,          XK_F31          },
+  { NSF32FunctionKey,          XK_F32          },
+  { NSF33FunctionKey,          XK_F33          },
+  { NSF34FunctionKey,          XK_F34          },
+  { NSF35FunctionKey,          XK_F35          },
+  // Misc functional key characters
+  { NSInsertFunctionKey,       XK_Insert       },
+  { NSDeleteFunctionKey,       XK_Delete       },
+  { NSHomeFunctionKey,         XK_Home         },
+  { NSBeginFunctionKey,        XK_Begin        },
+  { NSEndFunctionKey,          XK_End          },
+  { NSPageUpFunctionKey,       XK_Page_Up      },
+  { NSPageDownFunctionKey,     XK_Page_Down    },
+  { NSScrollLockFunctionKey,   XK_Scroll_Lock  },
+  { NSPauseFunctionKey,        XK_Pause        },
+  { NSSysReqFunctionKey,       XK_Sys_Req      },
+  { NSBreakFunctionKey,        XK_Break        },
+  { NSStopFunctionKey,         XK_Cancel       },
+  { NSMenuFunctionKey,         XK_Menu         },
+  { NSPrintFunctionKey,        XK_Print        },
+  { NSClearLineFunctionKey,    XK_Clear        },
+  { NSClearDisplayFunctionKey, XK_Num_Lock     },
+  { NSSelectFunctionKey,       XK_Select       },
+  { NSExecuteFunctionKey,      XK_Execute      },
+  { NSUndoFunctionKey,         XK_Undo         },
+  { NSRedoFunctionKey,         XK_Redo         },
+  { NSFindFunctionKey,         XK_Find         },
+  { NSHelpFunctionKey,         XK_Help         },
+  { NSModeSwitchFunctionKey,   XK_Mode_switch  },
+
+  { -1,                        -1              }
+}; 
+
+int get_rime_keycode(ushort keycode, unichar keychar, bool shift, bool caps) {
+  for (struct mapping_t *mapping = keycode_mappings;
+       mapping->from_osx >= 0;
        ++mapping) {
-    if (keycode == mapping->osx_keycode) {
-      return mapping->rime_keycode;
+    if (keycode == mapping->from_osx) {
+      return mapping->to_rime;
     }
   }
 
   // NOTE: IBus/Rime use different keycodes for uppercase/lowercase letters.
-  if (keychar >= 'a' && keychar <= 'z' && (!!shift != !!caps)) {
+  if (keychar >= 'a' && keychar <= 'z' && (shift != caps)) {
     // lowercase -> Uppercase
     return keychar - 'a' + 'A';
   }
 
   if (keychar >= 0x20 && keychar <= 0x7e) {
     return keychar;
-  } else if (keychar == 0x1b) {  // ^[
-    return XK_bracketleft;
-  } else if (keychar == 0x1c) {  // ^\
-    return XK_backslash;
-  } else if (keychar == 0x1d) {  // ^]
-    return XK_bracketright;
-  } else if (keychar == 0x1f) {  // ^_
-    return XK_minus;
+  }
+
+  for (struct mapping_t *mapping = keychar_mappings;
+       mapping->from_osx >= 0;
+       ++mapping) {
+    if (keychar == mapping->from_osx) {
+      return mapping->to_rime;
+    }
   }
 
   return XK_VoidSymbol;

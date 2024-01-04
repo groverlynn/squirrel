@@ -24,13 +24,14 @@ typedef NSMutableDictionary<NSString *, NSNumber *> SquirrelMutableAppOptions;
 
 - (NSMutableDictionary<NSString *, NSString *> *)mutableSwitcher;
 
-@end
+@end // SquirrelOptionSwitcher
+
 
 @interface SquirrelConfig : NSObject
 
 @property(nonatomic, readonly) BOOL isOpen;
-@property(nonatomic, copy) NSString *colorSpace;
-@property(nonatomic, readonly) NSString *schemaId;
+@property(nonatomic, strong) NSString *colorSpace;
+@property(nonatomic, strong, readonly) NSString *schemaId;
 
 - (BOOL)openBaseConfig;
 - (BOOL)openWithSchemaId:(NSString *)schemaId
@@ -44,19 +45,24 @@ typedef NSMutableDictionary<NSString *, NSNumber *> SquirrelMutableAppOptions;
 - (BOOL)getBool:(NSString *)option;
 - (int)getInt:(NSString *)option;
 - (double)getDouble:(NSString *)option;
+- (double)getDouble:(NSString *)option 
+    applyConstraint:(double(*)(double param))func;
 - (NSNumber *)getOptionalBool:(NSString *)option;
 - (NSNumber *)getOptionalInt:(NSString *)option;
 - (NSNumber *)getOptionalDouble:(NSString *)option;
+- (NSNumber *)getOptionalDouble:(NSString *)option 
+                applyConstraint:(double(*)(double param))func;
 
 - (NSString *)getString:(NSString *)option;
 // 0xaabbggrr or 0xbbggrr
 - (NSColor *)getColor:(NSString *)option;
 // file path (absolute or relative to ~/Library/Rime)
-- (NSColor *)getPattern:(NSString *)option;
+- (NSImage *)getImage:(NSString *)option;
 
+- (NSUInteger)getListSize:(NSString *)option;
 - (NSArray<NSString *> *)getList:(NSString *)option;
 
 - (SquirrelOptionSwitcher *)getOptionSwitcher;
 - (SquirrelAppOptions *)getAppOptions:(NSString *)appName;
 
-@end
+@end // SquirrelConfig
