@@ -371,6 +371,7 @@ app_options:
   org.alacritty:
     ascii_mode: true
     vim_mode: true
+    inline_placeholder: true
     panelless_commit_fix: true
     inline_offset: -10
   com.google.Chrome:

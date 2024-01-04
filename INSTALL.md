@@ -61,7 +61,7 @@ Choose one of the following options.
 ``` sh
 export BUILD_UNIVERSAL=1
 
-export BOOST_ROOT="$(pwd)/librime/deps/boost_1_83_0"
+export BOOST_ROOT="$(pwd)/librime/deps/boost-1.84.0"
 
 export CMAKE_GENERATOR=Ninja
 
@@ -134,7 +134,7 @@ make ARCHS='x86_64' MACOSX_DEPLOYMENT_TARGET='10.15'
 Just add `package` after `make`
 
 ```
-make package ARCHS='arm64' MACOSX_DEPLOYMENT_TARGET='10.14'
+make package ARCHS='arm64' MACOSX_DEPLOYMENT_TARGET='10.15'
 ```
 
 Define or echo `DEV_ID` to automatically handle code signing and [notarization](https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution) (Apple Developer ID needed)

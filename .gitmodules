@@ -1,7 +1,7 @@
 [submodule "librime"]
 	path = librime
 	url = https://github.com/groverlynn/librime.git
-	branch = choose
+	branch = extension
 	ignore = dirty
 [submodule "plum"]
 	path = plum
