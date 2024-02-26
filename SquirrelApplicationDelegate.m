@@ -167,21 +167,21 @@ static void notification_handler(void *context_object, RimeSessionId session_id,
 }
 
 NSArray<NSString *> *getScriptOptionsForSchema(SquirrelConfig *schema) {
-  NSUInteger numSwitches = [schema getListSize:@"switches"];
+  NSUInteger numSwitches = [schema getListSizeForOption:@"switches"];
   if (numSwitches == 0) {
     return nil;
   }
   for (NSUInteger i = 0; i < numSwitches; ++i) {
-    NSString *name = [schema getString:[NSString stringWithFormat:
-                                        @"switches/@%lu/name", i]];
+    NSString *name = [schema getStringForOption:[NSString stringWithFormat:
+                                                 @"switches/@%lu/name", i]];
     if (name) {
       if ([name isEqualToString:@"simplification"] ||
           [name isEqualToString:@"traditional"]) {
         return @[name];
       }
     } else {
-      NSArray *options = [schema getList:[NSString stringWithFormat:
-                                          @"switches/@%lu/options", i]];
+      NSArray *options = [schema getListForOption:[NSString stringWithFormat:
+                                                   @"switches/@%lu/options", i]];
       if ([options containsObject:@"simplification"] ||
           [options containsObject:@"traditional"]) {
         return options;
@@ -221,7 +221,7 @@ SquirrelOptionSwitcher *updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitc
     return;
   }
 
-  NSString *showNotificationsWhen = [_config getString:@"show_notifications_when"];
+  NSString *showNotificationsWhen = [_config getStringForOption:@"show_notifications_when"];
   if ([showNotificationsWhen isEqualToString:@"never"]) {
     _showNotifications = kShowNotificationsNever;
   } else if ([showNotificationsWhen isEqualToString:@"appropriate"]) {
@@ -229,10 +229,7 @@ SquirrelOptionSwitcher *updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitc
   } else {
     _showNotifications = kShowNotificationsAlways;
   }
-  [self.panel loadConfig:_config forAppearance:defaultAppear];
-  if (@available(macOS 10.14, *)) {
-    [self.panel loadConfig:_config forAppearance:darkAppear];
-  }
+  [self.panel loadConfig:_config];
 }
 
 - (void)loadSchemaSpecificSettings:(NSString *)schemaId
@@ -246,16 +243,10 @@ SquirrelOptionSwitcher *updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitc
       [schema hasSection:@"style"]) {
     SquirrelOptionSwitcher *optionSwitcher = [schema getOptionSwitcher];
     self.panel.optionSwitcher = updateOptionSwitcher(optionSwitcher, sessionId);
-    [self.panel loadConfig:schema forAppearance:defaultAppear];
-    if (@available(macOS 10.14, *)) {
-      [self.panel loadConfig:schema forAppearance:darkAppear];
-    }
+    [self.panel loadConfig:schema];
   } else {
     self.panel.optionSwitcher = [[SquirrelOptionSwitcher alloc] initWithSchemaId:schemaId];
-    [self.panel loadConfig:self.config forAppearance:defaultAppear];
-    if (@available(macOS 10.14, *)) {
-      [self.panel loadConfig:self.config forAppearance:darkAppear];
-    }
+    [self.panel loadConfig:self.config];
   }
   [schema close];
 }
