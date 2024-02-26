@@ -298,14 +298,14 @@
 		A4B8E1B20F645B870094E08B /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		A4FC48CA0F6530EF0069BE81 /* en */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E93074B60A5C264700470842 /* InputMethodKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InputMethodKit.framework; path = System/Library/Frameworks/InputMethodKit.framework; sourceTree = SDKROOT; };
-		F402BAF72B1D8F40001A4BD6 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/MainMenu.strings"; sourceTree = "<group>"; };
-		F402BAF82B1D8F47001A4BD6 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/MainMenu.strings"; sourceTree = "<group>"; };
-		F402BAF92B1D8F57001A4BD6 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/MainMenu.strings"; sourceTree = "<group>"; };
 		F478A3572B1078D200D7794A /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		F478A3582B1078D600D7794A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		F493BF7A2B76F27E008BD7D0 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		F4A90994297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		F4A90995297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		F4AD6DDD2B8D914400792DDB /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "zh-HK"; path = "zh-HK.lproj/MainMenu.xib"; sourceTree = "<group>"; };
+		F4AD6DDE2B8D918C00792DDB /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "zh-Hant"; path = "zh-Hant.lproj/MainMenu.xib"; sourceTree = "<group>"; };
+		F4AD6DDF2B8D91BF00792DDB /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "zh-Hans"; path = "zh-Hans.lproj/MainMenu.xib"; sourceTree = "<group>"; };
 		F4E457A82AD97411003F6D79 /* EmojiCategoryTW.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryTW.ocd2; sourceTree = "<group>"; };
 		F4E457A92AD97411003F6D79 /* t2emoji.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = t2emoji.json; sourceTree = "<group>"; };
 		F4E457AA2AD97411003F6D79 /* hk2t.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = hk2t.json; sourceTree = "<group>"; };
@@ -647,9 +647,9 @@
 			isa = PBXVariantGroup;
 			children = (
 				44CB5E872585EFAE0022654F /* Base */,
-				F402BAF72B1D8F40001A4BD6 /* zh-HK */,
-				F402BAF82B1D8F47001A4BD6 /* zh-Hans */,
-				F402BAF92B1D8F57001A4BD6 /* zh-Hant */,
+				F4AD6DDD2B8D914400792DDB /* zh-HK */,
+				F4AD6DDE2B8D918C00792DDB /* zh-Hant */,
+				F4AD6DDF2B8D91BF00792DDB /* zh-Hans */,
 			);
 			name = MainMenu.xib;
 			sourceTree = "<group>";

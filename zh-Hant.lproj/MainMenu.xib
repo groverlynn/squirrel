@@ -22,33 +22,33 @@
         <customObject id="770" userLabel="SquirrelPanel" customClass="SquirrelPanel"/>
         <menu id="773" userLabel="Menu">
             <items>
-                <menuItem title="Deploy" keyEquivalent="`" id="774">
+                <menuItem title="重新部署" keyEquivalent="`" id="774">
                     <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
                     <connections>
                         <action selector="deploy:" target="252" id="795"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Sync user data" id="804">
+                <menuItem title="同步使用者資料" id="804">
                     <connections>
                         <action selector="syncUserData:" target="252" id="806"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Settings…" id="802">
+                <menuItem title="使用者設定⋯" id="802">
                     <connections>
                         <action selector="configure:" target="252" id="803"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Rime Wiki…" id="797">
+                <menuItem title="線上輔助說明⋯" id="797">
                     <connections>
                         <action selector="openWiki:" target="252" id="798"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Error and warning logs" id="809">
+                <menuItem title="錯誤和警告記錄" id="809">
                     <connections>
                         <action selector="openLogFolder:" target="252" id="811"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Check for updates…" id="776">
+                <menuItem title="檢查更新項目⋯" id="776">
                     <connections>
                         <action selector="checkForUpdates:" target="772" id="796"/>
                     </connections>
