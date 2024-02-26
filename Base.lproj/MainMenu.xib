@@ -46,6 +46,11 @@
                         <action selector="openWiki:" target="252" id="798"/>
                     </connections>
                 </menuItem>
+                <menuItem title="Error and warning logs" id="809">
+                    <connections>
+                        <action selector="openLogFolder:" target="252" id="811"/>
+                    </connections>
+                </menuItem>
                 <menuItem title="Check for updates…" tag="1" id="776">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>

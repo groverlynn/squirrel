@@ -2457,202 +2457,198 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
 }
 
 // handle mouse interaction events
-- (void)mouseDown:(NSEvent *)event {
-  if (event.clickCount > 1 || _functionButton != kCodeInputArea) {
-    return;
-  }
-  NSPoint spot = [_view.textView convertPoint:self.mouseLocationOutsideOfEventStream
-                                     fromView:nil];
-  NSUInteger inputIndex = [_view.textView characterIndexForInsertionAtPoint:spot];
-  if (inputIndex == 0) {
-    [self.inputController perform:kPROCESS onIndex:kHomeKey];
-  } else if (inputIndex < _caretPos) {
-    [self.inputController moveCursor:_caretPos
-                          toPosition:inputIndex
-                       inlinePreedit:NO
-                     inlineCandidate:NO];
-  } else if (inputIndex >= _view.preeditRange.length) {
-    [self.inputController perform:kPROCESS onIndex:kEndKey];
-  } else if (inputIndex > _caretPos + 1) {
-    [self.inputController moveCursor:_caretPos
-                          toPosition:inputIndex - 1
-                       inlinePreedit:NO
-                     inlineCandidate:NO];
-  }
-}
-
-- (void)mouseUp:(NSEvent *)event {
-  NSUInteger cursorIndex = [_view getIndexFromMouseSpot:
-                            self.mouseLocationOutsideOfEventStream];
-  if (event.clickCount > 1 || cursorIndex == NSNotFound) {
-    return;
-  }
-  if (cursorIndex == _highlightedIndex) {
-    cursorIndex += (_pageNum - _activePage) * _view.currentTheme.pageSize;
-    [self.inputController perform:kSELECT
-                          onIndex:cursorIndex];
-  } else if (cursorIndex == _functionButton) {
-    if (cursorIndex == kExpandButton) {
-      if (_locked) {
-        [self setLocked:NO];
-      } else {
-        _view.expanded = !_view.expanded;
-        _activePage = 0;
-      }
-    }
-    [self.inputController perform:kPROCESS onIndex:cursorIndex];
-  }
-}
-
-- (void)rightMouseUp:(NSEvent *)event {
-  NSUInteger cursorIndex = [_view getIndexFromMouseSpot:
-                            self.mouseLocationOutsideOfEventStream];
-  if (event.clickCount > 1 || cursorIndex == NSNotFound) {
-    return;
-  }
-  if (cursorIndex == _highlightedIndex) {
-    cursorIndex += (_pageNum - _activePage) * _view.currentTheme.pageSize;
-    [self.inputController perform:kDELETE
-                          onIndex:cursorIndex];
-  } else if (cursorIndex == _functionButton) {
-    switch (cursorIndex) {
-      case kPageUpKey:
-        [self.inputController perform:kPROCESS onIndex:kHomeKey];
-        break;
-      case kPageDownKey:
-        [self.inputController perform:kPROCESS onIndex:kEndKey];
-        break;
-      case kExpandButton:
-        [self setLocked:!_locked];
-        [self.inputController perform:kPROCESS onIndex:kLockButton];
-        break;
-      case kBackSpaceKey:
-        [self.inputController perform:kPROCESS onIndex:kEscapeKey];
-        break;
-    }
-  }
-}
-
-- (void)mouseMoved:(NSEvent *)event {
-  if (event.modifierFlags & NSEventModifierFlagOption) {
-    return;
-  }
+- (void)sendEvent:(NSEvent *)event {
   SquirrelTheme *theme = _view.currentTheme;
-  NSUInteger cursorIndex = [_view getIndexFromMouseSpot:
-                            self.mouseLocationOutsideOfEventStream];
-  if (cursorIndex != _highlightedIndex && cursorIndex != _functionButton) {
-    [_toolTip hide];
-  }
-  if (cursorIndex >= 0 && cursorIndex < _numCandidates && _highlightedIndex != cursorIndex) {
-    _highlightedIndex = cursorIndex;
-    cursorIndex += (_pageNum - _activePage) * theme.pageSize;
-    _activePage = _highlightedIndex / theme.pageSize;
-    _pageNum = cursorIndex / theme.pageSize;
-    [_toolTip showWithToolTip:NSLocalizedString(@"candidate", nil)];
-    [self.inputController perform:kHIGHLIGHT onIndex:cursorIndex];
-  } else if ((cursorIndex == kPageUpKey || cursorIndex == kPageDownKey || cursorIndex == kExpandButton ||
-              cursorIndex == kBackSpaceKey) && _functionButton != cursorIndex) {
-    _functionButton = cursorIndex;
-    switch (_functionButton) {
-      case kPageUpKey:
-        [_view.textStorage addAttributes:theme.pagingHighlightedAttrs
-                                   range:NSMakeRange(_view.pagingRange.location, 1)];
-        [_view.textStorage addAttributes:theme.pagingAttrs
-                                   range:NSMakeRange(NSMaxRange(_view.pagingRange) - 1, 1)];
-        if (_view.preeditRange.length > 0) {
-          [_view.textStorage addAttributes:theme.preeditAttrs
-                                     range:NSMakeRange(NSMaxRange(_view.preeditRange) - 1, 1)];
+  NSUInteger cursorIndex;
+  switch (event.type) {
+    case NSEventTypeLeftMouseDown:
+      if (event.clickCount == 1 && _functionButton == kCodeInputArea) {
+        NSPoint spot = [_view.textView convertPoint:self.mouseLocationOutsideOfEventStream
+                                           fromView:nil];
+        NSUInteger inputIndex = [_view.textView characterIndexForInsertionAtPoint:spot];
+        if (inputIndex == 0) {
+          [self.inputController perform:kPROCESS onIndex:kHomeKey];
+        } else if (inputIndex < _caretPos) {
+          [self.inputController moveCursor:_caretPos
+                                toPosition:inputIndex
+                             inlinePreedit:NO
+                           inlineCandidate:NO];
+        } else if (inputIndex >= _view.preeditRange.length) {
+          [self.inputController perform:kPROCESS onIndex:kEndKey];
+        } else if (inputIndex > _caretPos + 1) {
+          [self.inputController moveCursor:_caretPos
+                                toPosition:inputIndex - 1
+                             inlinePreedit:NO
+                           inlineCandidate:NO];
         }
-        cursorIndex = _pageNum == 0 ? kHomeKey : kPageUpKey;
-        [_toolTip showWithToolTip:NSLocalizedString(_pageNum == 0 ? @"home" : @"page_up", nil)];
-        break;
-      case kPageDownKey:
-        [_view.textStorage addAttributes:theme.pagingAttrs
-                                   range:NSMakeRange(_view.pagingRange.location, 1)];
-        [_view.textStorage addAttributes:theme.pagingHighlightedAttrs
-                                   range:NSMakeRange(NSMaxRange(_view.pagingRange) - 1, 1)];
-        if (_view.preeditRange.length > 0) {
-          [_view.textStorage addAttributes:theme.preeditAttrs
-                                     range:NSMakeRange(NSMaxRange(_view.preeditRange) - 1, 1)];
+      }
+      break;
+    case NSEventTypeLeftMouseUp:
+      cursorIndex = [_view getIndexFromMouseSpot:
+                     self.mouseLocationOutsideOfEventStream];
+      if (event.clickCount == 1 && cursorIndex != NSNotFound) {
+        if (cursorIndex == _highlightedIndex) {
+          cursorIndex += (_pageNum - _activePage) * theme.pageSize;
+          [self.inputController perform:kSELECT onIndex:cursorIndex];
+        } else if (cursorIndex == _functionButton) {
+          if (cursorIndex == kExpandButton) {
+            if (_locked) {
+              [self setLocked:NO];
+            } else {
+              _view.expanded = !_view.expanded;
+              _activePage = 0;
+            }
+          }
+          [self.inputController perform:kPROCESS onIndex:cursorIndex];
         }
-        cursorIndex = _lastPage ? kEndKey : kPageDownKey;
-        [_toolTip showWithToolTip:NSLocalizedString(_lastPage ? @"end" : @"page_down", nil)];
-        break;
-      case kExpandButton:
-        [_view.textStorage addAttributes:theme.pagingHighlightedAttrs
-                                   range:_view.pagingRange];
-        if (_view.preeditRange.length > 0) {
-          [_view.textStorage addAttributes:theme.preeditAttrs
-                                     range:NSMakeRange(NSMaxRange(_view.preeditRange) - 1, 1)];
+      }
+      break;
+    case NSEventTypeRightMouseUp:
+      cursorIndex = [_view getIndexFromMouseSpot:
+                     self.mouseLocationOutsideOfEventStream];
+      if (event.clickCount == 1 && cursorIndex != NSNotFound) {
+        if (cursorIndex == _highlightedIndex) {
+          cursorIndex += (_pageNum - _activePage) * theme.pageSize;
+          [self.inputController perform:kDELETE onIndex:cursorIndex];
+        } else if (cursorIndex == _functionButton) {
+          switch (cursorIndex) {
+            case kPageUpKey:
+              [self.inputController perform:kPROCESS onIndex:kHomeKey];
+              break;
+            case kPageDownKey:
+              [self.inputController perform:kPROCESS onIndex:kEndKey];
+              break;
+            case kExpandButton:
+              [self setLocked:!_locked];
+              [self.inputController perform:kPROCESS onIndex:kLockButton];
+              break;
+            case kBackSpaceKey:
+              [self.inputController perform:kPROCESS onIndex:kEscapeKey];
+              break;
+          }
         }
-        cursorIndex = _locked ? kLockButton : _view.expanded ? kCompressButton : kExpandButton;
-        [_toolTip showWithToolTip:NSLocalizedString(_locked ? @"unlock" : _view.expanded ? @"compress" : @"expand", nil)];
-        break;
-      case kBackSpaceKey:
-        [_view.textStorage addAttributes:theme.preeditHighlightedAttrs
-                                   range:NSMakeRange(NSMaxRange(_view.preeditRange) - 1, 1)];
-        if (_view.pagingRange.length > 0) {
-          if (theme.tabular) {
-            [_view.textStorage addAttributes:theme.pagingAttrs
-                                       range:_view.pagingRange];
-          } else {
-            [_view.textStorage addAttributes:theme.pagingAttrs
+      }
+      break;
+    case NSEventTypeMouseMoved: {
+      if (event.modifierFlags & NSEventModifierFlagOption) {
+        return;
+      }
+      cursorIndex = [_view getIndexFromMouseSpot:
+                     self.mouseLocationOutsideOfEventStream];
+      if (cursorIndex != _highlightedIndex && cursorIndex != _functionButton) {
+        [_toolTip hide];
+      }
+      if (cursorIndex >= 0 && cursorIndex < _numCandidates && _highlightedIndex != cursorIndex) {
+        _highlightedIndex = cursorIndex;
+        cursorIndex += (_pageNum - _activePage) * theme.pageSize;
+        _activePage = _highlightedIndex / theme.pageSize;
+        _pageNum = cursorIndex / theme.pageSize;
+        [_toolTip showWithToolTip:NSLocalizedString(@"candidate", nil)];
+        [self.inputController perform:kHIGHLIGHT onIndex:cursorIndex];
+      } else if ((cursorIndex == kPageUpKey || cursorIndex == kPageDownKey || cursorIndex == kExpandButton ||
+                  cursorIndex == kBackSpaceKey) && _functionButton != cursorIndex) {
+        _functionButton = cursorIndex;
+        switch (_functionButton) {
+          case kPageUpKey:
+            [_view.textStorage addAttributes:theme.pagingHighlightedAttrs
                                        range:NSMakeRange(_view.pagingRange.location, 1)];
             [_view.textStorage addAttributes:theme.pagingAttrs
                                        range:NSMakeRange(NSMaxRange(_view.pagingRange) - 1, 1)];
-          }
+            if (_view.preeditRange.length > 0) {
+              [_view.textStorage addAttributes:theme.preeditAttrs
+                                         range:NSMakeRange(NSMaxRange(_view.preeditRange) - 1, 1)];
+            }
+            cursorIndex = _pageNum == 0 ? kHomeKey : kPageUpKey;
+            [_toolTip showWithToolTip:NSLocalizedString(_pageNum == 0 ? @"home" : @"page_up", nil)];
+            break;
+          case kPageDownKey:
+            [_view.textStorage addAttributes:theme.pagingAttrs
+                                       range:NSMakeRange(_view.pagingRange.location, 1)];
+            [_view.textStorage addAttributes:theme.pagingHighlightedAttrs
+                                       range:NSMakeRange(NSMaxRange(_view.pagingRange) - 1, 1)];
+            if (_view.preeditRange.length > 0) {
+              [_view.textStorage addAttributes:theme.preeditAttrs
+                                         range:NSMakeRange(NSMaxRange(_view.preeditRange) - 1, 1)];
+            }
+            cursorIndex = _lastPage ? kEndKey : kPageDownKey;
+            [_toolTip showWithToolTip:NSLocalizedString(_lastPage ? @"end" : @"page_down", nil)];
+            break;
+          case kExpandButton:
+            [_view.textStorage addAttributes:theme.pagingHighlightedAttrs
+                                       range:_view.pagingRange];
+            if (_view.preeditRange.length > 0) {
+              [_view.textStorage addAttributes:theme.preeditAttrs
+                                         range:NSMakeRange(NSMaxRange(_view.preeditRange) - 1, 1)];
+            }
+            cursorIndex = _locked ? kLockButton : _view.expanded ? kCompressButton : kExpandButton;
+            [_toolTip showWithToolTip:NSLocalizedString(_locked ? @"unlock" : _view.expanded ? @"compress" : @"expand", nil)];
+            break;
+          case kBackSpaceKey:
+            [_view.textStorage addAttributes:theme.preeditHighlightedAttrs
+                                       range:NSMakeRange(NSMaxRange(_view.preeditRange) - 1, 1)];
+            if (_view.pagingRange.length > 0) {
+              if (theme.tabular) {
+                [_view.textStorage addAttributes:theme.pagingAttrs
+                                           range:_view.pagingRange];
+              } else {
+                [_view.textStorage addAttributes:theme.pagingAttrs
+                                           range:NSMakeRange(_view.pagingRange.location, 1)];
+                [_view.textStorage addAttributes:theme.pagingAttrs
+                                           range:NSMakeRange(NSMaxRange(_view.pagingRange) - 1, 1)];
+              }
+            }
+            cursorIndex = _caretAtHome ? kEscapeKey : kBackSpaceKey;
+            [_toolTip showWithToolTip:NSLocalizedString(_caretAtHome ? @"escape" : @"delete", nil)];
+            break;
         }
-        cursorIndex = _caretAtHome ? kEscapeKey : kBackSpaceKey;
-        [_toolTip showWithToolTip:NSLocalizedString(_caretAtHome ? @"escape" : @"delete", nil)];
-        break;
-    }
-    [_view highlightFunctionButton:cursorIndex];
-    [self display];
-  } else if (cursorIndex == kCodeInputArea && _functionButton != cursorIndex) {
-    _functionButton = cursorIndex;
-  }
-}
-
-- (void)mouseDragged:(NSEvent *)event {
-  // reset the remember_size references after moving the panel
-  _maxSize = NSZeroSize;
-  [self performWindowDragWithEvent:event];
-}
-
-- (void)scrollWheel:(NSEvent *)event {
-  SquirrelTheme *theme = _view.currentTheme;
-  CGFloat scrollThreshold = [theme.attrs[NSParagraphStyleAttributeName] minimumLineHeight] +
-                            [theme.attrs[NSParagraphStyleAttributeName] lineSpacing];
-
-  static NSPoint scrollLocus = NSZeroPoint;
-  if (event.phase == NSEventPhaseBegan) {
-    scrollLocus = NSZeroPoint;
-  } else if ((event.phase == NSEventPhaseNone || event.momentumPhase == NSEventPhaseNone) &&
-             !isnan(scrollLocus.x) && !isnan(scrollLocus.y)) {
-    // determine scrolling direction by confining to sectors within ±30º of any axis
-    if (ABS(event.scrollingDeltaX) > ABS(event.scrollingDeltaY) * sqrt(3.0)) {
-      scrollLocus.x += event.scrollingDeltaX * (event.hasPreciseScrollingDeltas ? 1 : 10);
-    } else if (ABS(event.scrollingDeltaY) > ABS(event.scrollingDeltaX) * sqrt(3.0)) {
-      scrollLocus.y += event.scrollingDeltaY * (event.hasPreciseScrollingDeltas ? 1 : 10);
-    }
-    // compare accumulated locus length against threshold and limit paging to max once
-    if (scrollLocus.x > scrollThreshold) {
-      [self.inputController perform:kPROCESS
-                            onIndex:(theme.vertical ? kPageDownKey : kPageUpKey)];
-      scrollLocus = NSMakePoint(NAN, NAN);
-    } else if (scrollLocus.y > scrollThreshold) {
-      [self.inputController perform:kPROCESS
-                            onIndex:kPageUpKey];
-      scrollLocus = NSMakePoint(NAN, NAN);
-    } else if (scrollLocus.x < -scrollThreshold) {
-      [self.inputController perform:kPROCESS
-                            onIndex:(theme.vertical ? kPageUpKey : kPageDownKey)];
-      scrollLocus = NSMakePoint(NAN, NAN);
-    } else if (scrollLocus.y < -scrollThreshold) {
-      [self.inputController perform:kPROCESS
-                            onIndex:kPageDownKey];
-      scrollLocus = NSMakePoint(NAN, NAN);
-    }
+        [_view highlightFunctionButton:cursorIndex];
+        [self display];
+      } else if (cursorIndex == kCodeInputArea && _functionButton != cursorIndex) {
+        _functionButton = cursorIndex;
+      }
+    } break;
+    case NSEventTypeLeftMouseDragged:
+      // reset the remember_size references after moving the panel
+      _maxSize = NSZeroSize;
+      [self performWindowDragWithEvent:event];
+      break;
+    case NSEventTypeScrollWheel: {
+      CGFloat scrollThreshold = [theme.attrs[NSParagraphStyleAttributeName] minimumLineHeight] +
+                                [theme.attrs[NSParagraphStyleAttributeName] lineSpacing];
+      static NSPoint scrollLocus = NSZeroPoint;
+      if (event.phase == NSEventPhaseBegan) {
+        scrollLocus = NSZeroPoint;
+      } else if ((event.phase == NSEventPhaseNone || event.momentumPhase == NSEventPhaseNone) &&
+                 !isnan(scrollLocus.x) && !isnan(scrollLocus.y)) {
+        // determine scrolling direction by confining to sectors within ±30º of any axis
+        if (ABS(event.scrollingDeltaX) > ABS(event.scrollingDeltaY) * sqrt(3.0)) {
+          scrollLocus.x += event.scrollingDeltaX * (event.hasPreciseScrollingDeltas ? 1 : 10);
+        } else if (ABS(event.scrollingDeltaY) > ABS(event.scrollingDeltaX) * sqrt(3.0)) {
+          scrollLocus.y += event.scrollingDeltaY * (event.hasPreciseScrollingDeltas ? 1 : 10);
+        }
+        // compare accumulated locus length against threshold and limit paging to max once
+        if (scrollLocus.x > scrollThreshold) {
+          [self.inputController perform:kPROCESS
+                                onIndex:(theme.vertical ? kPageDownKey : kPageUpKey)];
+          scrollLocus = NSMakePoint(NAN, NAN);
+        } else if (scrollLocus.y > scrollThreshold) {
+          [self.inputController perform:kPROCESS
+                                onIndex:kPageUpKey];
+          scrollLocus = NSMakePoint(NAN, NAN);
+        } else if (scrollLocus.x < -scrollThreshold) {
+          [self.inputController perform:kPROCESS
+                                onIndex:(theme.vertical ? kPageUpKey : kPageDownKey)];
+          scrollLocus = NSMakePoint(NAN, NAN);
+        } else if (scrollLocus.y < -scrollThreshold) {
+          [self.inputController perform:kPROCESS
+                                onIndex:kPageDownKey];
+          scrollLocus = NSMakePoint(NAN, NAN);
+        }
+      }
+    } break;
+    default:
+      [super sendEvent:event];
+      break;
   }
 }
 
@@ -3742,11 +3738,10 @@ double clamp_uni(double param) { return fmin(1.0, fmax(0.0, param)); }
   pagingHighlightedAttrs[NSFontAttributeName] = linear ? labelFont : pagingFont;
   statusAttrs[NSFontAttributeName] = commentFont;
 
-  NSFont *zhFont = CFBridgingRelease(CTFontCreateForStringWithLanguage
-                                     ((CTFontRef)font, CFSTR("　"), CFRangeMake(0, 1), CFSTR("zh")));
-  NSFont *zhCommentFont = CFBridgingRelease(CTFontCreateForStringWithLanguage
-                                            ((CTFontRef)commentFont, CFSTR("　"), CFRangeMake(0, 1), CFSTR("zh")));
-  NSFont *refFont = getTallestFont(@[zhFont, labelFont, zhCommentFont], vertical);
+  NSFont *zhFont = CFBridgingRelease(CTFontCreateUIFontForLanguage(kCTFontUIFontSystem, fontSize.doubleValue, CFSTR("zh")));
+  NSFont *zhCommentFont = [NSFont fontWithDescriptor:zhFont.fontDescriptor size:commentFontSize.doubleValue];
+  CGFloat maxFontSize = MAX(fontSize.doubleValue, MAX(commentFontSize.doubleValue, labelFontSize.doubleValue));
+  NSFont *refFont = [NSFont fontWithDescriptor:zhFont.fontDescriptor size:maxFontSize];
 
   attrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
     @{(NSString *)kCTBaselineReferenceFont: vertical ? refFont.verticalFont : refFont};

@@ -29,6 +29,13 @@ static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
   [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:kRimeWikiURL]];
 }
 
+- (IBAction)openLogFolder:(id)sender {
+  NSString *tmpDir = NSTemporaryDirectory();
+  NSString *logFile = [tmpDir stringByAppendingPathComponent:@"rime.squirrel.INFO"];
+  [NSWorkspace.sharedWorkspace selectFile:logFile
+                 inFileViewerRootedAtPath:tmpDir];
+}
+
 void show_notification(const char *msg_text) {
   if (@available(macOS 10.14, *)) {
     UNUserNotificationCenter *center = UNUserNotificationCenter.currentNotificationCenter;

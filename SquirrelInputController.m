@@ -36,7 +36,7 @@ static NSString *const kFullWidthSpace = @"　";
   // for chord-typing
   int _chordKeyCodes[N_KEY_ROLL_OVER];
   int _chordModifiers[N_KEY_ROLL_OVER];
-  NSUInteger _chordKeyCount;
+  int _chordKeyCount;
   NSTimer *_chordTimer;
   NSTimeInterval _chordDuration;
 }
@@ -77,7 +77,6 @@ static NSMapTable<SquirrelInputController *, NSDate *> *_controllerDeactivationT
   // Key processing will not continue in that case.  In other words the
   // system will not deliver a key down event to the application.
   // Returning NO means the original key down will be passed on to the client.
-
   BOOL handled = NO;
 
   @autoreleasepool {
@@ -255,7 +254,7 @@ void set_CapsLock_LED_state(bool target_state) {
     rime_get_api()->set_option(_session, "_vertical", is_vertical);
   }
 
-  if (panel.tabular && !rime_modifiers &&
+  if (panel.tabular && (panel.expanded || !panel.locked) && !rime_modifiers &&
       (is_vertical ? rime_keycode == XK_Left || rime_keycode == XK_Right
                    : rime_keycode == XK_Up || rime_keycode == XK_Down)) {
     NSUInteger newIndex = [panel candidateIndexOnDirection:(SquirrelIndex)rime_keycode];
@@ -263,7 +262,7 @@ void set_CapsLock_LED_state(bool target_state) {
       if (!panel.locked && !panel.expanded && rime_keycode == (is_vertical ? XK_Left : XK_Down)) {
         panel.expanded = YES;
       }
-      return rime_get_api()->highlight_candidate(_session, newIndex);
+      return (BOOL)rime_get_api()->highlight_candidate(_session, newIndex);
     }
   }
 
@@ -379,10 +378,10 @@ void set_CapsLock_LED_state(bool target_state) {
 
 - (void)onChordTimer:(NSTimer *)timer {
   // chord release triggered by timer
-  NSUInteger processed_keys = 0;
+  int processed_keys = 0;
   if (_chordKeyCount && _session) {
     // simulate key-ups
-    for (NSUInteger i = 0; i < _chordKeyCount; ++i) {
+    for (int i = 0; i < _chordKeyCount; ++i) {
       if (rime_get_api()->process_key(_session, _chordKeyCodes[i],
                                       (_chordModifiers[i] | kReleaseMask))) {
         ++processed_keys;
@@ -398,7 +397,7 @@ void set_CapsLock_LED_state(bool target_state) {
 - (void)updateChord:(int)keycode
           modifiers:(int)modifiers {
   //NSLog(@"update chord: {%s} << %x", _chord, keycode);
-  for (NSUInteger i = 0; i < _chordKeyCount; ++i) {
+  for (int i = 0; i < _chordKeyCount; ++i) {
     if (_chordKeyCodes[i] == keycode) {
       return;
     }
@@ -441,8 +440,8 @@ void set_CapsLock_LED_state(bool target_state) {
 }
 
 NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) {
-  RimeStringSlice short_label = rime_get_api()->
-    get_state_label_abbreviated(session, option, state, True);
+  RimeStringSlice short_label =
+    rime_get_api()->get_state_label_abbreviated(session, option, state, True);
   if (short_label.str && short_label.length >= strlen(short_label.str)) {
     return @(short_label.str);
   } else {
@@ -587,6 +586,10 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
 
 - (void)openWiki:(id)sender {
   [NSApp.squirrelAppDelegate openWiki:sender];
+}
+
+- (void)openLogFolder:(id)sender {
+  [NSApp.squirrelAppDelegate openLogFolder:sender];
 }
 
 - (NSMenu *)menu {
