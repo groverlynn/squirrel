@@ -1,3 +1,4 @@
+
 #import "macos_keycode.h"
 #import <rime/key_table.h>
 #import <Carbon/Carbon.h>
@@ -5,18 +6,24 @@
 int get_rime_modifiers(NSEventModifierFlags modifiers) {
   int ret = 0;
 
-  if (modifiers & NSEventModifierFlagCapsLock)
+  if (modifiers & NSEventModifierFlagCapsLock) {
     ret |= kLockMask;
-  if (modifiers & NSEventModifierFlagShift)
+  }
+  if (modifiers & NSEventModifierFlagShift) {
     ret |= kShiftMask;
-  if (modifiers & NSEventModifierFlagControl)
+  }
+  if (modifiers & NSEventModifierFlagControl) {
     ret |= kControlMask;
-  if (modifiers & NSEventModifierFlagOption)
+  }
+  if (modifiers & NSEventModifierFlagOption) {
     ret |= kAltMask;
-  if (modifiers & NSEventModifierFlagCommand)
+  }
+  if (modifiers & NSEventModifierFlagCommand) {
     ret |= kSuperMask;
-  if (modifiers & NSEventModifierFlagFunction)
+  }
+  if (modifiers & NSEventModifierFlagFunction) {
     ret |= kHyperMask;
+  }
 
   return ret;
 }
@@ -218,7 +225,7 @@ int get_rime_keycode(ushort keycode, unichar keychar, bool shift, bool caps) {
   for (struct mapping_t *mapping = keychar_mappings;
        mapping->from_osx >= 0;
        ++mapping) {
-    if (keycode == mapping->from_osx) {
+    if (keychar == mapping->from_osx) {
       return mapping->to_rime;
     }
   }

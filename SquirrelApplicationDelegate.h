@@ -25,7 +25,6 @@ typedef NS_ENUM(NSUInteger, SquirrelNotificationPolicy) {
 - (IBAction)syncUserData:(id)sender;
 - (IBAction)configure:(id)sender;
 - (IBAction)openWiki:(id)sender;
-- (IBAction)openLogFolder:(id)sender;
 
 - (void)setupRime;
 - (void)startRimeWithFullCheck:(BOOL)fullCheck;

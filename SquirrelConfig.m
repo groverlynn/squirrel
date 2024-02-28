@@ -166,7 +166,7 @@
 }
 
 - (double)getDoubleForOption:(NSString *)option
-             applyConstraint:(double(*)(double param))func {
+             applyConstraint:(double (*)(double param))func {
   NSNumber *value = [self getOptionalDoubleForOption:option];
   return func(value.doubleValue);
 }
@@ -174,7 +174,7 @@
 - (NSNumber *)getOptionalBoolForOption:(NSString *)option {
   NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(BOOL) forKey:option];
   if (cachedValue) {
-     return cachedValue;
+    return cachedValue;
   }
   Bool value;
   if (_isOpen && rime_get_api()->config_get_bool(&_config, option.UTF8String, &value)) {
@@ -214,7 +214,7 @@
 }
 
 - (NSNumber *)getOptionalDoubleForOption:(NSString *)option
-                         applyConstraint:(double(*)(double param))func {
+                         applyConstraint:(double (*)(double param))func {
   NSNumber *value = [self getOptionalDoubleForOption:option];
   return value ? [NSNumber numberWithDouble:func(value.doubleValue)] : nil;
 }
@@ -393,10 +393,11 @@
   if (filePath == nil) {
     return nil;
   }
-  NSURL *userDataDir = [NSURL fileURLWithPath:@"~/Library/Rime".stringByExpandingTildeInPath 
+  NSURL *userDataDir = [NSURL fileURLWithPath:@"~/Library/Rime".stringByExpandingTildeInPath
                                   isDirectory:YES];
   NSURL *imageFile = [NSURL fileURLWithPath:filePath
-                                isDirectory:NO relativeToURL:userDataDir];
+                                isDirectory:NO 
+                              relativeToURL:userDataDir];
   if ([imageFile checkResourceIsReachableAndReturnError:nil]) {
     NSImage *image = [[NSImage alloc] initByReferencingURL:imageFile];
     return image;

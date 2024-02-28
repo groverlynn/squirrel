@@ -22,18 +22,12 @@ static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
 
 - (IBAction)configure:(id)sender {
   [NSWorkspace.sharedWorkspace openURL:
-    [NSURL fileURLWithPath:@"~/Library/Rime/".stringByExpandingTildeInPath isDirectory:YES]];
+    [NSURL fileURLWithPath:@"~/Library/Rime/".stringByExpandingTildeInPath
+               isDirectory:YES]];
 }
 
 - (IBAction)openWiki:(id)sender {
   [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:kRimeWikiURL]];
-}
-
-- (IBAction)openLogFolder:(id)sender {
-  NSString *tmpDir = NSTemporaryDirectory();
-  NSString *logFile = [tmpDir stringByAppendingPathComponent:@"rime.squirrel.INFO"];
-  [NSWorkspace.sharedWorkspace selectFile:logFile
-                 inFileViewerRootedAtPath:tmpDir];
 }
 
 void show_notification(const char *msg_text) {
@@ -56,9 +50,9 @@ void show_notification(const char *msg_text) {
           content.interruptionLevel = UNNotificationInterruptionLevelActive;
         }
         UNNotificationRequest *request =
-        [UNNotificationRequest requestWithIdentifier:@"SquirrelNotification"
-                                             content:content
-                                             trigger:nil];
+          [UNNotificationRequest requestWithIdentifier:@"SquirrelNotification"
+                                               content:content
+                                               trigger:nil];
         [center addNotificationRequest:request
                  withCompletionHandler:^(NSError *error) {
           if (error) {
@@ -280,22 +274,25 @@ SquirrelOptionSwitcher *updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitc
 // prevent freezing the system
 - (BOOL)problematicLaunchDetected {
   BOOL detected = NO;
-  NSURL *logfile = [[NSURL fileURLWithPath:NSTemporaryDirectory() 
-                               isDirectory:YES] URLByAppendingPathComponent:@"squirrel_launch.dat"];
+  NSURL *logfile = [[NSURL fileURLWithPath:NSTemporaryDirectory()
+                               isDirectory:YES]
+                    URLByAppendingPathComponent:@"squirrel_launch.dat"];
   NSLog(@"[DEBUG] archive: %@", logfile);
   NSData *archive = [NSData dataWithContentsOfURL:logfile
                                           options:NSDataReadingUncached
                                             error:nil];
   if (archive) {
     NSDate *previousLaunch = [NSKeyedUnarchiver unarchivedObjectOfClass:NSDate.class
-                                                               fromData:archive error:nil];
+                                                               fromData:archive
+                                                                  error:nil];
     if (previousLaunch.timeIntervalSinceNow >= -2) {
       detected = YES;
     }
   }
   NSDate *now = [NSDate date];
-  NSData *record = [NSKeyedArchiver archivedDataWithRootObject:now 
-                                         requiringSecureCoding:NO error:nil];
+  NSData *record = [NSKeyedArchiver archivedDataWithRootObject:now
+                                         requiringSecureCoding:NO
+                                                         error:nil];
   NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingToURL:logfile error:nil];
   [fileHandle writeData:record];
   return detected;

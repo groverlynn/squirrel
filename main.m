@@ -1,13 +1,14 @@
+
 #import "SquirrelApplicationDelegate.h"
 #import <Cocoa/Cocoa.h>
 #import <InputMethodKit/InputMethodKit.h>
 #import <rime_api.h>
 
 typedef NS_OPTIONS(int, RimeInputMode) {
-  DEFAULT_INPUT_MODE  = 1 << 0,
-  HANS_INPUT_MODE     = 1 << 0,
-  HANT_INPUT_MODE     = 1 << 1,
-  CANT_INPUT_MODE     = 1 << 2
+  DEFAULT_INPUT_MODE = 1 << 0,
+  HANS_INPUT_MODE = 1 << 0,
+  HANT_INPUT_MODE = 1 << 1,
+  CANT_INPUT_MODE = 1 << 2
 };
 
 void RegisterInputSource(void);
@@ -73,7 +74,7 @@ int main(int argc, char *argv[]) {
 
     // load the bundle explicitly because in this case the input method is a
     // background only application
-    [main loadNibNamed:@"MainMenu" 
+    [main loadNibNamed:@"MainMenu"
                  owner:NSApplication.sharedApplication
        topLevelObjects:nil];
 
@@ -85,10 +86,16 @@ int main(int argc, char *argv[]) {
       NSLog(@"Problematic launch detected!");
       NSArray *args = @[@"-v", NSLocalizedString(@"say_voice", nil),
                         NSLocalizedString(@"problematic_launch", nil)];
-      [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/say" isDirectory:NO]
-                                  arguments:args
-                                      error:nil
-                         terminationHandler:nil];
+      if (@available(macOS 10.13, *)) {
+        [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/say"
+                                                         isDirectory:NO]
+                                    arguments:args
+                                        error:nil
+                           terminationHandler:nil];
+      } else {
+        [NSTask launchedTaskWithLaunchPath:@"/usr/bin/say"
+                                 arguments:args];
+      }
     } else {
       [NSApp.squirrelAppDelegate setupRime];
       [NSApp.squirrelAppDelegate startRimeWithFullCheck:false];
