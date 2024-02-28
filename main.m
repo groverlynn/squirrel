@@ -5,10 +5,10 @@
 #import <rime_api.h>
 
 typedef NS_OPTIONS(int, RimeInputMode) {
-  DEFAULT_INPUT_MODE  = 1 << 0,
-  HANS_INPUT_MODE     = 1 << 0,
-  HANT_INPUT_MODE     = 1 << 1,
-  CANT_INPUT_MODE     = 1 << 2
+  DEFAULT_INPUT_MODE = 1 << 0,
+  HANS_INPUT_MODE = 1 << 0,
+  HANT_INPUT_MODE = 1 << 1,
+  CANT_INPUT_MODE = 1 << 2
 };
 
 void RegisterInputSource(void);
@@ -70,11 +70,11 @@ int main(int argc, char *argv[]) {
     NSBundle *main = NSBundle.mainBundle;
     IMKServer *server __unused =
       [[IMKServer alloc] initWithName:kConnectionName
-                     bundleIdentifier:main.bundleIdentifier];
+                     bundleIdentifier   :main.bundleIdentifier];
 
     // load the bundle explicitly because in this case the input method is a
     // background only application
-    [main loadNibNamed:@"MainMenu" 
+    [main loadNibNamed:@"MainMenu"
                  owner:NSApplication.sharedApplication
        topLevelObjects:nil];
 
@@ -87,7 +87,8 @@ int main(int argc, char *argv[]) {
       NSArray *args = @[@"-v", NSLocalizedString(@"say_voice", nil),
                         NSLocalizedString(@"problematic_launch", nil)];
       if (@available(macOS 10.13, *)) {
-        [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/say" isDirectory:NO]
+        [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/say"
+                                                         isDirectory:NO]
                                     arguments:args
                                         error:nil
                            terminationHandler:nil];

@@ -11,10 +11,10 @@ static const CFStringRef kCantInputModeID =
   CFSTR("im.rime.inputmethod.Squirrel.Cant");
 
 typedef NS_OPTIONS(int, RimeInputMode) {
-  DEFAULT_INPUT_MODE  = 1 << 0,
-  HANS_INPUT_MODE     = 1 << 0,
-  HANT_INPUT_MODE     = 1 << 1,
-  CANT_INPUT_MODE     = 1 << 2
+  DEFAULT_INPUT_MODE = 1 << 0,
+  HANS_INPUT_MODE = 1 << 0,
+  HANT_INPUT_MODE = 1 << 1,
+  CANT_INPUT_MODE = 1 << 2
 };
 
 void RegisterInputSource(void) {

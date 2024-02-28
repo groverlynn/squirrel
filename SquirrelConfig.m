@@ -166,7 +166,7 @@
 }
 
 - (double)getDoubleForOption:(NSString *)option
-             applyConstraint:(double(*)(double param))func {
+             applyConstraint:(double (*)(double param))func {
   NSNumber *value = [self getOptionalDoubleForOption:option];
   return func(value.doubleValue);
 }
@@ -174,7 +174,7 @@
 - (NSNumber *)getOptionalBoolForOption:(NSString *)option {
   NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(BOOL) forKey:option];
   if (cachedValue) {
-     return cachedValue;
+    return cachedValue;
   }
   Bool value;
   if (_isOpen && rime_get_api()->config_get_bool(&_config, option.UTF8String, &value)) {
@@ -200,7 +200,7 @@
 }
 
 - (NSNumber *)getOptionalDoubleForOption:(NSString *)option {
-  NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(double) forKey:option];
+   NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(double) forKey:option];
   if (cachedValue) {
     return cachedValue;
   }
@@ -214,7 +214,7 @@
 }
 
 - (NSNumber *)getOptionalDoubleForOption:(NSString *)option
-                         applyConstraint:(double(*)(double param))func {
+                         applyConstraint:(double (*)(double param))func {
   NSNumber *value = [self getOptionalDoubleForOption:option];
   return value ? [NSNumber numberWithDouble:func(value.doubleValue)] : nil;
 }
@@ -271,9 +271,8 @@
     return nil;
   }
   NSMutableArray *strList = [[NSMutableArray alloc] init];
-  while (rime_get_api()->config_next(&iterator)) {
+  while (rime_get_api()->config_next(&iterator))
     [strList addObject:[self getStringForOption:@(iterator.path)]];
-  }
   rime_get_api()->config_end(&iterator);
   return strList;
 }
@@ -393,10 +392,11 @@
   if (filePath == nil) {
     return nil;
   }
-  NSURL *userDataDir = [NSURL fileURLWithPath:@"~/Library/Rime".stringByExpandingTildeInPath 
+  NSURL *userDataDir = [NSURL fileURLWithPath:@"~/Library/Rime".stringByExpandingTildeInPath
                                   isDirectory:YES];
   NSURL *imageFile = [NSURL fileURLWithPath:filePath
-                                isDirectory:NO relativeToURL:userDataDir];
+                                isDirectory:NO 
+                              relativeToURL:userDataDir];
   if ([imageFile checkResourceIsReachableAndReturnError:nil]) {
     NSImage *image = [[NSImage alloc] initByReferencingURL:imageFile];
     return image;

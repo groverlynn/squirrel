@@ -54,13 +54,13 @@ typedef NSMutableDictionary<NSString *, NSNumber *> SquirrelMutableAppOptions;
 - (int)getIntForOption:(NSString *)option;
 - (double)getDoubleForOption:(NSString *)option;
 - (double)getDoubleForOption:(NSString *)option
-             applyConstraint:(double(*)(double param))func;
+             applyConstraint:(double (*)(double param))func;
 
 - (NSNumber *)getOptionalBoolForOption:(NSString *)option;
 - (NSNumber *)getOptionalIntForOption:(NSString *)option;
 - (NSNumber *)getOptionalDoubleForOption:(NSString *)option;
 - (NSNumber *)getOptionalDoubleForOption:(NSString *)option
-                         applyConstraint:(double(*)(double param))func;
+                         applyConstraint:(double (*)(double param))func;
 
 - (NSString *)getStringForOption:(NSString *)option;
 // 0xaabbggrr or 0xbbggrr

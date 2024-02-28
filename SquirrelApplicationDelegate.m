@@ -22,7 +22,8 @@ static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
 
 - (IBAction)configure:(id)sender {
   [NSWorkspace.sharedWorkspace openURL:
-    [NSURL fileURLWithPath:@"~/Library/Rime/".stringByExpandingTildeInPath isDirectory:YES]];
+    [NSURL fileURLWithPath:@"~/Library/Rime/".stringByExpandingTildeInPath
+               isDirectory:YES]];
 }
 
 - (IBAction)openWiki:(id)sender {
@@ -39,7 +40,7 @@ static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
 void show_notification(const char *msg_text) {
   if (@available(macOS 10.14, *)) {
     UNUserNotificationCenter *center = UNUserNotificationCenter.currentNotificationCenter;
-    [center requestAuthorizationWithOptions:UNAuthorizationOptionAlert|UNAuthorizationOptionProvisional
+    [center requestAuthorizationWithOptions:UNAuthorizationOptionAlert | UNAuthorizationOptionProvisional
                           completionHandler:^(BOOL granted, NSError *error) {
       if (error) {
         NSLog(@"User notification authorization error: %@", error.debugDescription);
@@ -56,9 +57,9 @@ void show_notification(const char *msg_text) {
           content.interruptionLevel = UNNotificationInterruptionLevelActive;
         }
         UNNotificationRequest *request =
-        [UNNotificationRequest requestWithIdentifier:@"SquirrelNotification"
-                                             content:content
-                                             trigger:nil];
+          [UNNotificationRequest requestWithIdentifier:@"SquirrelNotification"
+                                               content:content
+                                               trigger:nil];
         [center addNotificationRequest:request
                  withCompletionHandler:^(NSError *error) {
           if (error) {
@@ -73,7 +74,7 @@ void show_notification(const char *msg_text) {
     notification.subtitle = NSLocalizedString(@(msg_text), nil);
 
     NSUserNotificationCenter *notificationCenter =
-    NSUserNotificationCenter.defaultUserNotificationCenter;
+      NSUserNotificationCenter.defaultUserNotificationCenter;
     [notificationCenter removeAllDeliveredNotifications];
     [notificationCenter deliverNotification:notification];
   }
@@ -82,7 +83,7 @@ void show_notification(const char *msg_text) {
 static void show_status(const char *msg_text_long, const char *msg_text_short) {
   NSString *msgLong = msg_text_long ? @(msg_text_long) : nil;
   NSString *msgShort = msg_text_short ? @(msg_text_short) :
-    [msgLong substringWithRange:[msgLong rangeOfComposedCharacterSequenceAtIndex:0]];
+                       [msgLong substringWithRange:[msgLong rangeOfComposedCharacterSequenceAtIndex:0]];
   [NSApp.squirrelAppDelegate.panel updateStatusLong:msgLong statusShort:msgShort];
 }
 
@@ -124,9 +125,9 @@ static void notification_handler(void *context_object, RimeSessionId session_id,
     }
     if (app_delegate.showNotifications != kShowNotificationsNever) {
       RimeStringSlice state_label_long = rime_get_api()->
-        get_state_label_abbreviated(session_id, option_name, state, False);
+                                         get_state_label_abbreviated(session_id, option_name, state, False);
       RimeStringSlice state_label_short = rime_get_api()->
-        get_state_label_abbreviated(session_id, option_name, state, True);
+                                          get_state_label_abbreviated(session_id, option_name, state, True);
       if (state_label_long.str || state_label_short.str) {
         const char *short_message = state_label_short.length < strlen(state_label_short.str) ? NULL : state_label_short.str;
         show_status(state_label_long.str, short_message);
@@ -199,7 +200,7 @@ NSArray<NSString *> *getScriptOptionsForSchema(SquirrelConfig *schema) {
 }
 
 SquirrelOptionSwitcher *updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitcher,
-                                             RimeSessionId sessionId) {
+                                              RimeSessionId					 sessionId) {
   NSMutableDictionary *switcher = optionSwitcher.mutableSwitcher;
   NSSet *prevStates = [NSSet setWithArray:optionSwitcher.optionStates];
   for (NSString *state in prevStates) {
@@ -280,22 +281,25 @@ SquirrelOptionSwitcher *updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitc
 // prevent freezing the system
 - (BOOL)problematicLaunchDetected {
   BOOL detected = NO;
-  NSURL *logfile = [[NSURL fileURLWithPath:NSTemporaryDirectory() 
-                               isDirectory:YES] URLByAppendingPathComponent:@"squirrel_launch.dat"];
+  NSURL *logfile = [[NSURL fileURLWithPath:NSTemporaryDirectory()
+                               isDirectory:YES]
+                    URLByAppendingPathComponent:@"squirrel_launch.dat"];
   NSLog(@"[DEBUG] archive: %@", logfile);
   NSData *archive = [NSData dataWithContentsOfURL:logfile
                                           options:NSDataReadingUncached
                                             error:nil];
   if (archive) {
     NSDate *previousLaunch = [NSKeyedUnarchiver unarchivedObjectOfClass:NSDate.class
-                                                               fromData:archive error:nil];
+                                                               fromData:archive
+                                                                  error:nil];
     if (previousLaunch.timeIntervalSinceNow >= -2) {
       detected = YES;
     }
   }
   NSDate *now = [NSDate date];
-  NSData *record = [NSKeyedArchiver archivedDataWithRootObject:now 
-                                         requiringSecureCoding:NO error:nil];
+  NSData *record = [NSKeyedArchiver archivedDataWithRootObject:now
+                                         requiringSecureCoding:NO
+                                                         error:nil];
   NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingToURL:logfile error:nil];
   [fileHandle writeData:record];
   return detected;

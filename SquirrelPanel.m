@@ -17,40 +17,41 @@ static NSString *const kFullWidthSpace = @"　";
 - (CGPathRef)quartzPath {
   if (@available(macOS 14.0, *)) {
     return self.CGPath;
-  }
-  // Need to begin a path here.
-  CGPathRef immutablePath = NULL;
-  // Then draw the path elements.
-  NSInteger numElements = self.elementCount;
-  if (numElements > 0) {
-    CGMutablePathRef path = CGPathCreateMutable();
-    NSPoint points[3];
-    for (NSInteger i = 0; i < numElements; i++) {
-      switch ([self elementAtIndex:i associatedPoints:points]) {
-        case NSBezierPathElementMoveTo:
-          CGPathMoveToPoint(path, NULL, points[0].x, points[0].y);
-          break;
-        case NSBezierPathElementLineTo:
-          CGPathAddLineToPoint(path, NULL, points[0].x, points[0].y);
-          break;
-        case NSBezierPathElementCurveTo:
-          CGPathAddCurveToPoint(path, NULL, points[0].x, points[0].y,
-                                points[1].x, points[1].y,
-                                points[2].x, points[2].y);
-          break;
-        case NSBezierPathElementQuadraticCurveTo:
-          CGPathAddQuadCurveToPoint(path, NULL, points[0].x, points[0].y,
-                                    points[1].x, points[1].y);
-          break;
-        case NSBezierPathElementClosePath:
-          CGPathCloseSubpath(path);
-          break;
+  } else {
+    // Need to begin a path here.
+    CGPathRef immutablePath = NULL;
+    // Then draw the path elements.
+    NSInteger numElements = self.elementCount;
+    if (numElements > 0) {
+      CGMutablePathRef path = CGPathCreateMutable();
+      NSPoint points[3];
+      for (NSInteger i = 0; i < numElements; i++) {
+        switch ([self elementAtIndex:i associatedPoints:points]) {
+          case NSBezierPathElementMoveTo:
+            CGPathMoveToPoint(path, NULL, points[0].x, points[0].y);
+            break;
+          case NSBezierPathElementLineTo:
+            CGPathAddLineToPoint(path, NULL, points[0].x, points[0].y);
+            break;
+          case NSBezierPathElementCurveTo:
+            CGPathAddCurveToPoint(path, NULL, points[0].x, points[0].y,
+                                  points[1].x, points[1].y,
+                                  points[2].x, points[2].y);
+            break;
+          case NSBezierPathElementQuadraticCurveTo:
+            CGPathAddQuadCurveToPoint(path, NULL, points[0].x, points[0].y,
+                                      points[1].x, points[1].y);
+            break;
+          case NSBezierPathElementClosePath:
+            CGPathCloseSubpath(path);
+            break;
+        }
       }
+      immutablePath = (CGPathRef)CFAutorelease(CGPathCreateCopy(path));
+      CGPathRelease(path);
     }
-    immutablePath = (CGPathRef)CFAutorelease(CGPathCreateCopy(path));
-    CGPathRelease(path);
+    return immutablePath;
   }
-  return immutablePath;
 }
 
 @end // NSBezierPath (BezierPathQuartzUtilities)
@@ -58,8 +59,8 @@ static NSString *const kFullWidthSpace = @"　";
 
 @implementation NSMutableAttributedString (NSMutableAttributedStringMarkDownFormatting)
 
-static NSString *const kMarkDownPattern = @"((\\*{1,2}|\\^|~{1,2})|((?<=\\b)_{1,2})|"
-                        "<(b|strong|i|em|u|sup|sub|s)>)(.+?)(\\2|\\3(?=\\b)|<\\/\\4>)";
+static NSString * const kMarkDownPattern = @"((\\*{1,2}|\\^|~{1,2})|((?<=\\b)_{1,2})|"
+                                           "<(b|strong|i|em|u|sup|sub|s)>)(.+?)(\\2|\\3(?=\\b)|<\\/\\4>)";
 static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFFB)";
 
 - (void)superscriptRange:(NSRange)range {
@@ -69,9 +70,9 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
                 usingBlock:^(NSFont *value, NSRange subRange, BOOL *stop) {
     NSFont *font = [NSFont fontWithDescriptor:value.fontDescriptor
                                          size:floor(value.pointSize * 0.55)];
-    [self addAttributes:@{  NSFontAttributeName:font,
-      (NSString *)kCTBaselineClassAttributeName:(NSString *)kCTBaselineClassIdeographicHigh,
-                     NSSuperscriptAttributeName:@(1)}
+    [self addAttributes:@{ NSFontAttributeName               : font,
+                           (id)kCTBaselineClassAttributeName : (id)kCTBaselineClassIdeographicHigh,
+                           NSSuperscriptAttributeName        : @(1) }
                   range:subRange];
   }];
 }
@@ -83,9 +84,9 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
                 usingBlock:^(NSFont *value, NSRange subRange, BOOL *stop) {
     NSFont *font = [NSFont fontWithDescriptor:value.fontDescriptor
                                          size:floor(value.pointSize * 0.55)];
-    [self addAttributes:@{  NSFontAttributeName:font,
-      (NSString *)kCTBaselineClassAttributeName:(NSString *)kCTBaselineClassIdeographicLow,
-                     NSSuperscriptAttributeName:@(-1)}
+    [self addAttributes:@{ NSFontAttributeName               : font,
+                           (id)kCTBaselineClassAttributeName : (id)kCTBaselineClassIdeographicLow,
+                           NSSuperscriptAttributeName        : @(-1) }
                   range:subRange];
   }];
 }
@@ -152,14 +153,15 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
       [self deleteCharactersInRange:NSMakeRange([result rangeAtIndex:1].location, 1)];
       offset -= 3;
     } else {
-      // base string must use only one font so that all fall within one glyph run and the ruby annotation is aligned with no duplicates
+      // base string must use only one font so that all fall within one glyph run and
+      // the ruby annotation is aligned with no duplicates
       NSFont *baseFont = [self attribute:NSFontAttributeName
                                  atIndex:baseRange.location
                           effectiveRange:NULL];
       baseFont = CFBridgingRelease(CTFontCreateForStringWithLanguage
-                                   ((CTFontRef)baseFont, (CFStringRef)self.string,
-                                    CFRangeMake((CFIndex)baseRange.location, (CFIndex)baseRange.length),
-                                    CFSTR("zh")));
+                                     ((CTFontRef)baseFont, (CFStringRef)self.string,
+                                     CFRangeMake((CFIndex)baseRange.location, (CFIndex)baseRange.length),
+                                     CFSTR("zh")));
       [self addAttribute:NSFontAttributeName value:baseFont range:baseRange];
 
       CGFloat rubyScale = 0.5;
@@ -171,24 +173,24 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
       rubyFont = [NSFont fontWithDescriptor:rubyFont.fontDescriptor
                                        size:rubyFont.pointSize * rubyScale];
       rubyFont = CFBridgingRelease(CTFontCreateForStringWithLanguage
-                                   ((CTFontRef)rubyFont, rubyString,
-                                    CFRangeMake(0, CFStringGetLength(rubyString)),
-                                    CFSTR("zh")));
+                                     ((CTFontRef)rubyFont, rubyString,
+                                     CFRangeMake(0, CFStringGetLength(rubyString)),
+                                     CFSTR("zh")));
       rubyFont = isVertical ? rubyFont.verticalFont : rubyFont;
       rubyLineHeight = MAX(rubyLineHeight, rubyFont.ascender - rubyFont.descender);
       CGColorRef rubyColor = [[self attribute:NSForegroundColorAttributeName
                                       atIndex:[result rangeAtIndex:4].location
                                effectiveRange:NULL] CGColor];
-      CFTypeRef keys[] = {kCTFontAttributeName,
-                          kCTForegroundColorAttributeName,
-                          kCTBaselineClassAttributeName,
-                          kCTRubyAnnotationSizeFactorAttributeName,
-                          kCTRubyAnnotationScaleToFitAttributeName};
-      CFTypeRef values[] = {(__bridge CTFontRef)rubyFont,
-                            rubyColor,
-                            kCTBaselineClassIdeographicHigh,
-                            CFNumberCreate(NULL, kCFNumberDoubleType, &rubyScale),
-                            kCFBooleanFalse};
+      CFTypeRef keys[] = { kCTFontAttributeName,
+                           kCTForegroundColorAttributeName,
+                           kCTBaselineClassAttributeName,
+                           kCTRubyAnnotationSizeFactorAttributeName,
+                           kCTRubyAnnotationScaleToFitAttributeName };
+      CFTypeRef values[] = { (__bridge CTFontRef)rubyFont,
+                             rubyColor,
+                             kCTBaselineClassIdeographicHigh,
+                             CFNumberCreate(NULL, kCFNumberDoubleType, &rubyScale),
+                             kCFBooleanFalse };
       CFDictionaryRef rubyAttrs = CFDictionaryCreate(NULL, keys, values, 5,
                                                      &kCFTypeDictionaryKeyCallBacks,
                                                      &kCFTypeDictionaryValueCallBacks);
@@ -200,8 +202,8 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
 
       [self deleteCharactersInRange:[result rangeAtIndex:3]];
       if (@available(macOS 12.0, *)) {
-        [self addAttributes:@{(NSString *)kCTRubyAnnotationAttributeName:CFBridgingRelease(rubyAnnotation),
-                                        NSVerticalGlyphFormAttributeName:@(isVertical)}
+        [self addAttributes:@{ (id)kCTRubyAnnotationAttributeName : CFBridgingRelease(rubyAnnotation),
+                               NSVerticalGlyphFormAttributeName   : @(isVertical) }
                       range:baseRange];
         [self deleteCharactersInRange:[result rangeAtIndex:1]];
         offset -= [result rangeAtIndex:3].length + [result rangeAtIndex:1].length;
@@ -210,8 +212,8 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
         [self replaceCharactersInRange:NSMakeRange(NSMaxRange(baseRange), 0)
                             withString:[NSString stringWithFormat:@"%C", 0x8B]];
         baseRange.length += 1;
-        [self addAttributes:@{(NSString *)kCTRubyAnnotationAttributeName:CFBridgingRelease(rubyAnnotation),
-                                        NSVerticalGlyphFormAttributeName:@(isVertical)}
+        [self addAttributes:@{ (id)kCTRubyAnnotationAttributeName : CFBridgingRelease(rubyAnnotation),
+                               NSVerticalGlyphFormAttributeName   : @(isVertical) }
                       range:baseRange];
         [self deleteCharactersInRange:[result rangeAtIndex:1]];
         offset -= [result rangeAtIndex:3].length - 1 + [result rangeAtIndex:1].length;
@@ -233,9 +235,9 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
 @implementation NSColorSpace (labColorSpace)
 
 + (NSColorSpace *)labColorSpace {
-  CGFloat whitePoint[3] = {0.950489, 1.0, 1.088840};
-  CGFloat blackPoint[3] = {0.0, 0.0, 0.0};
-  CGFloat range[4] = {-127.0, 127.0, -127.0, 127.0};
+  CGFloat whitePoint[3] = { 0.950489, 1.0, 1.088840 };
+  CGFloat blackPoint[3] = { 0.0, 0.0, 0.0 };
+  CGFloat range[4] = { -127.0, 127.0, -127.0, 127.0 };
   CGColorSpaceRef colorSpaceLab = CGColorSpaceCreateLab(whitePoint, blackPoint, range);
   NSColorSpace *labColorSpace = [[NSColorSpace alloc] initWithCGColorSpace:
                                  (CGColorSpaceRef)CFAutorelease(colorSpaceLab)];
@@ -274,9 +276,10 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
   a = MAX(MIN(a, 127.0), -127.0);
   b = MAX(MIN(b, 127.0), -127.0);
   alpha = MAX(MIN(alpha, 1.0), 0.0);
-  CGFloat components[4] = {luminance, a, b, alpha};
+  CGFloat components[4] = { luminance, a, b, alpha };
   return [NSColor colorWithColorSpace:NSColorSpace.labColorSpace
-                           components:components count:4];
+                           components:components
+                                count:4];
 }
 
 - (void)getLuminance:(CGFloat *)luminance
@@ -284,7 +287,7 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
                    b:(CGFloat *)b
                alpha:(CGFloat *)alpha {
   NSColor *labColor = [self colorUsingColorSpace:NSColorSpace.labColorSpace];
-  CGFloat components[4] = {0.0, 0.0, 0.0, 1.0};
+  CGFloat components[4] = { 0.0, 0.0, 0.0, 1.0 };
   [labColor getComponents:components];
   *luminance = components[0] / 100.0;
   *a = components[1] / 127.0; // green-red
@@ -294,7 +297,7 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
 
 - (CGFloat)luminanceComponent {
   NSColor *labColor = [self colorUsingColorSpace:NSColorSpace.labColorSpace];
-  CGFloat components[4] = {0.0, 0.0, 0.0, 1.0};
+  CGFloat components[4] = { 0.0, 0.0, 0.0, 1.0 };
   [labColor getComponents:components];
   return components[0] / 100.0;
 }
@@ -304,7 +307,7 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
     return nil;
   }
   NSColor *labColor = [self colorUsingColorSpace:NSColorSpace.labColorSpace];
-  CGFloat components[4] = {0.0, 0.0, 0.0, 1.0};
+  CGFloat components[4] = { 0.0, 0.0, 0.0, 1.0 };
   [labColor getComponents:components];
   BOOL isDark = components[0] < 60;
   if (sign > 0) {
@@ -315,7 +318,8 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
     components[0] = isDark ? 90.0 - components[0] / 2.0 : 120.0 - components[0];
   }
   NSColor *invertedColor = [NSColor colorWithColorSpace:NSColorSpace.labColorSpace
-                                             components:components count:4];
+                                             components:components
+                                                  count:4];
   return [invertedColor colorUsingColorSpace:self.colorSpace];
 }
 
@@ -462,7 +466,8 @@ static NSFontDescriptor *getFontDescriptor(NSString *fullname) {
                                           initWithCapacity:fontNames.count];
   for (NSString *fontName in fontNames) {
     NSFont *font = [NSFont fontWithName:[fontName stringByTrimmingCharactersInSet:
-                                         NSCharacterSet.whitespaceAndNewlineCharacterSet] size:0.0];
+                                         NSCharacterSet.whitespaceAndNewlineCharacterSet]
+                                   size:0.0];
     if (font != nil) {
       // If the font name is not valid, NSFontDescriptor will still create something for us.
       // However, when we draw the actual text, Squirrel will crash if there is any font descriptor
@@ -470,8 +475,9 @@ static NSFontDescriptor *getFontDescriptor(NSString *fullname) {
       NSFontDescriptor *fontDescriptor = font.fontDescriptor;
       NSFontDescriptor *UIFontDescriptor = [fontDescriptor fontDescriptorWithSymbolicTraits:
                                             NSFontDescriptorTraitUIOptimized];
-      [validFontDescriptors addObject:[NSFont fontWithDescriptor:UIFontDescriptor size:0.0] != nil ?
-                    UIFontDescriptor : fontDescriptor];
+      [validFontDescriptors addObject:[NSFont fontWithDescriptor:UIFontDescriptor
+                                                            size:0.0] != nil ?
+       UIFontDescriptor : fontDescriptor];
     }
   }
   if (validFontDescriptors.count == 0) {
@@ -479,12 +485,12 @@ static NSFontDescriptor *getFontDescriptor(NSString *fullname) {
   }
   NSFontDescriptor *initialFontDescriptor = validFontDescriptors[0];
   NSFontDescriptor *emojiFontDescriptor =
-  [NSFontDescriptor fontDescriptorWithName:@"AppleColorEmoji" size:0.0];
+    [NSFontDescriptor fontDescriptorWithName:@"AppleColorEmoji" size:0.0];
   NSArray *fallbackDescriptors = [[validFontDescriptors subarrayWithRange:
                                    NSMakeRange(1, validFontDescriptors.count - 1)]
                                   arrayByAddingObject:emojiFontDescriptor];
   return [initialFontDescriptor fontDescriptorByAddingAttributes:
-          @{NSFontCascadeListAttribute:fallbackDescriptors}];
+          @{ NSFontCascadeListAttribute : fallbackDescriptors }];
 }
 
 static CGFloat getLineHeight(NSFont *font, BOOL vertical) {
@@ -503,119 +509,6 @@ static CGFloat getLineHeight(NSFont *font, BOOL vertical) {
     lineHeight = MAX(lineHeight, ceil(fallbackFont.ascender - fallbackFont.descender));
   }
   return lineHeight;
-}
-
-static NSFont *getTallestFont(NSArray<NSFont *> *fonts, BOOL vertical) {
-  NSFont *tallestFont;
-  CGFloat maxHeight = 0.0;
-  for (NSFont *font in fonts) {
-    CGFloat fontHeight = getLineHeight(font, vertical);
-    if (fontHeight > maxHeight) {
-      tallestFont = font;
-      maxHeight = fontHeight;
-    }
-  }
-  return tallestFont;
-}
-
-static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
-                                                    NSArray<NSString *> *labels) {
-  NSRange enumRange = NSMakeRange(0, 0);
-  NSMutableArray *formatted = [[NSMutableArray alloc] initWithCapacity:labels.count];
-  NSCharacterSet *labelCharacters = [NSCharacterSet characterSetWithCharactersInString:
-                                     [labels componentsJoinedByString:@""]];
-  if ([[NSCharacterSet characterSetWithRange:NSMakeRange(0xFF10, 10)]
-       isSupersetOfSet:labelCharacters]) { // ０１..９
-    if ([format.string containsString:@"%c\u20E3"]) { // 1︎⃣..9︎⃣0︎⃣
-      enumRange = [format.string rangeOfString:@"%c\u20E3"];
-      for (NSString *label in labels) {
-        const unichar chars[] = {[label characterAtIndex:0] - 0xFF10 + 0x0030, 0xFE0E, 0x20E3, 0x0};
-        NSMutableAttributedString *newFormat = format.mutableCopy;
-        [newFormat replaceCharactersInRange:enumRange
-                                 withString:[NSString stringWithFormat:@"%S", chars]];
-        [formatted addObject:newFormat];
-      }
-    } else if ([format.string containsString:@"%c\u20DD"]) { // ①..⑨⓪
-      enumRange = [format.string rangeOfString:@"%c\u20DD"];
-      for (NSString *label in labels) {
-        const unichar chars[] = {[label characterAtIndex:0] == 0xFF10 ? 0x24EA :
-          [label characterAtIndex:0] - 0xFF11 + 0x2460, 0x0};
-        NSMutableAttributedString *newFormat = format.mutableCopy;
-        [newFormat replaceCharactersInRange:enumRange
-                                 withString:[NSString stringWithFormat:@"%S", chars]];
-        [formatted addObject:newFormat];
-      }
-    } else if ([format.string containsString:@"(%c)"]) { // ⑴..⑼⑽
-      enumRange = [format.string rangeOfString:@"(%c)"];
-      for (NSString *label in labels) {
-        const unichar chars[] = {[label characterAtIndex:0] == 0xFF10 ? 0x247D :
-          [label characterAtIndex:0] - 0xFF11 + 0x2474, 0x0};
-        NSMutableAttributedString *newFormat = format.mutableCopy;
-        [newFormat replaceCharactersInRange:enumRange
-                                 withString:[NSString stringWithFormat:@"%S", chars]];
-        [formatted addObject:newFormat];
-      }
-    } else if ([format.string containsString:@"%c."]) { // ⒈..⒐🄀
-      enumRange = [format.string rangeOfString:@"%c."];
-      for (NSString *label in labels) {
-        const unichar chars[] = {[label characterAtIndex:0] == 0xFF10 ? 0xD83C :
-          [label characterAtIndex:0] - 0xFF11 + 0x2488,
-          [label characterAtIndex:0] == 0xFF10 ? 0xDD00 : 0x0, 0x0};
-        NSMutableAttributedString *newFormat = format.mutableCopy;
-        [newFormat replaceCharactersInRange:enumRange
-                                 withString:[NSString stringWithFormat:@"%S", chars]];
-        [formatted addObject:newFormat];
-      }
-    } else if ([format.string containsString:@"%c,"]) { // 🄂..🄊🄁
-      enumRange = [format.string rangeOfString:@"%c,"];
-      for (NSString *label in labels) {
-        const unichar chars[] = {0xD83C, [label characterAtIndex:0] - 0xFF10 + 0xDD01, 0x0};
-        NSMutableAttributedString *newFormat = format.mutableCopy;
-        [newFormat replaceCharactersInRange:enumRange
-                                 withString:[NSString stringWithFormat:@"%S", chars]];
-        [formatted addObject:newFormat];
-      }
-    }
-  } else if ([[NSCharacterSet characterSetWithRange:NSMakeRange(0xFF21, 26)]
-              isSupersetOfSet:labelCharacters]) { // Ａ..Ｚ
-    if ([format.string containsString:@"%c\u20DD"]) { // Ⓐ..Ⓩ
-      enumRange = [format.string rangeOfString:@"%c\u20DD"];
-      for (NSString *label in labels) {
-        const unichar chars[] = {[label characterAtIndex:0] - 0xFF21 + 0x24B6, 0x0};
-        NSMutableAttributedString *newFormat = format.mutableCopy;
-        [newFormat replaceCharactersInRange:enumRange
-                                 withString:[NSString stringWithFormat:@"%S", chars]];
-        [formatted addObject:newFormat];
-      }
-    } else if ([format.string containsString:@"(%c)"]) { // 🄐..🄩
-      enumRange = [format.string rangeOfString:@"(%c)"];
-      for (NSString *label in labels) {
-        const unichar chars[] = {0xD83C, [label characterAtIndex:0] - 0xFF21 + 0xDD10, 0x0};
-        NSMutableAttributedString *newFormat = format.mutableCopy;
-        [newFormat replaceCharactersInRange:enumRange
-                                 withString:[NSString stringWithFormat:@"%S", chars]];
-        [formatted addObject:newFormat];
-      }
-    } else if ([format.string containsString:@"%c\u20DE"]) { // 🄰..🅉
-      enumRange = [format.string rangeOfString:@"%c\u20DE"];
-      for (NSString *label in labels) {
-        const unichar chars[] = {0xD83C, [label characterAtIndex:0] - 0xFF21 + 0xDD30, 0x0};
-        NSMutableAttributedString *newFormat = format.mutableCopy;
-        [newFormat replaceCharactersInRange:enumRange
-                                 withString:[NSString stringWithFormat:@"%S", chars]];
-        [formatted addObject:newFormat];
-      }
-    }
-  }
-  if (enumRange.length == 0) {
-    enumRange = [format.string rangeOfString:@"%c"];
-    for (NSString *label in labels) {
-      NSMutableAttributedString *newFormat = format.mutableCopy;
-      [newFormat replaceCharactersInRange:enumRange withString:label];
-      [formatted addObject:newFormat];
-    }
-  }
-  return formatted;
 }
 
 - (instancetype)init {
@@ -684,17 +577,17 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
     NSMutableDictionary *statusAttrs = commentAttrs.mutableCopy;
     statusAttrs[NSParagraphStyleAttributeName] = statusParagraphStyle;
 
-    [self          setAttrs:attrs
-           highlightedAttrs:highlightedAttrs
-                 labelAttrs:labelAttrs
-      labelHighlightedAttrs:labelHighlightedAttrs
-               commentAttrs:commentAttrs
-    commentHighlightedAttrs:commentHighlightedAttrs
-               preeditAttrs:preeditAttrs
-    preeditHighlightedAttrs:preeditHighlightedAttrs
-                pagingAttrs:pagingAttrs
-     pagingHighlightedAttrs:pagingHighlightedAttrs
-                statusAttrs:statusAttrs];
+    [self            setAttrs:attrs
+             highlightedAttrs:highlightedAttrs
+                   labelAttrs:labelAttrs
+        labelHighlightedAttrs:labelHighlightedAttrs
+                 commentAttrs:commentAttrs
+      commentHighlightedAttrs:commentHighlightedAttrs
+                 preeditAttrs:preeditAttrs
+      preeditHighlightedAttrs:preeditHighlightedAttrs
+                  pagingAttrs:pagingAttrs
+       pagingHighlightedAttrs:pagingHighlightedAttrs
+                  statusAttrs:statusAttrs];
 
     [self setParagraphStyle:paragraphStyle
       preeditParagraphStyle:preeditParagraphStyle
@@ -823,7 +716,7 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
     NSMutableDictionary *attrsLock = pagingAttrs.mutableCopy;
     attrsLock[NSAttachmentAttributeName] = attmLock;
     _symbolLock = [[NSAttributedString alloc] initWithString:attmCharacter
-                                                      attributes:attrsLock];
+                                                  attributes:attrsLock];
   } else if (_showPaging) {
     NSTextAttachment *attmBackFill = [[NSTextAttachment alloc] init];
     attmBackFill.image = [NSImage imageNamed:[NSString stringWithFormat:
@@ -898,8 +791,112 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
   NSRange candidateRange = [candidateFormat rangeOfString:@"%@"];
   if (labelRange.location > candidateRange.location) {
     candidateFormat.string = kDefaultCandidateFormat;
-    candidateRange = [candidateFormat rangeOfString:@"%@"];
   }
+
+  NSMutableArray *labels = [_labels mutableCopy];
+  NSRange enumRange = NSMakeRange(0, 0);
+  NSCharacterSet *labelCharacters = [NSCharacterSet characterSetWithCharactersInString:
+                                     [labels componentsJoinedByString:@""]];
+  if ([[NSCharacterSet characterSetWithRange:NSMakeRange(0xFF10, 10)]
+       isSupersetOfSet:labelCharacters]) { // ０１..９
+    if ([candidateFormat containsString:@"%c\u20E3"]) { // 1︎⃣..9︎⃣0︎⃣
+      enumRange = [candidateFormat rangeOfString:@"%c\u20E3"];
+      for (NSUInteger i = 0; i < labels.count; ++i) {
+        const unichar chars[] = {
+          [labels[i] characterAtIndex:0] - 0xFF10 + 0x0030, 0xFE0E, 0x20E3, 0x0
+        };
+        labels[i] = [NSString stringWithFormat:@"%S", chars];
+      }
+    } else if ([candidateFormat containsString:@"%c\u20DD"]) { // ①..⑨⓪
+      enumRange = [candidateFormat rangeOfString:@"%c\u20DD"];
+      for (NSUInteger i = 0; i < labels.count; ++i) {
+        const unichar chars[] = {
+          [labels[i] characterAtIndex:0] == 0xFF10 ? 0x24EA :
+          [labels[i] characterAtIndex:0] - 0xFF11 + 0x2460, 0x0
+        };
+        labels[i] = [NSString stringWithFormat:@"%S", chars];
+      }
+    } else if ([candidateFormat containsString:@"(%c)"]) { // ⑴..⑼⑽
+      enumRange = [candidateFormat rangeOfString:@"(%c)"];
+      for (NSUInteger i = 0; i < labels.count; ++i) {
+        const unichar chars[] = {
+          [labels[i] characterAtIndex:0] == 0xFF10 ? 0x247D :
+          [labels[i] characterAtIndex:0] - 0xFF11 + 0x2474, 0x0
+        };
+        labels[i] = [NSString stringWithFormat:@"%S", chars];
+      }
+    } else if ([candidateFormat containsString:@"%c."]) { // ⒈..⒐🄀
+      enumRange = [candidateFormat rangeOfString:@"%c."];
+      for (NSUInteger i = 0; i < labels.count; ++i) {
+        const unichar chars[] = {
+          [labels[i] characterAtIndex:0] == 0xFF10 ? 0xD83C :
+          [labels[i] characterAtIndex:0] - 0xFF11 + 0x2488,
+          [labels[i] characterAtIndex:0] == 0xFF10 ? 0xDD00 : 0x0, 0x0
+        };
+        labels[i] = [NSString stringWithFormat:@"%S", chars];
+      }
+    } else if ([candidateFormat containsString:@"%c,"]) { // 🄂..🄊🄁
+      enumRange = [candidateFormat rangeOfString:@"%c,"];
+      for (NSUInteger i = 0; i < labels.count; ++i) {
+        const unichar chars[] = {
+          0xD83C, [labels[i] characterAtIndex:0] - 0xFF10 + 0xDD01, 0x0
+        };
+        labels[i] = [NSString stringWithFormat:@"%S", chars];
+      }
+    }
+  } else if ([[NSCharacterSet characterSetWithRange:NSMakeRange(0xFF21, 26)]
+              isSupersetOfSet:labelCharacters]) { // Ａ..Ｚ
+    if ([candidateFormat containsString:@"%c\u20DD"]) { // Ⓐ..Ⓩ
+      enumRange = [candidateFormat rangeOfString:@"%c\u20DD"];
+      for (NSUInteger i = 0; i < labels.count; ++i) {
+        const unichar chars[] = {
+          [labels[i] characterAtIndex:0] - 0xFF21 + 0x24B6, 0x0
+        };
+        labels[i] = [NSString stringWithFormat:@"%S", chars];
+      }
+    } else if ([candidateFormat containsString:@"(%c)"]) { // 🄐..🄩
+      enumRange = [candidateFormat rangeOfString:@"(%c)"];
+      for (NSUInteger i = 0; i < labels.count; ++i) {
+        const unichar chars[] = {
+          0xD83C, [labels[i] characterAtIndex:0] - 0xFF21 + 0xDD10, 0x0
+        };
+        labels[i] = [NSString stringWithFormat:@"%S", chars];
+      }
+    } else if ([candidateFormat containsString:@"%c\u20DE"]) { // 🄰..🅉
+      enumRange = [candidateFormat rangeOfString:@"%c\u20DE"];
+      for (NSUInteger i = 0; i < labels.count; ++i) {
+        const unichar chars[] = {
+          0xD83C, [labels[i] characterAtIndex:0] - 0xFF21 + 0xDD30, 0x0
+        };
+        labels[i] = [NSString stringWithFormat:@"%S", chars];
+      }
+    }
+  }
+  if (enumRange.length > 0) {
+    [candidateFormat replaceCharactersInRange:enumRange withString:@"%c"];
+    _candidateFormat = candidateFormat.copy;
+    _labels = labels.copy;
+  }
+  // make sure label font can render all label strings
+  NSString *labelString = [labels componentsJoinedByString:@""];
+  NSFont *labelFont = _labelAttrs[NSFontAttributeName];
+  NSFont *substituteFont = CFBridgingRelease(CTFontCreateForString(
+                                               (CTFontRef)labelFont, (CFStringRef)labelString,
+                                               CFRangeMake(0, (CFIndex)labelString.length)));
+  NSMutableDictionary *labelAttrs = _labelAttrs.mutableCopy;
+  NSMutableDictionary *labelHighlightedAttrs = _labelHighlightedAttrs.mutableCopy;
+  if (![substituteFont isEqualTo:labelFont]) {
+    labelAttrs[NSFontAttributeName] = substituteFont;
+    labelHighlightedAttrs[NSFontAttributeName] = substituteFont;
+  }
+  labelAttrs[(id)kCTBaselineInfoAttributeName] =
+    @{ (id)kCTBaselineClassIdeographicCentered : @(substituteFont.capHeight * 0.5) };
+  labelHighlightedAttrs[(id)kCTBaselineInfoAttributeName] =
+    @{ (id)kCTBaselineClassIdeographicCentered : @(substituteFont.capHeight * 0.5) };
+  _labelAttrs = labelAttrs.copy;
+  _labelHighlightedAttrs = labelHighlightedAttrs.copy;
+
+  candidateRange = [candidateFormat rangeOfString:@"%@"];
   labelRange = NSMakeRange(0, candidateRange.location);
   NSRange commentRange = NSMakeRange(NSMaxRange(candidateRange),
                                      candidateFormat.length - NSMaxRange(candidateRange));
@@ -922,12 +919,13 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
   commentRange = NSMakeRange(NSMaxRange(candidateRange),
                              format.length - NSMaxRange(candidateRange));
   if (commentRange.length > 0) {
-    [format replaceCharactersInRange:commentRange withString:
-     [kTipSpecifier stringByAppendingString:
-      [format.string substringWithRange:commentRange]]];
-    [highlightedFormat replaceCharactersInRange:commentRange withString:
-     [kTipSpecifier stringByAppendingString:
-      [highlightedFormat.string substringWithRange:commentRange]]];
+    [format replaceCharactersInRange:commentRange
+                          withString:[kTipSpecifier stringByAppendingString:
+                                      [format.string substringWithRange:commentRange]]];
+    [highlightedFormat replaceCharactersInRange:commentRange
+                                     withString:[kTipSpecifier stringByAppendingString:
+                                                 [highlightedFormat.string
+                                                  substringWithRange:commentRange]]];
   } else {
     [format appendAttributedString:
      [[NSAttributedString alloc] initWithString:kTipSpecifier
@@ -936,8 +934,22 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
      [[NSAttributedString alloc] initWithString:kTipSpecifier
                                      attributes:_commentHighlightedAttrs]];
   }
-  _candidateFormats = formatLabels(format, _labels);
-  _candidateHighlightedFormats = formatLabels(highlightedFormat, _labels);
+
+  NSMutableArray *candidateFormats = [[NSMutableArray alloc]
+                                      initWithCapacity:labels.count];
+  NSMutableArray *candidateHighlightedFormats = [[NSMutableArray alloc]
+                                                 initWithCapacity:labels.count];
+  enumRange = [format.string rangeOfString:@"%c"];
+  for (NSString *label in labels) {
+    NSMutableAttributedString *newFormat = format.mutableCopy;
+    NSMutableAttributedString *newHighlightedFormat = highlightedFormat.mutableCopy;
+    [newFormat replaceCharactersInRange:enumRange withString:label];
+    [newHighlightedFormat replaceCharactersInRange:enumRange withString:label];
+    [candidateFormats addObject:newFormat];
+    [candidateHighlightedFormats addObject:newHighlightedFormat];
+  }
+  _candidateFormats = candidateFormats.copy;
+  _candidateHighlightedFormats = candidateHighlightedFormats.copy;
 }
 
 - (void)setStatusMessageType:(NSString *)type {
@@ -987,7 +999,7 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
                                              effectiveRange:NULL
                                     withoutAdditionalLayout:YES];
     CGContextSaveGState(context);
-    if (attrs[(NSString *)kCTRubyAnnotationAttributeName]) {
+    if (attrs[(id)kCTRubyAnnotationAttributeName]) {
       CGContextScaleCTM(context, 1.0, -1.0);
       NSUInteger glyphIndex = glyRange.location;
       CTLineRef line = CTLineCreateWithAttributedString((CFAttributedStringRef)
@@ -1016,12 +1028,12 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
       position = [textContainer.textView convertPointFromBacking:
                   NSMakePoint(round(backingPosition.x), round(backingPosition.y))];
       NSFont *runFont = attrs[NSFontAttributeName];
-      NSString *baselineClass = attrs[(NSString *)kCTBaselineClassAttributeName];
+      NSString *baselineClass = attrs[(id)kCTBaselineClassAttributeName];
       NSPoint offset = origin;
       if (!verticalOrientation &&
-          ([baselineClass isEqualToString:(NSString *)kCTBaselineClassIdeographicCentered] ||
-           [baselineClass isEqualToString:(NSString *)kCTBaselineClassMath])) {
-        NSFont *refFont = attrs[(NSString *)kCTBaselineReferenceInfoAttributeName][(NSString *)kCTBaselineReferenceFont];
+          ([baselineClass isEqualToString:(id)kCTBaselineClassIdeographicCentered] ||
+           [baselineClass isEqualToString:(id)kCTBaselineClassMath])) {
+        NSFont *refFont = attrs[(id)kCTBaselineReferenceInfoAttributeName][(id)kCTBaselineReferenceFont];
         offset.y += runFont.ascender * 0.5 + runFont.descender * 0.5 - refFont.ascender * 0.5 - refFont.descender * 0.5;
       } else if (verticalOrientation && runFont.pointSize < 24 &&
                  [runFont.fontName isEqualToString:@"AppleColorEmoji"]) {
@@ -1034,8 +1046,9 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
                              NSMakePoint(position.x + offset.x, position.y + offset.y)];
       glyphOrigin = [textContainer.textView convertPointFromBacking:
                      NSMakePoint(round(glyphOrigin.x), round(glyphOrigin.y))];
-      [super drawGlyphsForGlyphRange:glyRange atPoint:
-       NSMakePoint(glyphOrigin.x - position.x, glyphOrigin.y - position.y)];
+      [super drawGlyphsForGlyphRange:glyRange
+                             atPoint:NSMakePoint(glyphOrigin.x - position.x,
+                                                 glyphOrigin.y - position.y)];
     }
     CGContextRestoreGState(context);
   }];
@@ -1052,14 +1065,15 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
   NSRange charRange = [layoutManager characterRangeForGlyphRange:glyphRange
                                                 actualGlyphRange:NULL];
   NSFont *refFont = [layoutManager.textStorage
-                     attribute:(NSString *)kCTBaselineReferenceInfoAttributeName
+                     attribute:(id)kCTBaselineReferenceInfoAttributeName
                      atIndex:charRange.location
-                     effectiveRange:NULL][(NSString *)kCTBaselineReferenceFont];
+                     effectiveRange:NULL][(id)kCTBaselineReferenceFont];
   NSParagraphStyle *rulerAttrs = [layoutManager.textStorage
                                   attribute:NSParagraphStyleAttributeName
                                   atIndex:charRange.location
                                   effectiveRange:NULL];
-  CGFloat lineHeightDelta = lineFragmentUsedRect->size.height - rulerAttrs.minimumLineHeight - rulerAttrs.lineSpacing;
+  CGFloat lineHeightDelta = lineFragmentUsedRect->size.height -
+                            rulerAttrs.minimumLineHeight - rulerAttrs.lineSpacing;
   if (ABS(lineHeightDelta) > 0.1) {
     lineFragmentUsedRect->size.height = round(lineFragmentUsedRect->size.height - lineHeightDelta);
     lineFragmentRect->size.height = round(lineFragmentRect->size.height - lineHeightDelta);
@@ -1079,7 +1093,7 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
                           shouldUseAction:(NSControlCharacterAction)action
                forControlCharacterAtIndex:(NSUInteger)charIndex {
   if ([layoutManager.textStorage.string characterAtIndex:charIndex] == 0x8B &&
-      [layoutManager.textStorage attribute:(NSString *)kCTRubyAnnotationAttributeName
+      [layoutManager.textStorage attribute:(id)kCTRubyAnnotationAttributeName
                                    atIndex:charIndex
                             effectiveRange:NULL]) {
     return NSControlCharacterActionWhitespace;
@@ -1088,7 +1102,7 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
   }
 }
 
-- (NSRect)            layoutManager:(NSLayoutManager *)layoutManager
+- (NSRect)						layoutManager:(NSLayoutManager *)layoutManager
   boundingBoxForControlGlyphAtIndex:(NSUInteger)glyphIndex
                    forTextContainer:(NSTextContainer *)textContainer
                proposedLineFragment:(NSRect)proposedRect
@@ -1097,10 +1111,10 @@ static NSArray<NSAttributedString *> * formatLabels(NSAttributedString *format,
   CGFloat width = 0.0;
   if ([layoutManager.textStorage.string characterAtIndex:charIndex] == 0x8B) {
     NSRange rubyRange;
-    id rubyAnnotation = [layoutManager.textStorage
-                         attribute:(NSString *)kCTRubyAnnotationAttributeName
-                         atIndex:charIndex
-                         effectiveRange:&rubyRange];
+    id rubyAnnotation =
+      [layoutManager.textStorage attribute:(id)kCTRubyAnnotationAttributeName
+                                   atIndex:charIndex
+                            effectiveRange:&rubyRange];
     if (rubyAnnotation) {
       NSAttributedString *rubyString = [layoutManager.textStorage
                                         attributedSubstringFromRange:rubyRange];
@@ -1143,7 +1157,7 @@ API_AVAILABLE(macos(12.0))
                                        baseline - lineFrag.glyphOrigin.y);
     CGPoint deviceOrigin = CGContextConvertPointToDeviceSpace(context, renderOrigin);
     renderOrigin = CGContextConvertPointToUserSpace(context,
-                    CGPointMake(round(deviceOrigin.x), round(deviceOrigin.y)));
+                     CGPointMake(round(deviceOrigin.x), round(deviceOrigin.y)));
     [lineFrag drawAtPoint:renderOrigin inContext:context];
   }
 }
@@ -1740,7 +1754,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
       break;
     case kEscapeKey:
       buttonColor = disabledColor(theme.highlightedPreeditBackColor, self.appear);
-      buttonPath= _deleteBackPath;
+      buttonPath = _deleteBackPath;
       break;
     default:
       return nil;
@@ -2151,7 +2165,8 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
     gridLayer.path = gridPath.quartzPath;
     gridLayer.lineWidth = 1.0;
     gridLayer.strokeColor = [theme.commentAttrs[NSForegroundColorAttributeName]
-                             blendedColorWithFraction:0.5 ofColor:theme.backColor].CGColor;
+                             blendedColorWithFraction:0.5
+                             ofColor:theme.backColor].CGColor;
     [ForeLayers addSublayer:gridLayer];
   }
   // logo at the beginning for status message
@@ -2379,7 +2394,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
 
 - (instancetype)init {
   self = [super initWithContentRect:_IbeamRect
-                          styleMask:NSWindowStyleMaskNonactivatingPanel|NSWindowStyleMaskBorderless
+                          styleMask:NSWindowStyleMaskNonactivatingPanel | NSWindowStyleMaskBorderless
                             backing:NSBackingStoreBuffered
                               defer:YES];
   if (self) {
@@ -2430,10 +2445,9 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
       (arrowKey == kDownKey && !self.vertical)) {
     NSUInteger newIndex = _highlightedIndex + 1;
     while (newIndex < _numCandidates && (_view.tabularPositions[newIndex].row == currentRow ||
-           (_view.tabularPositions[newIndex].row == currentRow + 1 &&
-            _view.tabularPositions[newIndex].tabColumn <= currentTabColumn))) {
+                                         (_view.tabularPositions[newIndex].row == currentRow + 1 &&
+                                          _view.tabularPositions[newIndex].tabColumn <= currentTabColumn)))
       ++newIndex;
-    }
     if (newIndex == _numCandidates) {
       return _numCandidates < pageSize * 5 ? NSNotFound : _numCandidates + pageSize * (_pageNum - _activePage);
     } else {
@@ -2443,10 +2457,9 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
              (arrowKey == kUpKey && !self.vertical)) {
     NSInteger newIndex = (NSInteger)_highlightedIndex - 1;
     while (newIndex >= 0 && (_view.tabularPositions[newIndex].row == currentRow ||
-           (_view.tabularPositions[newIndex].row == currentRow - 1 &&
-            _view.tabularPositions[newIndex].tabColumn > currentTabColumn))) {
+                             (_view.tabularPositions[newIndex].row == currentRow - 1 &&
+                              _view.tabularPositions[newIndex].tabColumn > currentTabColumn)))
       --newIndex;
-    }
     if (newIndex == -1) {
       return _pageNum == 0 ? NSNotFound : pageSize * (_pageNum - _activePage) - 1;
     } else {
@@ -2764,7 +2777,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
       windowRect.size.height = NSWidth(maxContentRect) + insets.left + insets.right;
     } else {
       windowRect.size.width = NSWidth(maxContentRect) + insets.left + insets.right;
-      windowRect.size.height =NSHeight(maxContentRect) + insets.top + insets.bottom;
+      windowRect.size.height = NSHeight(maxContentRect) + insets.top + insets.bottom;
     }
     if (sweepVertical) { // vertically centre-align (MidY) in screen coordinates
       windowRect.origin.x = NSMinX(_IbeamRect) - kOffsetGap - NSWidth(windowRect);
@@ -2917,8 +2930,9 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
       return YES;
     }];
   } else {
-    NSRange glyphRange = [_view.textView.layoutManager glyphRangeForCharacterRange:range
-                                                              actualCharacterRange:NULL];
+    NSRange glyphRange = [_view.textView.layoutManager
+                          glyphRangeForCharacterRange:range
+                                 actualCharacterRange:NULL];
     [_view.textView.layoutManager
      enumerateLineFragmentsForGlyphRange:glyphRange
      usingBlock:^(NSRect rect, NSRect usedRect, NSTextContainer *textContainer,
@@ -3115,8 +3129,9 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
   for (NSUInteger idx = 0; idx < _numCandidates; ++idx) {
     NSUInteger col = idx % theme.pageSize;
     // attributed labels are already included in candidateFormats
-    NSMutableAttributedString *item = idx == highlightedIndex ? theme.candidateHighlightedFormats[col].mutableCopy
-                                                              : theme.candidateFormats[col].mutableCopy;
+    NSMutableAttributedString *item = idx == highlightedIndex
+      ? theme.candidateHighlightedFormats[col].mutableCopy
+      : theme.candidateFormats[col].mutableCopy;
     NSRange candidateField = [item.string rangeOfString:@"%@"];
     // get the label size for indent
     NSRange labelRange = NSMakeRange(0, candidateField.location);
@@ -3124,7 +3139,8 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
     // hide labels in non-highlighted pages (no selection keys)
     if (idx / theme.pageSize != _activePage) {
       [item addAttribute:NSForegroundColorAttributeName
-                   value:NSColor.clearColor range:labelRange];
+                   value:NSColor.clearColor
+                   range:labelRange];
     }
     // plug in candidate texts and comments into the template
     [item replaceCharactersInRange:candidateField
@@ -3152,7 +3168,9 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
         NSMutableParagraphStyle *style = value.mutableCopy;
         style.paragraphSpacing = annotationHeight;
         style.paragraphSpacingBefore = annotationHeight;
-        [text addAttribute:NSParagraphStyleAttributeName value:style range:range];
+        [text addAttribute:NSParagraphStyleAttributeName
+                     value:style
+                     range:range];
       }];
     }
     if (comments[idx].length > 0 && [item.string hasSuffix:@" "]) {
@@ -3186,7 +3204,8 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
     if (theme.linear && ceil(item.size.width) > _textWidthLimit) {
       if (idx < _numCandidates - 1 || theme.showPaging || theme.tabular) {
         [text appendAttributedString:[[NSAttributedString alloc]
-                                      initWithString:@"\n" attributes:theme.commentAttrs]];
+                                      initWithString:@"\n"
+                                      attributes:theme.commentAttrs]];
       }
       NSMutableParagraphStyle *paragraphStyleTruncating = paragraphStyleCandidate.mutableCopy;
       paragraphStyleTruncating.lineBreakMode = NSLineBreakByTruncatingMiddle;
@@ -3204,8 +3223,9 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
 
   // paging indication
   if (theme.tabular) {
-    [text appendAttributedString:[[NSAttributedString alloc] initWithString:@"\t"
-                                                                 attributes:theme.commentAttrs]];
+    [text appendAttributedString:[[NSAttributedString alloc]
+                                  initWithString:@"\t"
+                                  attributes:theme.commentAttrs]];
     NSUInteger pagingStart = text.length;
     NSAttributedString *expander = _locked ? theme.symbolLock : _view.expanded ? theme.symbolCompress : theme.symbolExpand;
     [text appendAttributedString:expander];
@@ -3230,7 +3250,6 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
     [text addAttribute:NSParagraphStyleAttributeName
                  value:paragraphStyleCandidate
                  range:NSMakeRange(lineStart, text.length - lineStart)];
-
   } else if (theme.showPaging) {
     NSMutableAttributedString *paging = [self getPageNumString:pageNum];
     [paging insertAttributedString:pageNum > 0 ? theme.symbolBackFill : theme.symbolBackStroke atIndex:0];
@@ -3245,12 +3264,12 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
         lineStart = pagingStart;
         pagingStart += 1;
       }
-      if ([self shouldUseTabInRange:NSMakeRange(pagingStart, paging.length) 
+      if ([self shouldUseTabInRange:NSMakeRange(pagingStart, paging.length)
                       maxLineLength:&maxLineLength] || lineStart != candidateBlockStart) {
         [text replaceCharactersInRange:NSMakeRange(pagingStart - 1, 1)
                             withString:@"\t"];
         paragraphStyleCandidate = theme.paragraphStyle.mutableCopy;
-        paragraphStyleCandidate.tabStops = 
+        paragraphStyleCandidate.tabStops =
           @[[[NSTextTab alloc] initWithTextAlignment:NSTextAlignmentRight
                                             location:maxLineLength
                                              options:@{}]];
@@ -3266,7 +3285,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
                             withString:@"\t"];
         [text replaceCharactersInRange:NSMakeRange(pagingStart + paging.length - 2, 1)
                             withString:@"\t"];
-        paragraphStylePaging.tabStops = 
+        paragraphStylePaging.tabStops =
           @[[[NSTextTab alloc] initWithTextAlignment:NSTextAlignmentCenter
                                             location:maxLineLength * 0.5
                                              options:@{}],
@@ -3281,7 +3300,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
     pagingRange = NSMakeRange(text.length - paging.length, paging.length);
   }
 
-alignDelete:
+ alignDelete:
   // right-align the backward delete symbol
   if (preedit && [self shouldUseTabInRange:NSMakeRange(preeditRange.length - 2, 2)
                              maxLineLength:&maxLineLength]) {
@@ -3296,7 +3315,8 @@ alignDelete:
                                                                        location:maxLineLength
                                                                         options:@{}]];
     [text addAttribute:NSParagraphStyleAttributeName
-                 value:paragraphStylePreedit range:preeditRange];
+                 value:paragraphStylePreedit
+                 range:preeditRange];
   }
 
   // text done!
@@ -3330,9 +3350,9 @@ alignDelete:
       _statusMessage = messageLong;
       break;
     case kStatusMessageTypeShort:
-      _statusMessage = messageShort ? :
-      (messageLong ? [messageLong substringWithRange:
-                      [messageLong rangeOfComposedCharacterSequenceAtIndex:0]] : nil);
+      _statusMessage = messageShort ? : messageLong ?
+                       [messageLong substringWithRange:
+                        [messageLong rangeOfComposedCharacterSequenceAtIndex:0]] : nil;
       break;
   }
 }
@@ -3569,22 +3589,26 @@ double clamp_uni(double param) { return fmin(1.0, fmax(0.0, param)); }
   if (appear == darkAppear) {
     for (NSString *option in styleOptions) {
       if ((colorScheme = [config getStringForOption:[NSString stringWithFormat:
-                                                     @"style/%@/color_scheme_dark", option]])) break;
+                                                     @"style/%@/color_scheme_dark", option]])) {
+        break;
+      }
     }
     colorScheme = colorScheme ? : [config getStringForOption:@"style/color_scheme_dark"];
   }
   if (!colorScheme) {
     for (NSString *option in styleOptions) {
       if ((colorScheme = [config getStringForOption:[NSString stringWithFormat:
-                                                     @"style/%@/color_scheme", option]])) break;
+                                                     @"style/%@/color_scheme", option]])) {
+        break;
+      }
     }
     colorScheme = colorScheme ? : [config getStringForOption:@"style/color_scheme"];
   }
   BOOL isNative = !colorScheme || [colorScheme isEqualToString:@"native"];
   NSArray *configPrefixes = isNative
-  ? [@"style/" stringsByAppendingPaths:styleOptions.allObjects]
-  : [@[[@"preset_color_schemes/" stringByAppendingString:colorScheme]]
-     arrayByAddingObjectsFromArray:[@"style/" stringsByAppendingPaths:styleOptions.allObjects]];
+    ? [@"style/" stringsByAppendingPaths:styleOptions.allObjects]
+    : [@[[@"preset_color_schemes/" stringByAppendingString:colorScheme]]
+       arrayByAddingObjectsFromArray:[@"style/" stringsByAppendingPaths:styleOptions.allObjects]];
 
   // get color scheme and then check possible overrides from styleSwitcher
   for (NSString *prefix in configPrefixes) {
@@ -3607,7 +3631,7 @@ double clamp_uni(double param) { return fmin(1.0, fmax(0.0, param)); }
                                                              @"/hilited_comment_text_color"]] ? : highlightedCommentTextColor;
     // for backward compatibility, 'label_hilited_color' and 'hilited_candidate_label_color' are both valid
     highlightedCandidateLabelColor = [config getColorForOption:[prefix stringByAppendingString:@"/label_hilited_color"]] ? :
-      [config getColorForOption:[prefix stringByAppendingString:@"/hilited_candidate_label_color"]] ? : highlightedCandidateLabelColor;
+                                     [config getColorForOption:[prefix stringByAppendingString:@"/hilited_candidate_label_color"]] ? : highlightedCandidateLabelColor;
     backImage = [config getImageForOption:[prefix stringByAppendingString:@"/back_image"]] ? : backImage;
 
     // the following per-color-scheme configurations, if exist, will
@@ -3655,11 +3679,11 @@ double clamp_uni(double param) { return fmin(1.0, fmax(0.0, param)); }
   fontSize = fontSize ? : @(kDefaultFontSize);
   labelFontSize = labelFontSize ? : fontSize;
   commentFontSize = commentFontSize ? : fontSize;
-  NSDictionary *monoDigitAttrs = @{NSFontFeatureSettingsAttribute:
-                                     @[@{NSFontFeatureTypeIdentifierKey:@(kNumberSpacingType),
-                                     NSFontFeatureSelectorIdentifierKey:@(kMonospacedNumbersSelector)},
-                                       @{NSFontFeatureTypeIdentifierKey:@(kTextSpacingType),
-                                     NSFontFeatureSelectorIdentifierKey:@(kHalfWidthTextSelector)}]};
+  NSDictionary *monoDigitAttrs = @{ NSFontFeatureSettingsAttribute :
+                                      @[@{ NSFontFeatureTypeIdentifierKey : @(kNumberSpacingType),
+                                       NSFontFeatureSelectorIdentifierKey : @(kMonospacedNumbersSelector) },
+                                        @{ NSFontFeatureTypeIdentifierKey : @(kTextSpacingType),
+                                       NSFontFeatureSelectorIdentifierKey : @(kHalfWidthTextSelector) }] };
 
   NSFontDescriptor *fontDescriptor = getFontDescriptor(fontName);
   NSFont *font = [NSFont fontWithDescriptor:fontDescriptor ? : getFontDescriptor([NSFont userFontOfSize:0].fontName)
@@ -3687,7 +3711,7 @@ double clamp_uni(double param) { return fmin(1.0, fmax(0.0, param)); }
   CGFloat commentFontHeight = getLineHeight(commentFont, vertical);
   CGFloat lineHeight = MAX(fontHeight, MAX(labelFontHeight, commentFontHeight));
   CGFloat separatorWidth = ceil([kFullWidthSpace sizeWithAttributes:
-                                 @{NSFontAttributeName: commentFont}].width);
+                                 @{ NSFontAttributeName : commentFont }].width);
   spacing = spacing ? : @(0.0);
   lineSpacing = lineSpacing ? : @(0.0);
 
@@ -3744,46 +3768,46 @@ double clamp_uni(double param) { return fmin(1.0, fmax(0.0, param)); }
   NSFont *refFont = [NSFont fontWithDescriptor:zhFont.fontDescriptor size:maxFontSize];
 
   attrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont: vertical ? refFont.verticalFont : refFont};
+    @{ (NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont };
   highlightedAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont: vertical ? refFont.verticalFont : refFont};
+    @{ (NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont };
   labelAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont: vertical ? refFont.verticalFont : refFont};
+    @{ (NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont };
   labelHighlightedAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont: vertical ? refFont.verticalFont : refFont};
+    @{ (NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont };
   commentAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont: vertical ? refFont.verticalFont : refFont};
+    @{ (NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont };
   commentHighlightedAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont: vertical ? refFont.verticalFont : refFont};
+    @{ (NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont };
   preeditAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont: vertical ? zhFont.verticalFont : zhFont};
+    @{ (NSString *)kCTBaselineReferenceFont : vertical ? zhFont.verticalFont : zhFont };
   preeditHighlightedAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont: vertical ? zhFont.verticalFont : zhFont};
+    @{ (NSString *)kCTBaselineReferenceFont : vertical ? zhFont.verticalFont : zhFont };
   pagingAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont: linear ? (vertical ? refFont.verticalFont : refFont) : pagingFont};
+    @{ (NSString *)kCTBaselineReferenceFont : linear ? (vertical ? refFont.verticalFont : refFont) : pagingFont };
   pagingHighlightedAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont: linear ? (vertical ? refFont.verticalFont : refFont) : pagingFont};
+    @{ (NSString *)kCTBaselineReferenceFont : linear ? (vertical ? refFont.verticalFont : refFont) : pagingFont };
   statusAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont: vertical ? zhCommentFont.verticalFont : zhCommentFont};
+    @{ (NSString *)kCTBaselineReferenceFont : vertical ? zhCommentFont.verticalFont : zhCommentFont };
 
-  attrs[(NSString *)kCTBaselineClassAttributeName] =
-    vertical ? (NSString *)kCTBaselineClassIdeographicCentered : (NSString *)kCTBaselineClassRoman;
-  highlightedAttrs[(NSString *)kCTBaselineClassAttributeName] =
-    vertical ? (NSString *)kCTBaselineClassIdeographicCentered : (NSString *)kCTBaselineClassRoman;
-  labelAttrs[(NSString *)kCTBaselineClassAttributeName] = (NSString *)kCTBaselineClassIdeographicCentered;
-  labelHighlightedAttrs[(NSString *)kCTBaselineClassAttributeName] = (NSString *)kCTBaselineClassIdeographicCentered;
-  commentAttrs[(NSString *)kCTBaselineClassAttributeName] =
-    vertical ? (NSString *)kCTBaselineClassIdeographicCentered : (NSString *)kCTBaselineClassRoman;
-  commentHighlightedAttrs[(NSString *)kCTBaselineClassAttributeName] =
-    vertical ? (NSString *)kCTBaselineClassIdeographicCentered : (NSString *)kCTBaselineClassRoman;
-  preeditAttrs[(NSString *)kCTBaselineClassAttributeName] =
-    vertical ? (NSString *)kCTBaselineClassIdeographicCentered : (NSString *)kCTBaselineClassRoman;
-  preeditHighlightedAttrs[(NSString *)kCTBaselineClassAttributeName] =
-    vertical ? (NSString *)kCTBaselineClassIdeographicCentered : (NSString *)kCTBaselineClassRoman;
-  statusAttrs[(NSString *)kCTBaselineClassAttributeName] =
-    vertical ? (NSString *)kCTBaselineClassIdeographicCentered : (NSString *)kCTBaselineClassRoman;
-  pagingAttrs[(NSString *)kCTBaselineClassAttributeName] = (NSString *)kCTBaselineClassIdeographicCentered;
-  pagingHighlightedAttrs[(NSString *)kCTBaselineClassAttributeName] = (NSString *)kCTBaselineClassIdeographicCentered;
+  attrs[(id)kCTBaselineClassAttributeName] =
+    vertical ? (id)kCTBaselineClassIdeographicCentered : (id)kCTBaselineClassRoman;
+  highlightedAttrs[(id)kCTBaselineClassAttributeName] =
+    vertical ? (id)kCTBaselineClassIdeographicCentered : (id)kCTBaselineClassRoman;
+  labelAttrs[(id)kCTBaselineClassAttributeName] = (id)kCTBaselineClassIdeographicCentered;
+  labelHighlightedAttrs[(id)kCTBaselineClassAttributeName] = (id)kCTBaselineClassIdeographicCentered;
+  commentAttrs[(id)kCTBaselineClassAttributeName] =
+    vertical ? (id)kCTBaselineClassIdeographicCentered : (id)kCTBaselineClassRoman;
+  commentHighlightedAttrs[(id)kCTBaselineClassAttributeName] =
+    vertical ? (id)kCTBaselineClassIdeographicCentered : (id)kCTBaselineClassRoman;
+  preeditAttrs[(id)kCTBaselineClassAttributeName] =
+    vertical ? (id)kCTBaselineClassIdeographicCentered : (id)kCTBaselineClassRoman;
+  preeditHighlightedAttrs[(id)kCTBaselineClassAttributeName] =
+    vertical ? (id)kCTBaselineClassIdeographicCentered : (id)kCTBaselineClassRoman;
+  statusAttrs[(id)kCTBaselineClassAttributeName] =
+    vertical ? (id)kCTBaselineClassIdeographicCentered : (id)kCTBaselineClassRoman;
+  pagingAttrs[(id)kCTBaselineClassAttributeName] = (id)kCTBaselineClassIdeographicCentered;
+  pagingHighlightedAttrs[(id)kCTBaselineClassAttributeName] = (id)kCTBaselineClassIdeographicCentered;
 
   attrs[NSBaselineOffsetAttributeName] = baseOffset;
   highlightedAttrs[NSBaselineOffsetAttributeName] = baseOffset;
@@ -3819,7 +3843,7 @@ double clamp_uni(double param) { return fmin(1.0, fmax(0.0, param)); }
   if (@available(macOS 10.14, *)) {
     if (translucency.doubleValue > 0 && !isNative && backColor != nil &&
         (appear == darkAppear ? backColor.luminanceComponent > 0.65
-         : backColor.luminanceComponent < 0.55)) {
+                              : backColor.luminanceComponent < 0.55)) {
       backColor = [backColor invertLuminanceWithAdjustment:0];
       borderColor = [borderColor invertLuminanceWithAdjustment:0];
       preeditBackColor = [preeditBackColor invertLuminanceWithAdjustment:0];
@@ -3849,7 +3873,7 @@ double clamp_uni(double param) { return fmin(1.0, fmax(0.0, param)); }
   highlightedCandidateTextColor = highlightedCandidateTextColor ? : NSColor.selectedMenuItemTextColor;
   highlightedCommentTextColor = highlightedCommentTextColor ? : NSColor.alternateSelectedControlTextColor;
   highlightedCandidateLabelColor = highlightedCandidateLabelColor ? : isNative ? NSColor.alternateSelectedControlTextColor :
-    blendColors(highlightedCandidateTextColor, highlightedCandidateBackColor);
+                                   blendColors(highlightedCandidateTextColor, highlightedCandidateBackColor);
 
   attrs[NSForegroundColorAttributeName] = candidateTextColor;
   highlightedAttrs[NSForegroundColorAttributeName] = highlightedCandidateTextColor;
@@ -3866,50 +3890,49 @@ double clamp_uni(double param) { return fmin(1.0, fmax(0.0, param)); }
   NSSize borderInset = vertical ? NSMakeSize(borderHeight.doubleValue, borderWidth.doubleValue)
                                 : NSMakeSize(borderWidth.doubleValue, borderHeight.doubleValue);
 
-  [theme  setCornerRadius:MIN(cornerRadius.doubleValue, lineHeight * 0.5)
-  highlightedCornerRadius:MIN(highlightedCornerRadius.doubleValue, lineHeight * 0.5)
-           separatorWidth:separatorWidth
-                linespace:lineSpacing.doubleValue
-         preeditLinespace:spacing.doubleValue
-                    alpha:alpha ? alpha.doubleValue : 1.0
-             translucency:translucency.doubleValue
-               lineLength:lineLength.doubleValue > 0 ? MAX(ceil(lineLength.doubleValue), separatorWidth * 5) : 0.0
-              borderInset:borderInset
-               showPaging:showPaging.boolValue
-             rememberSize:rememberSize.boolValue
-                  tabular:tabular
-                   linear:linear
-                 vertical:vertical
-            inlinePreedit:inlinePreedit.boolValue
-          inlineCandidate:inlineCandidate.boolValue];
+  [theme    setCornerRadius:MIN(cornerRadius.doubleValue, lineHeight * 0.5)
+    highlightedCornerRadius:MIN(highlightedCornerRadius.doubleValue, lineHeight * 0.5)
+             separatorWidth:separatorWidth
+                  linespace:lineSpacing.doubleValue
+           preeditLinespace:spacing.doubleValue
+                      alpha:alpha ? alpha.doubleValue : 1.0
+               translucency:translucency.doubleValue
+                 lineLength:lineLength.doubleValue > 0 ? MAX(ceil(lineLength.doubleValue), separatorWidth * 5) : 0.0
+                borderInset:borderInset
+                 showPaging:showPaging.boolValue
+               rememberSize:rememberSize.boolValue
+                    tabular:tabular
+                     linear:linear
+                   vertical:vertical
+              inlinePreedit:inlinePreedit.boolValue
+            inlineCandidate:inlineCandidate.boolValue];
 
-  [theme         setAttrs:attrs
-         highlightedAttrs:highlightedAttrs
-               labelAttrs:labelAttrs
-    labelHighlightedAttrs:labelHighlightedAttrs
-             commentAttrs:commentAttrs
-  commentHighlightedAttrs:commentHighlightedAttrs
-             preeditAttrs:preeditAttrs
-  preeditHighlightedAttrs:preeditHighlightedAttrs
-              pagingAttrs:pagingAttrs
-   pagingHighlightedAttrs:pagingHighlightedAttrs
-              statusAttrs:statusAttrs];
+  [theme           setAttrs:attrs
+           highlightedAttrs:highlightedAttrs
+                 labelAttrs:labelAttrs
+      labelHighlightedAttrs:labelHighlightedAttrs
+               commentAttrs:commentAttrs
+    commentHighlightedAttrs:commentHighlightedAttrs
+               preeditAttrs:preeditAttrs
+    preeditHighlightedAttrs:preeditHighlightedAttrs
+                pagingAttrs:pagingAttrs
+     pagingHighlightedAttrs:pagingHighlightedAttrs
+                statusAttrs:statusAttrs];
 
   [theme setParagraphStyle:paragraphStyle
      preeditParagraphStyle:preeditParagraphStyle
       pagingParagraphStyle:pagingParagraphStyle
       statusParagraphStyle:statusParagraphStyle];
 
-  [theme           setBackColor:backColor
-  highlightedCandidateBackColor:highlightedCandidateBackColor
-    highlightedPreeditBackColor:highlightedBackColor
-               preeditBackColor:preeditBackColor
-                    borderColor:borderColor
-                      backImage:backImage];
+  [theme             setBackColor:backColor
+    highlightedCandidateBackColor:highlightedCandidateBackColor
+      highlightedPreeditBackColor:highlightedBackColor
+                 preeditBackColor:preeditBackColor
+                      borderColor:borderColor
+                        backImage:backImage];
 
   [theme setCandidateFormat:candidateFormat ? : kDefaultCandidateFormat];
   [theme setStatusMessageType:statusMessageType];
 }
 
 @end // SquirrelPanel
-

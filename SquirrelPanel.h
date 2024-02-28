@@ -8,8 +8,8 @@
 
 typedef NS_ENUM(NSUInteger, SquirrelAppear) {
   defaultAppear = 0,
-  lightAppear   = 0,
-  darkAppear    = 1
+  lightAppear = 0,
+  darkAppear = 1
 };
 
 // Linear candidate list layout, as opposed to stacked candidate list layout.

@@ -6,19 +6,25 @@
 int get_rime_modifiers(NSEventModifierFlags modifiers) {
   int ret = 0;
 
-  if (modifiers & NSEventModifierFlagCapsLock)
+  if (modifiers & NSEventModifierFlagCapsLock) {
     ret |= kLockMask;
-  if (modifiers & NSEventModifierFlagShift)
+  }
+  if (modifiers & NSEventModifierFlagShift) {
     ret |= kShiftMask;
-  if (modifiers & NSEventModifierFlagControl)
+  }
+  if (modifiers & NSEventModifierFlagControl) {
     ret |= kControlMask;
-  if (modifiers & NSEventModifierFlagOption)
+  }
+  if (modifiers & NSEventModifierFlagOption) {
     ret |= kAltMask;
-  if (modifiers & NSEventModifierFlagCommand)
+  }
+  if (modifiers & NSEventModifierFlagCommand) {
     ret |= kSuperMask;
-  if (modifiers & NSEventModifierFlagFunction)
+  }
+  if (modifiers & NSEventModifierFlagFunction) {
     ret |= kHyperMask;
-  
+  }
+
   return ret;
 }
 
