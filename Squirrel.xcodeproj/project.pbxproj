@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -59,8 +59,6 @@
 		77AA68282588916F00A592E2 /* TSPhrases.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = 77AA67F62588916400A592E2 /* TSPhrases.ocd2 */; };
 		77AA68292588916F00A592E2 /* tw2s.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = 77AA67DF2588916300A592E2 /* tw2s.json */; };
 		77AA682A2588916F00A592E2 /* tw2sp.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = 77AA67EC2588916300A592E2 /* tw2sp.json */; };
-		77AA682B2588916F00A592E2 /* TWPhrases.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = 77AA67E72588916300A592E2 /* TWPhrases.ocd2 */; };
-		77AA682C2588916F00A592E2 /* TWPhrasesRev.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = 77AA67EB2588916300A592E2 /* TWPhrasesRev.ocd2 */; };
 		77AA682D2588916F00A592E2 /* TWVariants.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = 77AA67F12588916300A592E2 /* TWVariants.ocd2 */; };
 		77AA682E2588916F00A592E2 /* TWVariantsRev.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = 77AA67F42588916400A592E2 /* TWVariantsRev.ocd2 */; };
 		77AA682F2588916F00A592E2 /* TWVariantsRevPhrases.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = 77AA67F22588916300A592E2 /* TWVariantsRevPhrases.ocd2 */; };
@@ -83,6 +81,23 @@
 		E93074B70A5C264700470842 /* InputMethodKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E93074B60A5C264700470842 /* InputMethodKit.framework */; };
 		F48CFB6B2B327A2E00DB9CF9 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 447765C725C30E6B002415AF /* Sparkle.framework */; };
 		F493BF7B2B76F28A008BD7D0 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F493BF7A2B76F27E008BD7D0 /* UserNotifications.framework */; };
+		F49FEC632B8FA4E0009DDC32 /* EmojiCategoryEN.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC412B8FA3FB009DDC32 /* EmojiCategoryEN.ocd2 */; };
+		F49FEC642B8FA4E0009DDC32 /* EmojiCategoryHK.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC4E2B8FA3FB009DDC32 /* EmojiCategoryHK.ocd2 */; };
+		F49FEC652B8FA4E0009DDC32 /* EmojiCategoryS.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC442B8FA3FB009DDC32 /* EmojiCategoryS.ocd2 */; };
+		F49FEC662B8FA4E0009DDC32 /* EmojiCategoryT.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC4B2B8FA3FB009DDC32 /* EmojiCategoryT.ocd2 */; };
+		F49FEC672B8FA4E0009DDC32 /* EmojiCategoryTW.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC4F2B8FA3FB009DDC32 /* EmojiCategoryTW.ocd2 */; };
+		F49FEC682B8FA4E0009DDC32 /* EmojiWordEN.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC472B8FA3FB009DDC32 /* EmojiWordEN.ocd2 */; };
+		F49FEC692B8FA4E0009DDC32 /* EmojiWordHK.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC492B8FA3FB009DDC32 /* EmojiWordHK.ocd2 */; };
+		F49FEC6A2B8FA4E0009DDC32 /* EmojiWordS.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC502B8FA3FB009DDC32 /* EmojiWordS.ocd2 */; };
+		F49FEC6B2B8FA4E0009DDC32 /* EmojiWordT.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC452B8FA3FB009DDC32 /* EmojiWordT.ocd2 */; };
+		F49FEC6C2B8FA4E0009DDC32 /* EmojiWordTW.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC422B8FA3FB009DDC32 /* EmojiWordTW.ocd2 */; };
+		F49FEC6D2B8FA4E0009DDC32 /* en2emoji.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC482B8FA3FB009DDC32 /* en2emoji.json */; };
+		F49FEC6E2B8FA4E0009DDC32 /* hk2emoji.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC4D2B8FA3FB009DDC32 /* hk2emoji.json */; };
+		F49FEC6F2B8FA4E0009DDC32 /* hk2t.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC512B8FA3FB009DDC32 /* hk2t.json */; };
+		F49FEC702B8FA4E0009DDC32 /* s2emoji.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC4A2B8FA3FB009DDC32 /* s2emoji.json */; };
+		F49FEC712B8FA4E0009DDC32 /* t2emoji.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC432B8FA3FB009DDC32 /* t2emoji.json */; };
+		F49FEC722B8FA4E0009DDC32 /* tw2emoji.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC4C2B8FA3FB009DDC32 /* tw2emoji.json */; };
+		F49FEC732B8FA4E0009DDC32 /* tw2t.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC462B8FA3FB009DDC32 /* tw2t.json */; };
 		F4EC47A02B323208004862A4 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4EC479F2B323203004862A4 /* QuartzCore.framework */; };
 		F4EC47A22B32320F004862A4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4EC47A12B32320B004862A4 /* Cocoa.framework */; };
 		F4EC47A32B323223004862A4 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97324FDCFA39411CA2CEA /* AppKit.framework */; };
@@ -97,6 +112,23 @@
 			dstPath = opencc;
 			dstSubfolderSpec = 12;
 			files = (
+				F49FEC632B8FA4E0009DDC32 /* EmojiCategoryEN.ocd2 in Copy opencc Files */,
+				F49FEC642B8FA4E0009DDC32 /* EmojiCategoryHK.ocd2 in Copy opencc Files */,
+				F49FEC652B8FA4E0009DDC32 /* EmojiCategoryS.ocd2 in Copy opencc Files */,
+				F49FEC662B8FA4E0009DDC32 /* EmojiCategoryT.ocd2 in Copy opencc Files */,
+				F49FEC672B8FA4E0009DDC32 /* EmojiCategoryTW.ocd2 in Copy opencc Files */,
+				F49FEC682B8FA4E0009DDC32 /* EmojiWordEN.ocd2 in Copy opencc Files */,
+				F49FEC692B8FA4E0009DDC32 /* EmojiWordHK.ocd2 in Copy opencc Files */,
+				F49FEC6A2B8FA4E0009DDC32 /* EmojiWordS.ocd2 in Copy opencc Files */,
+				F49FEC6B2B8FA4E0009DDC32 /* EmojiWordT.ocd2 in Copy opencc Files */,
+				F49FEC6C2B8FA4E0009DDC32 /* EmojiWordTW.ocd2 in Copy opencc Files */,
+				F49FEC6D2B8FA4E0009DDC32 /* en2emoji.json in Copy opencc Files */,
+				F49FEC6E2B8FA4E0009DDC32 /* hk2emoji.json in Copy opencc Files */,
+				F49FEC6F2B8FA4E0009DDC32 /* hk2t.json in Copy opencc Files */,
+				F49FEC702B8FA4E0009DDC32 /* s2emoji.json in Copy opencc Files */,
+				F49FEC712B8FA4E0009DDC32 /* t2emoji.json in Copy opencc Files */,
+				F49FEC722B8FA4E0009DDC32 /* tw2emoji.json in Copy opencc Files */,
+				F49FEC732B8FA4E0009DDC32 /* tw2t.json in Copy opencc Files */,
 				77AA68142588916F00A592E2 /* hk2s.json in Copy opencc Files */,
 				77AA68152588916F00A592E2 /* HKVariants.ocd2 in Copy opencc Files */,
 				77AA68162588916F00A592E2 /* HKVariantsRev.ocd2 in Copy opencc Files */,
@@ -120,8 +152,6 @@
 				77AA68282588916F00A592E2 /* TSPhrases.ocd2 in Copy opencc Files */,
 				77AA68292588916F00A592E2 /* tw2s.json in Copy opencc Files */,
 				77AA682A2588916F00A592E2 /* tw2sp.json in Copy opencc Files */,
-				77AA682B2588916F00A592E2 /* TWPhrases.ocd2 in Copy opencc Files */,
-				77AA682C2588916F00A592E2 /* TWPhrasesRev.ocd2 in Copy opencc Files */,
 				77AA682D2588916F00A592E2 /* TWVariants.ocd2 in Copy opencc Files */,
 				77AA682E2588916F00A592E2 /* TWVariantsRev.ocd2 in Copy opencc Files */,
 				77AA682F2588916F00A592E2 /* TWVariantsRevPhrases.ocd2 in Copy opencc Files */,
@@ -246,11 +276,9 @@
 		77AA67E42588916300A592E2 /* JPVariantsRev.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = JPVariantsRev.ocd2; sourceTree = "<group>"; };
 		77AA67E52588916300A592E2 /* JPShinjitaiCharacters.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = JPShinjitaiCharacters.ocd2; sourceTree = "<group>"; };
 		77AA67E62588916300A592E2 /* JPVariants.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = JPVariants.ocd2; sourceTree = "<group>"; };
-		77AA67E72588916300A592E2 /* TWPhrases.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = TWPhrases.ocd2; sourceTree = "<group>"; };
 		77AA67E82588916300A592E2 /* t2hk.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = t2hk.json; sourceTree = "<group>"; };
 		77AA67E92588916300A592E2 /* HKVariantsRevPhrases.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = HKVariantsRevPhrases.ocd2; sourceTree = "<group>"; };
 		77AA67EA2588916300A592E2 /* s2twp.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = s2twp.json; sourceTree = "<group>"; };
-		77AA67EB2588916300A592E2 /* TWPhrasesRev.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = TWPhrasesRev.ocd2; sourceTree = "<group>"; };
 		77AA67EC2588916300A592E2 /* tw2sp.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = tw2sp.json; sourceTree = "<group>"; };
 		77AA67ED2588916300A592E2 /* s2t.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = s2t.json; sourceTree = "<group>"; };
 		77AA67EE2588916300A592E2 /* jp2t.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = jp2t.json; sourceTree = "<group>"; };
@@ -281,6 +309,23 @@
 		A4FC48CA0F6530EF0069BE81 /* en */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E93074B60A5C264700470842 /* InputMethodKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InputMethodKit.framework; path = System/Library/Frameworks/InputMethodKit.framework; sourceTree = SDKROOT; };
 		F493BF7A2B76F27E008BD7D0 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		F49FEC412B8FA3FB009DDC32 /* EmojiCategoryEN.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryEN.ocd2; sourceTree = "<group>"; };
+		F49FEC422B8FA3FB009DDC32 /* EmojiWordTW.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiWordTW.ocd2; sourceTree = "<group>"; };
+		F49FEC432B8FA3FB009DDC32 /* t2emoji.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = t2emoji.json; sourceTree = "<group>"; };
+		F49FEC442B8FA3FB009DDC32 /* EmojiCategoryS.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryS.ocd2; sourceTree = "<group>"; };
+		F49FEC452B8FA3FB009DDC32 /* EmojiWordT.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiWordT.ocd2; sourceTree = "<group>"; };
+		F49FEC462B8FA3FB009DDC32 /* tw2t.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = tw2t.json; sourceTree = "<group>"; };
+		F49FEC472B8FA3FB009DDC32 /* EmojiWordEN.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiWordEN.ocd2; sourceTree = "<group>"; };
+		F49FEC482B8FA3FB009DDC32 /* en2emoji.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = en2emoji.json; sourceTree = "<group>"; };
+		F49FEC492B8FA3FB009DDC32 /* EmojiWordHK.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiWordHK.ocd2; sourceTree = "<group>"; };
+		F49FEC4A2B8FA3FB009DDC32 /* s2emoji.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = s2emoji.json; sourceTree = "<group>"; };
+		F49FEC4B2B8FA3FB009DDC32 /* EmojiCategoryT.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryT.ocd2; sourceTree = "<group>"; };
+		F49FEC4C2B8FA3FB009DDC32 /* tw2emoji.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = tw2emoji.json; sourceTree = "<group>"; };
+		F49FEC4D2B8FA3FB009DDC32 /* hk2emoji.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = hk2emoji.json; sourceTree = "<group>"; };
+		F49FEC4E2B8FA3FB009DDC32 /* EmojiCategoryHK.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryHK.ocd2; sourceTree = "<group>"; };
+		F49FEC4F2B8FA3FB009DDC32 /* EmojiCategoryTW.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryTW.ocd2; sourceTree = "<group>"; };
+		F49FEC502B8FA3FB009DDC32 /* EmojiWordS.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiWordS.ocd2; sourceTree = "<group>"; };
+		F49FEC512B8FA3FB009DDC32 /* hk2t.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = hk2t.json; sourceTree = "<group>"; };
 		F4A90994297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		F4A90995297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		F4A90996297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "zh-HK"; path = "zh-HK.lproj/MainMenu.xib"; sourceTree = "<group>"; };
@@ -404,6 +449,23 @@
 		4407F39D14EC071E001329FE /* opencc */ = {
 			isa = PBXGroup;
 			children = (
+				F49FEC412B8FA3FB009DDC32 /* EmojiCategoryEN.ocd2 */,
+				F49FEC4E2B8FA3FB009DDC32 /* EmojiCategoryHK.ocd2 */,
+				F49FEC442B8FA3FB009DDC32 /* EmojiCategoryS.ocd2 */,
+				F49FEC4B2B8FA3FB009DDC32 /* EmojiCategoryT.ocd2 */,
+				F49FEC4F2B8FA3FB009DDC32 /* EmojiCategoryTW.ocd2 */,
+				F49FEC472B8FA3FB009DDC32 /* EmojiWordEN.ocd2 */,
+				F49FEC492B8FA3FB009DDC32 /* EmojiWordHK.ocd2 */,
+				F49FEC502B8FA3FB009DDC32 /* EmojiWordS.ocd2 */,
+				F49FEC452B8FA3FB009DDC32 /* EmojiWordT.ocd2 */,
+				F49FEC422B8FA3FB009DDC32 /* EmojiWordTW.ocd2 */,
+				F49FEC482B8FA3FB009DDC32 /* en2emoji.json */,
+				F49FEC4D2B8FA3FB009DDC32 /* hk2emoji.json */,
+				F49FEC512B8FA3FB009DDC32 /* hk2t.json */,
+				F49FEC4A2B8FA3FB009DDC32 /* s2emoji.json */,
+				F49FEC432B8FA3FB009DDC32 /* t2emoji.json */,
+				F49FEC4C2B8FA3FB009DDC32 /* tw2emoji.json */,
+				F49FEC462B8FA3FB009DDC32 /* tw2t.json */,
 				77AA67E22588916300A592E2 /* hk2s.json */,
 				77AA67DC2588916300A592E2 /* HKVariants.ocd2 */,
 				77AA67E02588916300A592E2 /* HKVariantsRev.ocd2 */,
@@ -427,8 +489,6 @@
 				77AA67F62588916400A592E2 /* TSPhrases.ocd2 */,
 				77AA67DF2588916300A592E2 /* tw2s.json */,
 				77AA67EC2588916300A592E2 /* tw2sp.json */,
-				77AA67E72588916300A592E2 /* TWPhrases.ocd2 */,
-				77AA67EB2588916300A592E2 /* TWPhrasesRev.ocd2 */,
 				77AA67F12588916300A592E2 /* TWVariants.ocd2 */,
 				77AA67F42588916400A592E2 /* TWVariantsRev.ocd2 */,
 				77AA67F22588916300A592E2 /* TWVariantsRevPhrases.ocd2 */,
@@ -524,7 +584,7 @@
 				LastUpgradeCheck = 1510;
 			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "Squirrel" */;
-			compatibilityVersion = "Xcode 10.0";
+			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 1;
 			knownRegions = (
