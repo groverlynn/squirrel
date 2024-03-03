@@ -11,7 +11,7 @@ static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
 - (IBAction)deploy:(id)sender {
   NSLog(@"Start maintenance...");
   [self shutdownRime];
-  [self startRimeWithFullCheck:true];
+  [self startRimeWithFullCheck:YES];
   [self loadSettings];
 }
 
@@ -41,12 +41,12 @@ void show_notification(const char *msg_text) {
   if (@available(macOS 10.14, *)) {
     UNUserNotificationCenter *center = UNUserNotificationCenter.currentNotificationCenter;
     [center requestAuthorizationWithOptions:UNAuthorizationOptionAlert | UNAuthorizationOptionProvisional
-                          completionHandler:^(BOOL granted, NSError *error) {
+                          completionHandler:^(BOOL granted, NSError * _Nullable error) {
       if (error) {
         NSLog(@"User notification authorization error: %@", error.debugDescription);
       }
     }];
-    [center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings *settings) {
+    [center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
       if ((settings.authorizationStatus == UNAuthorizationStatusAuthorized ||
            settings.authorizationStatus == UNAuthorizationStatusProvisional) &&
           (settings.alertSetting == UNNotificationSettingEnabled)) {
@@ -61,7 +61,7 @@ void show_notification(const char *msg_text) {
                                                content:content
                                                trigger:nil];
         [center addNotificationRequest:request
-                 withCompletionHandler:^(NSError *error) {
+                 withCompletionHandler:^(NSError * _Nullable error) {
           if (error) {
             NSLog(@"User notification request error: %@", error.debugDescription);
           }
@@ -83,8 +83,10 @@ void show_notification(const char *msg_text) {
 static void show_status(const char *msg_text_long, const char *msg_text_short) {
   NSString *msgLong = msg_text_long ? @(msg_text_long) : nil;
   NSString *msgShort = msg_text_short ? @(msg_text_short) :
-                       [msgLong substringWithRange:[msgLong rangeOfComposedCharacterSequenceAtIndex:0]];
-  [NSApp.squirrelAppDelegate.panel updateStatusLong:msgLong statusShort:msgShort];
+                       [msgLong substringWithRange:
+                        [msgLong rangeOfComposedCharacterSequenceAtIndex:0]];
+  [NSApp.squirrelAppDelegate.panel updateStatusLong:msgLong
+                                        statusShort:msgShort];
 }
 
 static void notification_handler(void *context_object, RimeSessionId session_id,
@@ -124,12 +126,13 @@ static void notification_handler(void *context_object, RimeSessionId session_id,
       }
     }
     if (app_delegate.showNotifications != kShowNotificationsNever) {
-      RimeStringSlice state_label_long = rime_get_api()->
-                                         get_state_label_abbreviated(session_id, option_name, state, False);
-      RimeStringSlice state_label_short = rime_get_api()->
-                                          get_state_label_abbreviated(session_id, option_name, state, True);
+      RimeStringSlice state_label_long = 
+        rime_get_api()->get_state_label_abbreviated(session_id, option_name, state, False);
+      RimeStringSlice state_label_short =
+        rime_get_api()->get_state_label_abbreviated(session_id, option_name, state, True);
       if (state_label_long.str || state_label_short.str) {
-        const char *short_message = state_label_short.length < strlen(state_label_short.str) ? NULL : state_label_short.str;
+        const char *short_message =
+          state_label_short.length < strlen(state_label_short.str) ? NULL : state_label_short.str;
         show_status(state_label_long.str, short_message);
       }
     }
@@ -174,33 +177,8 @@ static void notification_handler(void *context_object, RimeSessionId session_id,
   rime_get_api()->finalize();
 }
 
-NSArray<NSString *> *getScriptOptionsForSchema(SquirrelConfig *schema) {
-  NSUInteger numSwitches = [schema getListSizeForOption:@"switches"];
-  if (numSwitches == 0) {
-    return nil;
-  }
-  for (NSUInteger i = 0; i < numSwitches; ++i) {
-    NSString *name = [schema getStringForOption:[NSString stringWithFormat:
-                                                 @"switches/@%lu/name", i]];
-    if (name) {
-      if ([name isEqualToString:@"simplification"] ||
-          [name isEqualToString:@"traditional"]) {
-        return @[name];
-      }
-    } else {
-      NSArray *options = [schema getListForOption:[NSString stringWithFormat:
-                                                   @"switches/@%lu/options", i]];
-      if ([options containsObject:@"simplification"] ||
-          [options containsObject:@"traditional"]) {
-        return options;
-      }
-    }
-  }
-  return nil;
-}
-
 SquirrelOptionSwitcher *updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitcher,
-                                              RimeSessionId					 sessionId) {
+                                             RimeSessionId sessionId) {
   NSMutableDictionary *switcher = optionSwitcher.mutableSwitcher;
   NSSet *prevStates = [NSSet setWithArray:optionSwitcher.optionStates];
   for (NSString *state in prevStates) {
@@ -253,7 +231,8 @@ SquirrelOptionSwitcher *updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitc
     self.panel.optionSwitcher = updateOptionSwitcher(optionSwitcher, sessionId);
     [self.panel loadConfig:schema];
   } else {
-    self.panel.optionSwitcher = [[SquirrelOptionSwitcher alloc] initWithSchemaId:schemaId];
+    self.panel.optionSwitcher = [[SquirrelOptionSwitcher alloc]
+                                 initWithSchemaId:schemaId];
     [self.panel loadConfig:self.config];
   }
   [schema close];
