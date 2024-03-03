@@ -137,19 +137,19 @@
   return NO;
 }
 
-- (BOOL)setBool:(bool)value forOption:(NSString *)option {
+- (BOOL)setOption:(NSString *)option withBool:(bool)value {
   return (BOOL)(rime_get_api()->config_set_bool(&_config, option.UTF8String, value));
 }
 
-- (BOOL)setInt:(int)value forOption:(NSString *)option {
+- (BOOL)setOption:(NSString *)option withInt:(int)value {
   return (BOOL)(rime_get_api()->config_set_int(&_config, option.UTF8String, value));
 }
 
-- (BOOL)setDouble:(double)value forOption:(NSString *)option {
+- (BOOL)setOption:(NSString *)option withDouble:(double)value {
   return (BOOL)(rime_get_api()->config_set_double(&_config, option.UTF8String, value));
 }
 
-- (BOOL)setString:(NSString *)value forOption:(NSString *)option {
+- (BOOL)setOption:(NSString *)option withString:(NSString *)value {
   return (BOOL)(rime_get_api()->config_set_string(&_config, option.UTF8String, value.UTF8String));
 }
 
