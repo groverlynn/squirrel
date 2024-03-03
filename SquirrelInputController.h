@@ -32,7 +32,7 @@ typedef NS_ENUM(NSUInteger, SquirrelIndex) {
   kVoidSymbol = 0xffffff     // XK_VoidSymbol
 };
 
-@property(class, weak, readonly) SquirrelInputController *currentController;
+@property(class, weak, readonly, nullable) SquirrelInputController *currentController;
 
 - (void)moveCursor:(NSUInteger)cursorPosition
         toPosition:(NSUInteger)targetPosition

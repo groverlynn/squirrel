@@ -67,7 +67,7 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
   [self enumerateAttribute:NSFontAttributeName
                    inRange:range
                    options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
-                usingBlock:^(NSFont *value, NSRange subRange, BOOL *stop) {
+                usingBlock:^(NSFont * _Nullable value, NSRange subRange, BOOL * _Nonnull stop) {
     NSFont *font = [NSFont fontWithDescriptor:value.fontDescriptor
                                          size:floor(value.pointSize * 0.55)];
     [self addAttributes:@{ NSFontAttributeName               : font,
@@ -81,7 +81,7 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
   [self enumerateAttribute:NSFontAttributeName
                    inRange:range
                    options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
-                usingBlock:^(NSFont *value, NSRange subRange, BOOL *stop) {
+                usingBlock:^(NSFont * _Nullable value, NSRange subRange, BOOL * _Nonnull stop) {
     NSFont *font = [NSFont fontWithDescriptor:value.fontDescriptor
                                          size:floor(value.pointSize * 0.55)];
     [self addAttributes:@{ NSFontAttributeName               : font,
@@ -100,7 +100,7 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
   [regex enumerateMatchesInString:self.string
                           options:0
                             range:NSMakeRange(0, self.length)
-                       usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) {
+                       usingBlock:^(NSTextCheckingResult * _Nullable result, NSMatchingFlags flags, BOOL * _Nonnull stop) {
     result = [result resultByAdjustingRangesWithOffset:offset];
     NSString *tag = [self.string substringWithRange:[result rangeAtIndex:1]];
     if ([tag isEqualToString:@"**"] || [tag isEqualToString:@"__"] ||
@@ -143,7 +143,8 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
   [regex enumerateMatchesInString:self.mutableString
                           options:0
                             range:range
-                       usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) {
+                       usingBlock:^(NSTextCheckingResult * _Nullable result,
+                                    NSMatchingFlags flags, BOOL * _Nonnull stop) {
     result = [result resultByAdjustingRangesWithOffset:offset];
     NSRange baseRange = [result rangeAtIndex:2];
     // no ruby annotation if the base string includes line breaks
@@ -335,12 +336,12 @@ typedef NS_ENUM(NSUInteger, SquirrelStatusMessageType) {
   kStatusMessageTypeLong = 2
 };
 
-@property(nonatomic, strong, readonly) NSColor *backColor;
-@property(nonatomic, strong, readonly) NSColor *highlightedCandidateBackColor;
-@property(nonatomic, strong, readonly) NSColor *highlightedPreeditBackColor;
-@property(nonatomic, strong, readonly) NSColor *preeditBackColor;
-@property(nonatomic, strong, readonly) NSColor *borderColor;
-@property(nonatomic, strong, readonly) NSImage *backImage;
+@property(nonatomic, strong, readonly, nullable) NSColor *backColor;
+@property(nonatomic, strong, readonly, nullable) NSColor *highlightedCandidateBackColor;
+@property(nonatomic, strong, readonly, nullable) NSColor *highlightedPreeditBackColor;
+@property(nonatomic, strong, readonly, nullable) NSColor *preeditBackColor;
+@property(nonatomic, strong, readonly, nullable) NSColor *borderColor;
+@property(nonatomic, strong, readonly, nullable) NSImage *backImage;
 
 @property(nonatomic, readonly) CGFloat cornerRadius;
 @property(nonatomic, readonly) CGFloat highlightedCornerRadius;
@@ -359,47 +360,48 @@ typedef NS_ENUM(NSUInteger, SquirrelStatusMessageType) {
 @property(nonatomic, readonly) BOOL inlinePreedit;
 @property(nonatomic, readonly) BOOL inlineCandidate;
 
-@property(nonatomic, strong, readonly) NSDictionary *attrs;
-@property(nonatomic, strong, readonly) NSDictionary *highlightedAttrs;
-@property(nonatomic, strong, readonly) NSDictionary *labelAttrs;
-@property(nonatomic, strong, readonly) NSDictionary *labelHighlightedAttrs;
-@property(nonatomic, strong, readonly) NSDictionary *commentAttrs;
-@property(nonatomic, strong, readonly) NSDictionary *commentHighlightedAttrs;
-@property(nonatomic, strong, readonly) NSDictionary *preeditAttrs;
-@property(nonatomic, strong, readonly) NSDictionary *preeditHighlightedAttrs;
-@property(nonatomic, strong, readonly) NSDictionary *pagingAttrs;
-@property(nonatomic, strong, readonly) NSDictionary *pagingHighlightedAttrs;
-@property(nonatomic, strong, readonly) NSDictionary *statusAttrs;
-@property(nonatomic, strong, readonly) NSParagraphStyle *paragraphStyle;
-@property(nonatomic, strong, readonly) NSParagraphStyle *preeditParagraphStyle;
-@property(nonatomic, strong, readonly) NSParagraphStyle *pagingParagraphStyle;
-@property(nonatomic, strong, readonly) NSParagraphStyle *statusParagraphStyle;
+@property(nonatomic, strong, readonly, nonnull) NSDictionary *attrs;
+@property(nonatomic, strong, readonly, nonnull) NSDictionary *highlightedAttrs;
+@property(nonatomic, strong, readonly, nonnull) NSDictionary *labelAttrs;
+@property(nonatomic, strong, readonly, nonnull) NSDictionary *labelHighlightedAttrs;
+@property(nonatomic, strong, readonly, nonnull) NSDictionary *commentAttrs;
+@property(nonatomic, strong, readonly, nonnull) NSDictionary *commentHighlightedAttrs;
+@property(nonatomic, strong, readonly, nonnull) NSDictionary *preeditAttrs;
+@property(nonatomic, strong, readonly, nonnull) NSDictionary *preeditHighlightedAttrs;
+@property(nonatomic, strong, readonly, nonnull) NSDictionary *pagingAttrs;
+@property(nonatomic, strong, readonly, nonnull) NSDictionary *pagingHighlightedAttrs;
+@property(nonatomic, strong, readonly, nonnull) NSDictionary *statusAttrs;
+@property(nonatomic, strong, readonly, nonnull) NSParagraphStyle *paragraphStyle;
+@property(nonatomic, strong, readonly, nonnull) NSParagraphStyle *preeditParagraphStyle;
+@property(nonatomic, strong, readonly, nonnull) NSParagraphStyle *pagingParagraphStyle;
+@property(nonatomic, strong, readonly, nonnull) NSParagraphStyle *statusParagraphStyle;
 
-@property(nonatomic, strong, readonly) NSAttributedString *separator;
-@property(nonatomic, strong, readonly) NSAttributedString *symbolBackFill;
-@property(nonatomic, strong, readonly) NSAttributedString *symbolBackStroke;
-@property(nonatomic, strong, readonly) NSAttributedString *symbolForwardFill;
-@property(nonatomic, strong, readonly) NSAttributedString *symbolForwardStroke;
-@property(nonatomic, strong, readonly) NSAttributedString *symbolDeleteFill;
-@property(nonatomic, strong, readonly) NSAttributedString *symbolDeleteStroke;
-@property(nonatomic, strong, readonly) NSAttributedString *symbolCompress;
-@property(nonatomic, strong, readonly) NSAttributedString *symbolExpand;
-@property(nonatomic, strong, readonly) NSAttributedString *symbolLock;
+@property(nonatomic, strong, readonly, nonnull) NSAttributedString *separator;
+@property(nonatomic, strong, readonly, nullable) NSAttributedString *symbolBackFill;
+@property(nonatomic, strong, readonly, nullable) NSAttributedString *symbolBackStroke;
+@property(nonatomic, strong, readonly, nullable) NSAttributedString *symbolForwardFill;
+@property(nonatomic, strong, readonly, nullable) NSAttributedString *symbolForwardStroke;
+@property(nonatomic, strong, readonly, nullable) NSAttributedString *symbolDeleteFill;
+@property(nonatomic, strong, readonly, nullable) NSAttributedString *symbolDeleteStroke;
+@property(nonatomic, strong, readonly, nullable) NSAttributedString *symbolCompress;
+@property(nonatomic, strong, readonly, nullable) NSAttributedString *symbolExpand;
+@property(nonatomic, strong, readonly, nullable) NSAttributedString *symbolLock;
+@property(nonatomic, readonly) CGFloat expanderWidth;
 
-@property(nonatomic, strong, readonly) NSString *selectKeys;
-@property(nonatomic, strong, readonly) NSString *candidateFormat;
-@property(nonatomic, strong, readonly) NSArray<NSString *> *labels;
-@property(nonatomic, strong, readonly) NSArray<NSAttributedString *> *candidateFormats;
-@property(nonatomic, strong, readonly) NSArray<NSAttributedString *> *candidateHighlightedFormats;
+@property(nonatomic, strong, readonly, nonnull) NSString *selectKeys;
+@property(nonatomic, strong, readonly, nonnull) NSString *candidateFormat;
+@property(nonatomic, strong, readonly, nonnull) NSArray<NSString *> *labels;
+@property(nonatomic, strong, readonly, nonnull) NSArray<NSAttributedString *> *candidateFormats;
+@property(nonatomic, strong, readonly, nonnull) NSArray<NSAttributedString *> *candidateHighlightedFormats;
 @property(nonatomic, readonly) SquirrelStatusMessageType statusMessageType;
 @property(nonatomic, readonly) NSUInteger pageSize;
 
-- (void)           setBackColor:(NSColor *)backColor
-  highlightedCandidateBackColor:(NSColor *)highlightedCandidateBackColor
-    highlightedPreeditBackColor:(NSColor *)highlightedPreeditBackColor
-               preeditBackColor:(NSColor *)preeditBackColor
-                    borderColor:(NSColor *)borderColor
-                      backImage:(NSImage *)backImage;
+- (void)           setBackColor:(NSColor * _Nullable)backColor
+  highlightedCandidateBackColor:(NSColor * _Nullable)highlightedCandidateBackColor
+    highlightedPreeditBackColor:(NSColor * _Nullable)highlightedPreeditBackColor
+               preeditBackColor:(NSColor * _Nullable)preeditBackColor
+                    borderColor:(NSColor * _Nullable)borderColor
+                      backImage:(NSImage * _Nullable)backImage;
 
 - (void)  setCornerRadius:(CGFloat)cornerRadius
   highlightedCornerRadius:(CGFloat)highlightedCornerRadius
@@ -418,32 +420,34 @@ typedef NS_ENUM(NSUInteger, SquirrelStatusMessageType) {
             inlinePreedit:(BOOL)inlinePreedit
           inlineCandidate:(BOOL)inlineCandidate;
 
-- (void)         setAttrs:(NSDictionary *)attrs
-         highlightedAttrs:(NSDictionary *)highlightedAttrs
-               labelAttrs:(NSDictionary *)labelAttrs
-    labelHighlightedAttrs:(NSDictionary *)labelHighlightedAttrs
-             commentAttrs:(NSDictionary *)commentAttrs
-  commentHighlightedAttrs:(NSDictionary *)commentHighlightedAttrs
-             preeditAttrs:(NSDictionary *)preeditAttrs
-  preeditHighlightedAttrs:(NSDictionary *)preeditHighlightedAttrs
-              pagingAttrs:(NSDictionary *)pagingAttrs
-   pagingHighlightedAttrs:(NSDictionary *)pagingHighlightedAttrs
-              statusAttrs:(NSDictionary *)statusAttrs;
+- (void)         setAttrs:(NSDictionary * _Nonnull)attrs
+         highlightedAttrs:(NSDictionary * _Nonnull)highlightedAttrs
+               labelAttrs:(NSDictionary * _Nonnull)labelAttrs
+    labelHighlightedAttrs:(NSDictionary * _Nonnull)labelHighlightedAttrs
+             commentAttrs:(NSDictionary * _Nonnull)commentAttrs
+  commentHighlightedAttrs:(NSDictionary * _Nonnull)commentHighlightedAttrs
+             preeditAttrs:(NSDictionary * _Nonnull)preeditAttrs
+  preeditHighlightedAttrs:(NSDictionary * _Nonnull)preeditHighlightedAttrs
+              pagingAttrs:(NSDictionary * _Nonnull)pagingAttrs
+   pagingHighlightedAttrs:(NSDictionary * _Nonnull)pagingHighlightedAttrs
+              statusAttrs:(NSDictionary * _Nonnull)statusAttrs;
 
-- (void)setParagraphStyle:(NSParagraphStyle *)paragraphStyle
-    preeditParagraphStyle:(NSParagraphStyle *)preeditParagraphStyle
-     pagingParagraphStyle:(NSParagraphStyle *)pagingParagraphStyle
-     statusParagraphStyle:(NSParagraphStyle *)statusParagraphStyle;
+- (void)updateSeperatorAndSymbolAttrs;
 
-- (void)setSelectKeys:(NSString *)selectKeys
-               labels:(NSArray<NSString *> *)labels
+- (void)setParagraphStyle:(NSParagraphStyle * _Nonnull)paragraphStyle
+    preeditParagraphStyle:(NSParagraphStyle * _Nonnull)preeditParagraphStyle
+     pagingParagraphStyle:(NSParagraphStyle * _Nonnull)pagingParagraphStyle
+     statusParagraphStyle:(NSParagraphStyle * _Nonnull)statusParagraphStyle;
+
+- (void)setSelectKeys:(NSString * _Nonnull)selectKeys
+               labels:(NSArray<NSString *> * _Nonnull)labels
          directUpdate:(BOOL)update;
 
-- (void)setCandidateFormat:(NSString *)candidateFormat;
+- (void)setCandidateFormat:(NSString * _Nonnull)candidateFormat;
 
 - (void)updateCandidateFormats;
 
-- (void)setStatusMessageType:(NSString *)type;
+- (void)setStatusMessageType:(NSString * _Nullable)type;
 
 - (void)setAnnotationHeight:(CGFloat)height;
 
@@ -990,7 +994,8 @@ static CGFloat getLineHeight(NSFont *font, BOOL vertical) {
   [self.textStorage
    enumerateAttributesInRange:charRange
    options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
-   usingBlock:^(NSDictionary<NSAttributedStringKey, id> *attrs, NSRange range, BOOL *stop) {
+   usingBlock:^(NSDictionary<NSAttributedStringKey, id> * _Nonnull attrs,
+                NSRange range, BOOL * _Nonnull stop) {
     NSRange glyRange = [self glyphRangeForCharacterRange:range
                                     actualCharacterRange:NULL];
     NSRect lineRect = [self lineFragmentRectForGlyphAtIndex:glyRange.location
@@ -1199,15 +1204,15 @@ typedef struct {
   NSUInteger tabColumn;
 } SquirrelTabularPosition;
 
-@property(nonatomic, strong, readonly) NSTextView *textView;
-@property(nonatomic, strong, readonly) NSTextStorage *textStorage;
-@property(nonatomic, strong, readonly) SquirrelTheme *currentTheme;
-@property(nonatomic, strong, readonly) CAShapeLayer *shape;
-@property(nonatomic, strong, readonly) NSMutableArray<NSBezierPath *> *candidatePaths;
-@property(nonatomic, strong, readonly) NSMutableArray<NSBezierPath *> *pagingPaths;
-@property(nonatomic, strong, readonly) NSBezierPath *expanderPath;
-@property(nonatomic, strong, readonly) NSBezierPath *deleteBackPath;
-@property(nonatomic, strong, readonly) NSArray<NSValue *> *candidateRanges;
+@property(nonatomic, strong, readonly, nonnull) NSTextView *textView;
+@property(nonatomic, strong, readonly, nonnull) NSTextStorage *textStorage;
+@property(nonatomic, strong, readonly, nonnull) SquirrelTheme *currentTheme;
+@property(nonatomic, strong, readonly, nonnull) CAShapeLayer *shape;
+@property(nonatomic, strong, readonly, nullable) NSMutableArray<NSBezierPath *> *candidatePaths;
+@property(nonatomic, strong, readonly, nullable) NSMutableArray<NSBezierPath *> *pagingPaths;
+@property(nonatomic, strong, readonly, nullable) NSBezierPath *expanderPath;
+@property(nonatomic, strong, readonly, nullable) NSBezierPath *deleteBackPath;
+@property(nonatomic, strong, readonly, nullable) NSArray<NSValue *> *candidateRanges;
 @property(nonatomic, readonly) NSRange preeditRange;
 @property(nonatomic, readonly) NSRange highlightedPreeditRange;
 @property(nonatomic, readonly) NSRange pagingRange;
@@ -1222,9 +1227,9 @@ typedef struct {
 @property(nonatomic, readonly) SquirrelTabularPosition *tabularPositions;
 @property(nonatomic) BOOL expanded;
 
-- (NSTextRange *)getTextRangeFromCharRange:(NSRange)charRange API_AVAILABLE(macos(12.0));
+- (NSTextRange * _Nullable)getTextRangeFromCharRange:(NSRange)charRange API_AVAILABLE(macos(12.0));
 
-- (NSRange)getCharRangeFromTextRange:(NSTextRange *)textRange API_AVAILABLE(macos(12.0));
+- (NSRange)getCharRangeFromTextRange:(NSTextRange * _Nullable)textRange API_AVAILABLE(macos(12.0));
 
 - (NSRect)blockRectForRange:(NSRange)range;
 
@@ -1234,7 +1239,7 @@ typedef struct {
                  trailingRect:(NSRectPointer)trailingRect;
 
 - (void)drawViewWithInsets:(NSEdgeInsets)alignmentRectInsets
-           candidateRanges:(NSArray<NSValue *> *)candidateRanges
+           candidateRanges:(NSArray<NSValue *> * _Nullable)candidateRanges
           highlightedIndex:(NSUInteger)highlightedIndex
               preeditRange:(NSRange)preeditRange
    highlightedPreeditRange:(NSRange)highlightedPreeditRange
@@ -1386,8 +1391,8 @@ SquirrelTheme *_darkTheme;
      enumerateTextSegmentsInRange:textRange
      type:NSTextLayoutManagerSegmentTypeHighlight
      options:NSTextLayoutManagerSegmentOptionsRangeNotRequired
-     usingBlock:^(NSTextRange *segRange, CGRect segFrame,
-                  CGFloat baseline, NSTextContainer *textContainer) {
+     usingBlock:^(NSTextRange * _Nullable segRange, CGRect segFrame,
+                  CGFloat baseline, NSTextContainer * _Nonnull textContainer) {
       blockRect = NSUnionRect(blockRect, segFrame);
       return YES;
     }];
@@ -1440,8 +1445,8 @@ SquirrelTheme *_darkTheme;
      enumerateTextSegmentsInRange:textRange
      type:NSTextLayoutManagerSegmentTypeHighlight
      options:NSTextLayoutManagerSegmentOptionsNone
-     usingBlock:^(NSTextRange *segRange, CGRect segFrame,
-                  CGFloat baseline, NSTextContainer *textContainer) {
+     usingBlock:^(NSTextRange * _Nullable segRange, CGRect segFrame,
+                  CGFloat baseline, NSTextContainer * _Nonnull textContainer) {
       if (!NSIsEmptyRect(segFrame)) {
         NSRect lastSegFrame = lineRects.count > 0 ? [lineRects.lastObject rectValue] : NSZeroRect;
         if (NSMinY(segFrame) < NSMaxY(lastSegFrame)) {
@@ -2370,7 +2375,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
     _locked = locked;
     SquirrelConfig *userConfig = [[SquirrelConfig alloc] init];
     if ([userConfig openUserConfig:@"user"]) {
-      [userConfig setBool:locked forOption:@"var/option/_lock_tabular"];
+      [userConfig setOption:@"var/option/_lock_tabular" withBool:locked];
     }
     [userConfig close];
   }
@@ -2922,10 +2927,10 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
      enumerateTextSegmentsInRange:textRange
      type:NSTextLayoutManagerSegmentTypeHighlight
      options:NSTextLayoutManagerSegmentOptionsRangeNotRequired
-     usingBlock:^BOOL(NSTextRange *segRange, CGRect segFrame,
-                      CGFloat baseline, NSTextContainer *textContainer) {
-      lineCount += 1 + (NSMaxX(segFrame) > maxTextWidth);
-      return YES;
+     usingBlock:^BOOL(NSTextRange * _Nullable segRange, CGRect segFrame,
+                      CGFloat baseline, NSTextContainer * _Nonnull textContainer) {
+      lineCount += NSMaxX(segFrame) > maxTextWidth ? 2 : 1;
+      return lineCount <= 1;
     }];
   } else {
     NSRange glyphRange = [_view.textView.layoutManager
@@ -2933,9 +2938,9 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
                                  actualCharacterRange:NULL];
     [_view.textView.layoutManager
      enumerateLineFragmentsForGlyphRange:glyphRange
-     usingBlock:^(NSRect rect, NSRect usedRect, NSTextContainer *textContainer,
-                  NSRange lineRange, BOOL *stop) {
-      lineCount += 1 + (NSMaxX(usedRect) > maxTextWidth);
+     usingBlock:^(NSRect rect, NSRect usedRect, NSTextContainer * _Nonnull textContainer,
+                  NSRange lineRange, BOOL * _Nonnull stop) {
+      lineCount += NSMaxX(usedRect) > maxTextWidth ? 2 :1;
     }];
   }
   return lineCount > 1;
@@ -2955,8 +2960,8 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
      enumerateTextSegmentsInRange:textRange
      type:NSTextLayoutManagerSegmentTypeHighlight
      options:NSTextLayoutManagerSegmentOptionsRangeNotRequired
-     usingBlock:^(NSTextRange *segRange, CGRect segFrame,
-                  CGFloat baseline, NSTextContainer *textContainer) {
+     usingBlock:^(NSTextRange * _Nullable segRange, CGRect segFrame,
+                  CGFloat baseline, NSTextContainer * _Nonnull textContainer) {
       rangeEndEdge = NSMaxX(segFrame);
       return YES;
     }];
@@ -3162,7 +3167,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
       [text enumerateAttribute:NSParagraphStyleAttributeName
                        inRange:NSMakeRange(candidateBlockStart, text.length - candidateBlockStart)
                        options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
-                    usingBlock:^(NSParagraphStyle *value, NSRange range, BOOL *stop) {
+                    usingBlock:^(NSParagraphStyle * _Nullable value, NSRange range, BOOL * _Nonnull stop) {
         NSMutableParagraphStyle *style = value.mutableCopy;
         style.paragraphSpacing = annotationHeight;
         style.paragraphSpacingBefore = annotationHeight;
