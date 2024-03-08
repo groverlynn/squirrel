@@ -39,7 +39,7 @@ $(RIME_DEPS):
 	$(MAKE) -C librime deps
 
 librime: $(RIME_DEPS)
-	$(MAKE) -C librime install
+	$(MAKE) -C librime release install
 	$(MAKE) copy-rime-binaries
 
 copy-rime-binaries:
@@ -77,6 +77,12 @@ copy-opencc-data:
 	cp $(OPENCC_DATA_OUTPUT) data/opencc/
 
 deps: librime data
+
+clang-format-lint:
+	find . -name '*.m' -o -name '*.h' -maxdepth 1 | xargs clang-format -Werror --dry-run || { echo Please lint your code by '"'"make clang-format-apply"'"'.; false; }
+
+clang-format-apply:
+	find . -name '*.m' -o -name '*.h' -maxdepth 1 | xargs clang-format --verbose -i
 
 ifdef ARCHS
 BUILD_SETTINGS += ARCHS="$(ARCHS)"

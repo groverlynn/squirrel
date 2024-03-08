@@ -332,6 +332,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				F478A35B2B10795800D7794A /* AppKit.framework in Frameworks */,
+				D26434552706A15100857391 /* QuartzCore.framework in Frameworks */,
+				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
+				F45E005F2B8CA81C00179B75 /* UserNotifications.framework in Frameworks */,
+				E93074B70A5C264700470842 /* InputMethodKit.framework in Frameworks */,
 				A4B8E1B30F645B870094E08B /* Carbon.framework in Frameworks */,
 				F478A3592B1078F500D7794A /* Cocoa.framework in Frameworks */,
 				F478A35C2B10795B00D7794A /* Foundation.framework in Frameworks */,
