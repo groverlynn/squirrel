@@ -60,7 +60,7 @@ typedef NSMutableDictionary<NSString *, NSNumber *> SquirrelMutableAppOptions;
 - (NSNumber * _Nullable)getOptionalIntForOption:(NSString * _Nonnull)option;
 - (NSNumber * _Nullable)getOptionalDoubleForOption:(NSString * _Nonnull)option;
 - (NSNumber * _Nullable)getOptionalDoubleForOption:(NSString * _Nonnull)option
-                         applyConstraint:(double (* _Nonnull)(double param))func;
+                                   applyConstraint:(double (* _Nonnull)(double param))func;
 
 - (NSString * _Nullable)getStringForOption:(NSString * _Nonnull)option;
 // 0xaabbggrr or 0xbbggrr
