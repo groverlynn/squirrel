@@ -2103,34 +2103,33 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
     rectVertices(expanderRect, expanderVertices);
     _expanderPath = squirclePath(expanderVertices, 4, MIN(theme.highlightedCornerRadius,
                                                           theme.paragraphStyle.minimumLineHeight * 0.5));
-    if (self.expanded) {
+    if (self.expanded && _tabularPositions[_numCandidates - 1].row > 0) {
       _pagingBlock = NSMakeRect(NSMaxX(_candidateBlock), NSMinY(_candidateBlock),
                                 NSMaxX(backgroundRect) - NSMaxX(_candidateBlock),
                                 NSMinY(expanderRect) - NSMinY(_candidateBlock));
-      NSRect pageUpRect = NSMakeRect(NSMinX(_pagingBlock), NSMinY(_pagingBlock),
-                                     NSWidth(_pagingBlock), NSWidth(_pagingBlock) * 0.6);
-      NSRect pageDownRect = NSMakeRect(NSMinX(_pagingBlock), NSMaxY(_pagingBlock) - NSWidth(_pagingBlock) * 0.6,
-                                       NSWidth(_pagingBlock), NSWidth(_pagingBlock) * 0.6);
-      CGFloat cornerRadius = MIN(theme.highlightedCornerRadius, NSWidth(_pagingBlock) * 0.3);
+      CGFloat sideLength = MIN(theme.paragraphStyle.minimumLineHeight, NSWidth(_pagingBlock));
+      NSRect pageUpRect = NSMakeRect(NSMinX(_pagingBlock), NSMidY(_pagingBlock) - sideLength * 0.5,
+                                     sideLength, sideLength * 0.5);
+      NSRect pageDownRect = NSMakeRect(NSMinX(_pagingBlock), NSMidY(_pagingBlock),
+                                       sideLength, sideLength * 0.5);
+      CGFloat cornerRadius = MIN(theme.highlightedCornerRadius, sideLength * 0.25);
       NSPoint pageUpVertices[4], pageDownVertices[4];
       rectVertices(pageUpRect, pageUpVertices);
       rectVertices(pageDownRect, pageDownVertices);
       _pagingPaths[0] = squirclePath(pageUpVertices, 4, cornerRadius);
       _pagingPaths[1] = squirclePath(pageDownVertices, 4, cornerRadius);
 
-      NSRect scrollerRect = NSInsetRect(_pagingBlock, NSWidth(_pagingBlock) * 0.2, NSWidth(_pagingBlock) * 0.6);
-      scrollerPath = [NSBezierPath bezierPathWithRoundedRect:scrollerRect
-                                                     xRadius:cornerRadius yRadius:cornerRadius];
-      [scrollerPath moveToPoint:NSMakePoint(NSMinX(pageUpRect) + ceil(NSWidth(_pagingBlock) * 0.2),
-                                            NSMaxY(pageUpRect) - ceil(NSWidth(_pagingBlock) * 0.2))];
-      [scrollerPath lineToPoint:NSMakePoint(NSMidX(pageUpRect), NSMinY(pageUpRect) + ceil(NSWidth(_pagingBlock) * 0.2))];
-      [scrollerPath lineToPoint:NSMakePoint(NSMaxX(pageUpRect) - ceil(NSWidth(_pagingBlock) * 0.2),
-                                            NSMaxY(pageUpRect) - ceil(NSWidth(_pagingBlock) * 0.2))];
-      [scrollerPath moveToPoint:NSMakePoint(NSMinX(pageDownRect) + ceil(NSWidth(_pagingBlock) * 0.2),
-                                            NSMinY(pageDownRect) + ceil(NSWidth(_pagingBlock) * 0.2))];
-      [scrollerPath lineToPoint:NSMakePoint(NSMidX(pageDownRect), NSMaxY(pageDownRect) - ceil(NSWidth(_pagingBlock) * 0.2))];
-      [scrollerPath lineToPoint:NSMakePoint(NSMaxX(pageDownRect) - ceil(NSWidth(_pagingBlock) * 0.2),
-                                            NSMinY(pageDownRect) + ceil(NSWidth(_pagingBlock) * 0.2))];
+      scrollerPath = NSBezierPath.bezierPath;
+      [scrollerPath moveToPoint:NSMakePoint(NSMinX(pageUpRect) + ceil(sideLength * 0.2),
+                                            NSMaxY(pageUpRect) - ceil(sideLength * 0.1))];
+      [scrollerPath lineToPoint:NSMakePoint(NSMidX(pageUpRect), NSMinY(pageUpRect) + ceil(sideLength * 0.1))];
+      [scrollerPath lineToPoint:NSMakePoint(NSMaxX(pageUpRect) - ceil(sideLength * 0.2),
+                                            NSMaxY(pageUpRect) - ceil(sideLength * 0.1))];
+      [scrollerPath moveToPoint:NSMakePoint(NSMinX(pageDownRect) + ceil(sideLength * 0.2),
+                                            NSMinY(pageDownRect) + ceil(sideLength * 0.1))];
+      [scrollerPath lineToPoint:NSMakePoint(NSMidX(pageDownRect), NSMaxY(pageDownRect) - ceil(sideLength * 0.1))];
+      [scrollerPath lineToPoint:NSMakePoint(NSMaxX(pageDownRect) - ceil(sideLength * 0.2),
+                                            NSMinY(pageDownRect) + ceil(sideLength * 0.1))];
     }
   } else if (pagingRange.length > 0) {
     NSRect pageUpRect = [self blockRectForRange:NSMakeRange(pagingRange.location, 1)];
@@ -2280,7 +2279,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
     [ForeLayers addSublayer:gridLayer];
   }
   // paging scroller in expanded tabular
-  if (self.expanded) {
+  if (scrollerPath) {
     CAShapeLayer *scrollerLayer = [[CAShapeLayer alloc] init];
     scrollerLayer.path = scrollerPath.quartzPath;
     scrollerLayer.fillColor = NSColor.clearColor.CGColor;
@@ -3116,7 +3115,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
      enumerateLineFragmentsForGlyphRange:glyphRange
      usingBlock:^(NSRect rect, NSRect usedRect, NSTextContainer * _Nonnull textContainer,
                   NSRange lineRange, BOOL * _Nonnull stop) {
-      lineCount += NSMaxX(usedRect) > maxTextWidth ? 2 :1;
+      lineCount += NSMaxX(usedRect) > maxTextWidth ? 2 : 1;
     }];
   }
   return lineCount > 1;
@@ -3256,6 +3255,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
   NSUInteger lineStart;
   NSMutableParagraphStyle *paragraphStyleCandidate;
   CGFloat tabInterval = theme.separatorWidth * 2;
+  CGFloat textWidthLimit = _textWidthLimit - (theme.tabular ? theme.separatorWidth + theme.expanderWidth : 0.0);
   CGFloat maxLineLength = 0.0;
 
   // preedit
@@ -3371,20 +3371,21 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
     if (lineStart != text.length) {
       NSUInteger separatorStart = text.length;
       // separator: linear = "　"; tabular = "　\t"; stacked = "\n"
-      NSMutableAttributedString *separator = theme.separator.mutableCopy;
+      NSAttributedString *separator = theme.separator;
       [text appendAttributedString:separator];
       [text appendAttributedString:item];
-      if (theme.linear && (col == 0 || ceil(item.size.width) > _textWidthLimit ||
+      if (theme.linear && (col == 0 || ceil(item.size.width) > textWidthLimit ||
           [self shouldBreakLineInsideRange:NSMakeRange(lineStart, text.length - lineStart)])) {
-        [text replaceCharactersInRange:NSMakeRange(separatorStart + separator.length - 1, 1)
+        NSRange replaceRange = theme.tabular ? NSMakeRange(separatorStart + 2, 0) : NSMakeRange(separatorStart, 1);
+        [text replaceCharactersInRange:replaceRange
                             withString:@"\n"];
-        lineStart = separatorStart + separator.length;
+        lineStart = separatorStart + (theme.tabular ? 3 : 1);
       }
     } else { // at the start of a new line, no need to determine line break
       [text appendAttributedString:item];
     }
     // for linear layout, middle-truncate candidates that are longer than one line
-    if (theme.linear && ceil(item.size.width) > _textWidthLimit) {
+    if (theme.linear && ceil(item.size.width) > textWidthLimit) {
       if (idx < _candidates.count - 1 || theme.showPaging || theme.tabular) {
         [text appendAttributedString:[[NSAttributedString alloc]
                                       initWithString:@"\n"
@@ -3406,10 +3407,11 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
   if (theme.tabular) {
     [text appendAttributedString:theme.separator];
     NSUInteger pagingStart = text.length;
+    [self shouldUseTabInRange:NSMakeRange(pagingStart - 2, 2) maxLineLength:&maxLineLength];
+    CGFloat expanderPosition = round(maxLineLength / (tabInterval * 2)) * tabInterval * 2;
     NSAttributedString *expander = _locked ? theme.symbolLock : _view.expanded ? theme.symbolCompress : theme.symbolExpand;
     [text appendAttributedString:expander];
     paragraphStyleCandidate = theme.paragraphStyle.mutableCopy;
-    [self shouldUseTabInRange:NSMakeRange(pagingStart, 1) maxLineLength:&maxLineLength];
     paragraphStyleCandidate.tabStops = @[];
     CGFloat candidateEndPosition = NSMaxX([_view blockRectForRange:
                                            NSMakeRange(lineStart, pagingStart - 1 - lineStart)]);
@@ -3419,7 +3421,6 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
                                        location:i * tabInterval
                                         options:@{}]];
     }
-    CGFloat expanderPosition = ceil((maxLineLength - theme.expanderWidth) / (tabInterval * 2)) * tabInterval * 2;
     [paragraphStyleCandidate addTabStop:
      [[NSTextTab alloc] initWithTextAlignment:NSTextAlignmentLeft
                                      location:expanderPosition
@@ -3482,7 +3483,7 @@ alignDelete:
   if (_preedit && [self shouldUseTabInRange:NSMakeRange(preeditRange.length - 2, 2)
                               maxLineLength:&maxLineLength]) {
     if (theme.tabular && _candidates.count == 0) {
-      maxLineLength = ceil((maxLineLength - theme.expanderWidth) / (tabInterval * 2)) * tabInterval * 2 + theme.expanderWidth;
+      maxLineLength = ceil((maxLineLength - theme.expanderWidth) / tabInterval) * tabInterval + theme.expanderWidth;
     }
     [text replaceCharactersInRange:NSMakeRange(preeditRange.length - 2, 1)
                         withString:@"\t"];
