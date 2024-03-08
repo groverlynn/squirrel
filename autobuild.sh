@@ -1,4 +1,5 @@
 make clean clean-deps
+make -C librime deps/clean
 
 # git submodule update --init --recursive
 

@@ -78,6 +78,7 @@
 		A4B8E1B30F645B870094E08B /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4B8E1B20F645B870094E08B /* Carbon.framework */; };
 		A4FC48CB0F6530EF0069BE81 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A4FC48C90F6530EF0069BE81 /* Localizable.strings */; };
 		E93074B70A5C264700470842 /* InputMethodKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E93074B60A5C264700470842 /* InputMethodKit.framework */; };
+		F440EC552B9C73A200059E3A /* rime-plugins in Copy 3rd-party Frameworks */ = {isa = PBXBuildFile; fileRef = F440EC542B9C73A200059E3A /* rime-plugins */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		F48CFB6B2B327A2E00DB9CF9 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 447765C725C30E6B002415AF /* Sparkle.framework */; };
 		F493BF7B2B76F28A008BD7D0 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F493BF7A2B76F27E008BD7D0 /* UserNotifications.framework */; };
 		F49FEC632B8FA4E0009DDC32 /* EmojiCategoryEN.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F49FEC412B8FA3FB009DDC32 /* EmojiCategoryEN.ocd2 */; };
@@ -212,6 +213,7 @@
 			files = (
 				44CD640C15E2646B0021234E /* librime.1.dylib in Copy 3rd-party Frameworks */,
 				447765CA25C30E97002415AF /* Sparkle.framework in Copy 3rd-party Frameworks */,
+				F440EC552B9C73A200059E3A /* rime-plugins in Copy 3rd-party Frameworks */,
 			);
 			name = "Copy 3rd-party Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -306,6 +308,7 @@
 		A4B8E1B20F645B870094E08B /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		A4FC48CA0F6530EF0069BE81 /* en */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E93074B60A5C264700470842 /* InputMethodKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InputMethodKit.framework; path = System/Library/Frameworks/InputMethodKit.framework; sourceTree = SDKROOT; };
+		F440EC542B9C73A200059E3A /* rime-plugins */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "rime-plugins"; path = "lib/rime-plugins"; sourceTree = "<group>"; };
 		F493BF7A2B76F27E008BD7D0 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		F49FEC412B8FA3FB009DDC32 /* EmojiCategoryEN.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryEN.ocd2; sourceTree = "<group>"; };
 		F49FEC422B8FA3FB009DDC32 /* EmojiWordTW.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiWordTW.ocd2; sourceTree = "<group>"; };
@@ -375,15 +378,6 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				44CD640915E2633D0021234E /* librime.1.dylib */,
-				447765C725C30E6B002415AF /* Sparkle.framework */,
-			);
-			name = "Linked Frameworks";
-			sourceTree = "<group>";
-		};
-		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
-			isa = PBXGroup;
-			children = (
 				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
 				A4B8E1B20F645B870094E08B /* Carbon.framework */,
 				F4EC47A12B32320B004862A4 /* Cocoa.framework */,
@@ -392,6 +386,16 @@
 				F4EC47A72B3233D0004862A4 /* IOKit.framework */,
 				F4EC479F2B323203004862A4 /* QuartzCore.framework */,
 				F493BF7A2B76F27E008BD7D0 /* UserNotifications.framework */,
+			);
+			name = "Linked Frameworks";
+			sourceTree = "<group>";
+		};
+		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				44CD640915E2633D0021234E /* librime.1.dylib */,
+				447765C725C30E6B002415AF /* Sparkle.framework */,
+				F440EC542B9C73A200059E3A /* rime-plugins */,
 			);
 			name = "Other Frameworks";
 			sourceTree = "<group>";
