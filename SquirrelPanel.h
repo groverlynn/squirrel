@@ -53,4 +53,4 @@ typedef NS_ENUM(NSUInteger, SquirrelAppear) {
 - (void)loadLabelConfig:(SquirrelConfig * _Nonnull)config
            directUpdate:(BOOL)update;
 
-@end // SquirrelPanel
+@end  // SquirrelPanel

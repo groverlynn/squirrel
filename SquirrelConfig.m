@@ -68,7 +68,7 @@
   return [_switcher mutableCopy];
 }
 
-@end // SquirrelOptionSwitcher
+@end  // SquirrelOptionSwitcher
 
 
 @implementation SquirrelConfig {
@@ -87,14 +87,14 @@
 
 - (BOOL)openBaseConfig {
   [self close];
-  _isOpen = !!rime_get_api()->config_open("squirrel", &_config);
+  _isOpen = (BOOL)rime_get_api()->config_open("squirrel", &_config);
   return _isOpen;
 }
 
 - (BOOL)openWithSchemaId:(NSString *)schemaId
               baseConfig:(SquirrelConfig *)baseConfig {
   [self close];
-  _isOpen = !!rime_get_api()->schema_open(schemaId.UTF8String, &_config);
+  _isOpen = (BOOL)rime_get_api()->schema_open(schemaId.UTF8String, &_config);
   if (_isOpen) {
     _schemaId = schemaId;
     _baseConfig = baseConfig;
@@ -104,13 +104,13 @@
 
 - (BOOL)openUserConfig:(NSString *)configId {
   [self close];
-  _isOpen = !!rime_get_api()->user_config_open(configId.UTF8String, &_config);
+  _isOpen = (BOOL)rime_get_api()->user_config_open(configId.UTF8String, &_config);
   return _isOpen;
 }
 
 - (BOOL)openWithConfigId:(NSString *)configId {
   [self close];
-  _isOpen = !!rime_get_api()->config_open(configId.UTF8String, &_config);
+  _isOpen = (BOOL)rime_get_api()->config_open(configId.UTF8String, &_config);
   return _isOpen;
 }
 
@@ -395,7 +395,7 @@
   NSURL *userDataDir = [NSURL fileURLWithPath:@"~/Library/Rime".stringByExpandingTildeInPath
                                   isDirectory:YES];
   NSURL *imageFile = [NSURL fileURLWithPath:filePath
-                                isDirectory:NO 
+                                isDirectory:NO
                               relativeToURL:userDataDir];
   if ([imageFile checkResourceIsReachableAndReturnError:nil]) {
     NSImage *image = [[NSImage alloc] initByReferencingURL:imageFile];
@@ -404,4 +404,4 @@
   return nil;
 }
 
-@end // SquirrelConfig
+@end  // SquirrelConfig

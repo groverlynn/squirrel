@@ -157,7 +157,7 @@ static void notification_handler(void *context_object, RimeSessionId session_id,
   squirrel_traits.distribution_code_name = "Squirrel";
   squirrel_traits.distribution_name = NSLocalizedString(@"Squirrel", nil).UTF8String;
   squirrel_traits.distribution_version = [[NSBundle.mainBundle objectForInfoDictionaryKey:
-                                           (NSString *)kCFBundleVersionKey] UTF8String];
+                                           (id)kCFBundleVersionKey] UTF8String];
   squirrel_traits.app_name = "rime.squirrel";
   rime_get_api()->setup(&squirrel_traits);
 }
@@ -279,8 +279,7 @@ SquirrelOptionSwitcher *updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitc
   NSData *record = [NSKeyedArchiver archivedDataWithRootObject:now
                                          requiringSecureCoding:NO
                                                          error:nil];
-  NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingToURL:logfile error:nil];
-  [fileHandle writeData:record];
+  [record writeToURL:logfile atomically:NO];
   return detected;
 }
 
@@ -334,7 +333,7 @@ SquirrelOptionSwitcher *updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitc
   [_panel hide];
 }
 
-@end  //SquirrelApplicationDelegate
+@end  // SquirrelApplicationDelegate
 
 @implementation NSApplication (SquirrelApp)
 
@@ -342,4 +341,4 @@ SquirrelOptionSwitcher *updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitc
   return (SquirrelApplicationDelegate *)self.delegate;
 }
 
-@end
+@end  // NSApplication (SquirrelApp)

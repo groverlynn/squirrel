@@ -29,7 +29,7 @@ typedef NS_ENUM(NSUInteger, SquirrelIndex) {
   kExpandButton = 0xff04,
   kCompressButton = 0xff05,
   kLockButton = 0xff06,
-  kVoidSymbol = 0xffffff     // XK_VoidSymbol
+  kVoidSymbol = 0xffffff    // XK_VoidSymbol
 };
 
 @property(class, weak, readonly, nullable) SquirrelInputController *currentController;
@@ -39,7 +39,7 @@ typedef NS_ENUM(NSUInteger, SquirrelIndex) {
      inlinePreedit:(BOOL)inlinePreedit
    inlineCandidate:(BOOL)inlineCandidate;
 
-- (void)perform:(SquirrelAction)action
-        onIndex:(SquirrelIndex)index;
+- (void)performAction:(SquirrelAction)action
+              onIndex:(SquirrelIndex)index;
 
-@end // SquirrelInputController
+@end  // SquirrelInputController

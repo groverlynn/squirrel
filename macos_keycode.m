@@ -205,8 +205,7 @@ static struct mapping_t keychar_mappings[] = {
 
 int get_rime_keycode(ushort keycode, unichar keychar, bool shift, bool caps) {
   for (struct mapping_t *mapping = keycode_mappings;
-       mapping->from_osx >= 0;
-       ++mapping) {
+       mapping->from_osx >= 0; ++mapping) {
     if (keycode == mapping->from_osx) {
       return mapping->to_rime;
     }
@@ -223,8 +222,7 @@ int get_rime_keycode(ushort keycode, unichar keychar, bool shift, bool caps) {
   }
 
   for (struct mapping_t *mapping = keychar_mappings;
-       mapping->from_osx >= 0;
-       ++mapping) {
+       mapping->from_osx >= 0; ++mapping) {
     if (keychar == mapping->from_osx) {
       return mapping->to_rime;
     }

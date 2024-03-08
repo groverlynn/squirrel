@@ -11,7 +11,7 @@ export BOOST_ROOT="$(pwd)/librime/deps/boost-1.84.0"
 make -C librime deps
 
 # export PATH="/opt/homebrew/opt/llvm/bin:/usr/local/opt/llvm/bin:$PATH"
-make -C librime merged-plugins
+make librime
 
 make deps
 make install

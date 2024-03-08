@@ -17,45 +17,43 @@ static NSString *const kFullWidthSpace = @"　";
 - (CGPathRef)quartzPath {
   if (@available(macOS 14.0, *)) {
     return self.CGPath;
-  } else {
-    // Need to begin a path here.
-    CGPathRef immutablePath = NULL;
-    // Then draw the path elements.
-    NSInteger numElements = self.elementCount;
-    if (numElements > 0) {
-      CGMutablePathRef path = CGPathCreateMutable();
-      NSPoint points[3];
-      for (NSInteger i = 0; i < numElements; i++) {
-        switch ([self elementAtIndex:i associatedPoints:points]) {
-          case NSBezierPathElementMoveTo:
-            CGPathMoveToPoint(path, NULL, points[0].x, points[0].y);
-            break;
-          case NSBezierPathElementLineTo:
-            CGPathAddLineToPoint(path, NULL, points[0].x, points[0].y);
-            break;
-          case NSBezierPathElementCurveTo:
-            CGPathAddCurveToPoint(path, NULL, points[0].x, points[0].y,
-                                  points[1].x, points[1].y,
-                                  points[2].x, points[2].y);
-            break;
-          case NSBezierPathElementQuadraticCurveTo:
-            CGPathAddQuadCurveToPoint(path, NULL, points[0].x, points[0].y,
-                                      points[1].x, points[1].y);
-            break;
-          case NSBezierPathElementClosePath:
-            CGPathCloseSubpath(path);
-            break;
-        }
-      }
-      immutablePath = (CGPathRef)CFAutorelease(CGPathCreateCopy(path));
-      CGPathRelease(path);
-    }
-    return immutablePath;
   }
+  // Need to begin a path here.
+  CGPathRef immutablePath = NULL;
+  // Then draw the path elements.
+  NSInteger numElements = self.elementCount;
+  if (numElements > 0) {
+    CGMutablePathRef path = CGPathCreateMutable();
+    NSPoint points[3];
+    for (NSInteger i = 0; i < numElements; i++) {
+      switch ([self elementAtIndex:i associatedPoints:points]) {
+        case NSBezierPathElementMoveTo:
+          CGPathMoveToPoint(path, NULL, points[0].x, points[0].y);
+          break;
+        case NSBezierPathElementLineTo:
+          CGPathAddLineToPoint(path, NULL, points[0].x, points[0].y);
+          break;
+        case NSBezierPathElementCurveTo:
+          CGPathAddCurveToPoint(path, NULL, points[0].x, points[0].y,
+                                points[1].x, points[1].y,
+                                points[2].x, points[2].y);
+          break;
+        case NSBezierPathElementQuadraticCurveTo:
+          CGPathAddQuadCurveToPoint(path, NULL, points[0].x, points[0].y,
+                                    points[1].x, points[1].y);
+          break;
+        case NSBezierPathElementClosePath:
+          CGPathCloseSubpath(path);
+          break;
+      }
+    }
+    immutablePath = (CGPathRef)CFAutorelease(CGPathCreateCopy(path));
+    CGPathRelease(path);
+  }
+  return immutablePath;
 }
 
-@end // NSBezierPath (BezierPathQuartzUtilities)
-
+@end  // NSBezierPath (BezierPathQuartzUtilities)
 
 @implementation NSMutableAttributedString (NSMutableAttributedStringMarkDownFormatting)
 
@@ -230,7 +228,7 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
   return ceil(rubyLineHeight);
 }
 
-@end // NSMutableAttributedString (NSMutableAttributedStringMarkDownFormatting)
+@end  // NSMutableAttributedString (NSMutableAttributedStringMarkDownFormatting)
 
 
 @implementation NSColorSpace (labColorSpace)
@@ -245,7 +243,7 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
   return labColorSpace;
 }
 
-@end // NSColorSpace (labColorSpace)
+@end  // NSColorSpace (labColorSpace)
 
 @implementation NSColor (semanticColors)
 
@@ -265,7 +263,7 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
   }
 }
 
-@end
+@end  // NSColor (semanticColors)
 
 @implementation NSColor (colorWithLabColorSpace)
 
@@ -324,7 +322,7 @@ static NSString *const kRubyPattern = @"(\uFFF9\\s*)(\\S+?)(\\s*\uFFFA(.+?)\uFFF
   return [invertedColor colorUsingColorSpace:self.colorSpace];
 }
 
-@end // NSColor (colorWithLabColorSpace)
+@end  // NSColor (colorWithLabColorSpace)
 
 #pragma mark - Color scheme and other user configurations
 
@@ -451,9 +449,7 @@ typedef NS_ENUM(NSUInteger, SquirrelStatusMessageType) {
 
 - (void)setAnnotationHeight:(CGFloat)height;
 
-@end
-
-@implementation SquirrelTheme
+@end @implementation SquirrelTheme
 
 static inline NSColor *blendColors(NSColor *foregroundColor, NSColor *backgroundColor) {
   return [[foregroundColor blendedColorWithFraction:kBlendedBackgroundColorFraction
@@ -971,7 +967,7 @@ static CGFloat getLineHeight(NSFont *font, BOOL vertical) {
   }
 }
 
-@end // SquirrelTheme
+@end  // SquirrelTheme
 
 #pragma mark - Typesetting extensions for TextKit 1 (Mac OSX 10.9 to MacOS 11)
 
@@ -1127,7 +1123,7 @@ static CGFloat getLineHeight(NSFont *font, BOOL vertical) {
   return NSMakeRect(glyphPosition.x, 0.0, width, glyphPosition.y);
 }
 
-@end // SquirrelLayoutManager
+@end  // SquirrelLayoutManager
 
 #pragma mark - Typesetting extensions for TextKit 2 (MacOS 12 or higher)
 
@@ -1148,9 +1144,9 @@ API_AVAILABLE(macos(12.0))
     CGFloat baseline = NSMidY(lineRect);
     if (!verticalOrientation) {
       NSFont *refFont = [lineFrag.attributedString
-                         attribute:(NSString *)kCTBaselineReferenceInfoAttributeName
+                         attribute:(id)kCTBaselineReferenceInfoAttributeName
                          atIndex:lineFrag.characterRange.location
-                         effectiveRange:NULL][(NSString *)kCTBaselineReferenceFont];
+                         effectiveRange:NULL][(id)kCTBaselineReferenceFont];
       baseline += refFont.ascender * 0.5 + refFont.descender * 0.5;
     }
     CGPoint renderOrigin = CGPointMake(NSMinX(lineRect) + lineFrag.glyphOrigin.x,
@@ -1162,7 +1158,7 @@ API_AVAILABLE(macos(12.0))
   }
 }
 
-@end // SquirrelTextLayoutFragment
+@end  // SquirrelTextLayoutFragment
 
 
 API_AVAILABLE(macos(12.0))
@@ -1189,7 +1185,7 @@ API_AVAILABLE(macos(12.0))
                                                            range:textRange];
 }
 
-@end // SquirrelTextLayoutManager
+@end  // SquirrelTextLayoutManager
 
 #pragma mark - View behind text, containing drawings of backgrounds and highlights
 
@@ -1247,9 +1243,7 @@ typedef struct {
 
 - (SquirrelIndex)getIndexFromMouseSpot:(NSPoint)spot;
 
-@end
-
-@implementation SquirrelView
+@end @implementation SquirrelView
 
 SquirrelTheme *_defaultTheme;
 SquirrelTheme *_darkTheme;
@@ -2337,7 +2331,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
   return NSNotFound;
 }
 
-@end // SquirrelView
+@end  // SquirrelView
 
 
 /* In order to put SquirrelPanel above client app windows,
@@ -2346,27 +2340,19 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
  This class makes system-alike tooltips above SquirrelPanel
  */
 @interface SquirrelToolTip : NSWindow
-
-@property(nonatomic, strong, readonly, nonnull) SquirrelPanel *panel;
-
-@end
-
-@implementation SquirrelToolTip {
+@end @implementation SquirrelToolTip {
   NSVisualEffectView *_backView;
   NSTextField *_textView;
   NSTimer *_displayTimer;
   NSTimer *_hideTimer;
 }
 
-- (instancetype)initWithPanel:(SquirrelPanel *)panel {
+- (instancetype)init {
   self = [super initWithContentRect:NSZeroRect
                           styleMask:NSWindowStyleMaskNonactivatingPanel
                             backing:NSBackingStoreBuffered
                               defer:YES];
   if (self) {
-    _panel = panel;
-    self.level = panel.level + 1;
-    self.appearanceSource = panel;
     self.backgroundColor = NSColor.clearColor;
     self.opaque = YES;
     self.hasShadow = YES;
@@ -2389,6 +2375,9 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
     [self hide];
     return;
   }
+  SquirrelPanel *panel = NSApp.squirrelAppDelegate.panel;
+  self.level = panel.level + 1;
+  self.appearanceSource = panel;
 
   _textView.stringValue = toolTip;
   _textView.font = [NSFont toolTipsFontOfSize:0];
@@ -2400,17 +2389,18 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
   NSCursor *cursor = NSCursor.currentSystemCursor;
   spot.x += cursor.image.size.width - cursor.hotSpot.x;
   spot.y -= cursor.image.size.height - cursor.hotSpot.y;
-  NSRect windowRect = NSMakeRect(spot.x, spot.y - contentSize.height, contentSize.width, contentSize.height);
+  NSRect windowRect = NSMakeRect(spot.x, spot.y - contentSize.height,
+                                 contentSize.width, contentSize.height);
 
-  NSRect screenRect = _panel.screen.visibleFrame;
+  NSRect screenRect = panel.screen.visibleFrame;
   if (NSMaxX(windowRect) > NSMaxX(screenRect)) {
     windowRect.origin.x = NSMaxX(screenRect) - NSWidth(windowRect);
   }
   if (NSMinY(windowRect) < NSMinY(screenRect)) {
     windowRect.origin.y = NSMinY(screenRect);
   }
-  [self setFrame:[_panel.screen backingAlignedRect:windowRect
-                                           options:NSAlignAllEdgesNearest]
+  [self setFrame:[panel.screen backingAlignedRect:windowRect
+                                          options:NSAlignAllEdgesNearest]
          display:NO];
   _textView.frame = self.contentView.bounds;
   _backView.frame = self.contentView.bounds;
@@ -2456,7 +2446,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
   }
 }
 
-@end // SquirrelToolTipView
+@end  // SquirrelToolTipView
 
 #pragma mark - Panel window, dealing with text content and mouse interactions
 
@@ -2582,7 +2572,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
     self.contentView = contentView;
 
     [self updateDisplayParameters];
-    _toolTip = [[SquirrelToolTip alloc] initWithPanel:self];
+    _toolTip = [[SquirrelToolTip alloc] init];
   }
   return self;
 }
@@ -2647,14 +2637,14 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
                                            fromView:nil];
         NSUInteger inputIndex = [_view.textView characterIndexForInsertionAtPoint:spot];
         if (inputIndex == 0) {
-          [self.inputController perform:kPROCESS onIndex:kHomeKey];
+          [self.inputController performAction:kPROCESS onIndex:kHomeKey];
         } else if (inputIndex < _caretPos) {
           [self.inputController moveCursor:_caretPos
                                 toPosition:inputIndex
                              inlinePreedit:NO
                            inlineCandidate:NO];
         } else if (inputIndex >= _view.preeditRange.length) {
-          [self.inputController perform:kPROCESS onIndex:kEndKey];
+          [self.inputController performAction:kPROCESS onIndex:kEndKey];
         } else if (inputIndex > _caretPos + 1) {
           [self.inputController moveCursor:_caretPos
                                 toPosition:inputIndex - 1
@@ -2669,7 +2659,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
       if (event.clickCount == 1 && cursorIndex != NSNotFound) {
         if (cursorIndex == _highlightedIndex) {
           cursorIndex += (_pageNum - _activePage) * theme.pageSize;
-          [self.inputController perform:kSELECT onIndex:cursorIndex];
+          [self.inputController performAction:kSELECT onIndex:cursorIndex];
         } else if (cursorIndex == _functionButton) {
           if (cursorIndex == kExpandButton) {
             if (_locked) {
@@ -2679,7 +2669,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
               self.activePage = 0;
             }
           }
-          [self.inputController perform:kPROCESS onIndex:cursorIndex];
+          [self.inputController performAction:kPROCESS onIndex:cursorIndex];
         }
       }
       break;
@@ -2689,21 +2679,21 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
       if (event.clickCount == 1 && cursorIndex != NSNotFound) {
         if (cursorIndex == _highlightedIndex) {
           cursorIndex += (_pageNum - _activePage) * theme.pageSize;
-          [self.inputController perform:kDELETE onIndex:cursorIndex];
+          [self.inputController performAction:kDELETE onIndex:cursorIndex];
         } else if (cursorIndex == _functionButton) {
           switch (cursorIndex) {
             case kPageUpKey:
-              [self.inputController perform:kPROCESS onIndex:kHomeKey];
+              [self.inputController performAction:kPROCESS onIndex:kHomeKey];
               break;
             case kPageDownKey:
-              [self.inputController perform:kPROCESS onIndex:kEndKey];
+              [self.inputController performAction:kPROCESS onIndex:kEndKey];
               break;
             case kExpandButton:
               [self setLock:!_locked];
-              [self.inputController perform:kPROCESS onIndex:kLockButton];
+              [self.inputController performAction:kPROCESS onIndex:kLockButton];
               break;
             case kBackSpaceKey:
-              [self.inputController perform:kPROCESS onIndex:kEscapeKey];
+              [self.inputController performAction:kPROCESS onIndex:kEscapeKey];
               break;
           }
         }
@@ -2724,7 +2714,7 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
         self.activePage = _highlightedIndex / theme.pageSize;
         _pageNum = cursorIndex / theme.pageSize;
         [_toolTip showWithToolTip:NSLocalizedString(@"candidate", nil)];
-        [self.inputController perform:kHIGHLIGHT onIndex:cursorIndex];
+        [self.inputController performAction:kHIGHLIGHT onIndex:cursorIndex];
         [self updateContents];
         [self display];
       } else if ((cursorIndex == kPageUpKey || cursorIndex == kPageDownKey || cursorIndex == kExpandButton ||
@@ -2819,20 +2809,20 @@ static inline NSColor *disabledColor(NSColor *color, SquirrelAppear appear) {
         }
         // compare accumulated locus length against threshold and limit paging to max once
         if (scrollLocus.x > scrollThreshold) {
-          [self.inputController perform:kPROCESS
-                                onIndex:(theme.vertical ? kPageDownKey : kPageUpKey)];
+          [self.inputController performAction:kPROCESS
+                                      onIndex:(theme.vertical ? kPageDownKey : kPageUpKey)];
           scrollLocus = NSMakePoint(NAN, NAN);
         } else if (scrollLocus.y > scrollThreshold) {
-          [self.inputController perform:kPROCESS
-                                onIndex:kPageUpKey];
+          [self.inputController performAction:kPROCESS
+                                      onIndex:kPageUpKey];
           scrollLocus = NSMakePoint(NAN, NAN);
         } else if (scrollLocus.x < -scrollThreshold) {
-          [self.inputController perform:kPROCESS
-                                onIndex:(theme.vertical ? kPageUpKey : kPageDownKey)];
+          [self.inputController performAction:kPROCESS
+                                      onIndex:(theme.vertical ? kPageUpKey : kPageDownKey)];
           scrollLocus = NSMakePoint(NAN, NAN);
         } else if (scrollLocus.y < -scrollThreshold) {
-          [self.inputController perform:kPROCESS
-                                onIndex:kPageDownKey];
+          [self.inputController performAction:kPROCESS
+                                      onIndex:kPageDownKey];
           scrollLocus = NSMakePoint(NAN, NAN);
         }
       }
@@ -3941,28 +3931,28 @@ double clamp_uni(double param) {return fmin(1.0, fmax(0.0, param));}
   CGFloat maxFontSize = MAX(fontSize.doubleValue, MAX(commentFontSize.doubleValue, labelFontSize.doubleValue));
   NSFont *refFont = [NSFont fontWithDescriptor:zhFont.fontDescriptor size:maxFontSize];
 
-  attrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
-  highlightedAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
-  labelAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
-  labelHighlightedAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
-  commentAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
-  commentHighlightedAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
-  preeditAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont : vertical ? zhFont.verticalFont : zhFont};
-  preeditHighlightedAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont : vertical ? zhFont.verticalFont : zhFont};
-  pagingAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont : linear ? (vertical ? refFont.verticalFont : refFont) : pagingFont};
-  pagingHighlightedAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont : linear ? (vertical ? refFont.verticalFont : refFont) : pagingFont};
-  statusAttrs[(NSString *)kCTBaselineReferenceInfoAttributeName] =
-    @{(NSString *)kCTBaselineReferenceFont : vertical ? zhCommentFont.verticalFont : zhCommentFont};
+  attrs[(id)kCTBaselineReferenceInfoAttributeName] =
+    @{(id)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
+  highlightedAttrs[(id)kCTBaselineReferenceInfoAttributeName] =
+    @{(id)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
+  labelAttrs[(id)kCTBaselineReferenceInfoAttributeName] =
+    @{(id)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
+  labelHighlightedAttrs[(id)kCTBaselineReferenceInfoAttributeName] =
+    @{(id)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
+  commentAttrs[(id)kCTBaselineReferenceInfoAttributeName] =
+    @{(id)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
+  commentHighlightedAttrs[(id)kCTBaselineReferenceInfoAttributeName] =
+    @{(id)kCTBaselineReferenceFont : vertical ? refFont.verticalFont : refFont};
+  preeditAttrs[(id)kCTBaselineReferenceInfoAttributeName] =
+    @{(id)kCTBaselineReferenceFont : vertical ? zhFont.verticalFont : zhFont};
+  preeditHighlightedAttrs[(id)kCTBaselineReferenceInfoAttributeName] =
+    @{(id)kCTBaselineReferenceFont : vertical ? zhFont.verticalFont : zhFont};
+  pagingAttrs[(id)kCTBaselineReferenceInfoAttributeName] =
+    @{(id)kCTBaselineReferenceFont : linear ? (vertical ? refFont.verticalFont : refFont) : pagingFont};
+  pagingHighlightedAttrs[(id)kCTBaselineReferenceInfoAttributeName] =
+    @{(id)kCTBaselineReferenceFont : linear ? (vertical ? refFont.verticalFont : refFont) : pagingFont};
+  statusAttrs[(id)kCTBaselineReferenceInfoAttributeName] =
+    @{(id)kCTBaselineReferenceFont : vertical ? zhCommentFont.verticalFont : zhCommentFont};
 
   attrs[(id)kCTBaselineClassAttributeName] =
     vertical ? (id)kCTBaselineClassIdeographicCentered : (id)kCTBaselineClassRoman;
@@ -4109,4 +4099,4 @@ double clamp_uni(double param) {return fmin(1.0, fmax(0.0, param));}
   [theme setStatusMessageType:statusMessageType];
 }
 
-@end // SquirrelPanel
+@end  // SquirrelPanel

@@ -212,9 +212,9 @@ static NSMapTable<SquirrelInputController *, NSDate *> *_controllerDeactivationT
     if (_inlineCandidate && !_inlinePreedit) {
       return NO;
     }
-    [self perform:kPROCESS onIndex:kEndKey];
+    [self performAction:kPROCESS onIndex:kEndKey];
   } else if (point.x < head.x || index <= 0) {
-    [self perform:kPROCESS onIndex:kHomeKey];
+    [self performAction:kPROCESS onIndex:kHomeKey];
   } else {
     [self  moveCursor:_caretPos
            toPosition:index
@@ -354,8 +354,8 @@ void set_CapsLock_LED_state(bool target_state) {
   }
 }
 
-- (void)perform:(SquirrelAction)action
-        onIndex:(SquirrelIndex)index {
+- (void)performAction:(SquirrelAction)action
+              onIndex:(SquirrelIndex)index {
   //NSLog(@"perform action: %lu on index: %lu", action, index);
   bool handled = false;
   switch (action) {
@@ -1032,4 +1032,4 @@ NSUInteger inline UTF8LengthToUTF16Length(const char *string, int length) {
   }
 }
 
-@end // SquirrelInputController
+@end  // SquirrelInputController

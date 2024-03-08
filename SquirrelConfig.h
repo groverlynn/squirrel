@@ -24,7 +24,7 @@
 
 - (NSMutableDictionary<NSString *, NSString *> * _Nullable)mutableSwitcher;
 
-@end // SquirrelOptionSwitcher
+@end  // SquirrelOptionSwitcher
 
 
 @interface SquirrelConfig : NSObject
@@ -74,4 +74,4 @@ typedef NSMutableDictionary<NSString *, NSNumber *> SquirrelMutableAppOptions;
 - (SquirrelOptionSwitcher * _Nullable)getOptionSwitcher;
 - (SquirrelAppOptions * _Nullable)getAppOptions:(NSString * _Nonnull)appName;
 
-@end // SquirrelConfig
+@end  // SquirrelConfig

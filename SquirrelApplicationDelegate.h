@@ -36,15 +36,14 @@ typedef NS_ENUM(NSUInteger, SquirrelNotificationPolicy) {
 
 @property(nonatomic, readonly) BOOL problematicLaunchDetected;
 
-@end // SquirrelApplicationDelegate
+@end  // SquirrelApplicationDelegate
 
 
 @interface NSApplication (SquirrelApp)
 
 @property(nonatomic, strong, readonly, nonnull) SquirrelApplicationDelegate *squirrelAppDelegate;
 
-@end // NSApplication (SquirrelApp)
-
+@end  // NSApplication (SquirrelApp)
 
 // also used in main.m
 extern void show_notification(const char * _Nonnull msg_text);

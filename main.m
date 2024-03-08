@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
     NSBundle *main = NSBundle.mainBundle;
     IMKServer *server __unused =
       [[IMKServer alloc] initWithName:kConnectionName
-                     bundleIdentifier   :main.bundleIdentifier];
+                     bundleIdentifier:main.bundleIdentifier];
 
     // load the bundle explicitly because in this case the input method is a
     // background only application
