@@ -3,9 +3,6 @@
 all: release
 install: install-release
 
-# Change to `dist-with-icu` if boost is linked to icu libraries.
-RIME_DIST_TARGET = install
-
 RIME_BIN_DIR = librime/dist/bin
 RIME_LIB_DIR = librime/dist/lib
 
@@ -42,7 +39,7 @@ $(RIME_DEPS):
 	$(MAKE) -C librime deps
 
 librime: $(RIME_DEPS)
-	$(MAKE) -C librime $(RIME_DIST_TARGET)
+	$(MAKE) -C librime release install
 	$(MAKE) copy-rime-binaries
 
 copy-rime-binaries:
@@ -88,9 +85,9 @@ _=$() $()
 export CMAKE_OSX_ARCHITECTURES = $(subst $(_),;,$(ARCHS))
 endif
 
-# https://cmake.org/cmake/help/latest/envvar/MACOSX_DEPLOYMENT_TARGET.html
-MACOSX_DEPLOYMENT_TARGET ?= 10.15
+ifdef MACOSX_DEPLOYMENT_TARGET
 BUILD_SETTINGS += MACOSX_DEPLOYMENT_TARGET="$(MACOSX_DEPLOYMENT_TARGET)"
+endif
 
 release: $(DEPS_CHECK)
 	bash package/add_data_files
