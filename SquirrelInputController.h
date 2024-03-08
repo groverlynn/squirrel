@@ -4,7 +4,8 @@
 @interface SquirrelInputController : IMKInputController
 
 // kPROCESS accepts miscellaneous / function keys (e.g. XK_Escape)
-// The remaining 3 actions accept candidate indices (int), starting from item 0 on page 0
+// The remaining 3 actions accept candidate indices (int), starting from item 0
+// on page 0
 typedef NS_ENUM(NSInteger, SquirrelAction) {
   kPROCESS = 0,
   kSELECT = 1,
@@ -29,17 +30,17 @@ typedef NS_ENUM(NSUInteger, SquirrelIndex) {
   kExpandButton = 0xff04,
   kCompressButton = 0xff05,
   kLockButton = 0xff06,
-  kVoidSymbol = 0xffffff     // XK_VoidSymbol
+  kVoidSymbol = 0xffffff  // XK_VoidSymbol
 };
 
-@property(class, weak, readonly, nullable) SquirrelInputController *currentController;
+@property(class, weak, readonly, nullable)
+    SquirrelInputController* currentController;
 
 - (void)moveCursor:(NSUInteger)cursorPosition
-        toPosition:(NSUInteger)targetPosition
-     inlinePreedit:(BOOL)inlinePreedit
-   inlineCandidate:(BOOL)inlineCandidate;
+         toPosition:(NSUInteger)targetPosition
+      inlinePreedit:(BOOL)inlinePreedit
+    inlineCandidate:(BOOL)inlineCandidate;
 
-- (void)perform:(SquirrelAction)action
-        onIndex:(SquirrelIndex)index;
+- (void)performAction:(SquirrelAction)action onIndex:(SquirrelIndex)index;
 
-@end // SquirrelInputController
+@end  // SquirrelInputController

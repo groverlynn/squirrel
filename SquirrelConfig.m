@@ -4,9 +4,10 @@
 
 @implementation SquirrelOptionSwitcher
 
-- (instancetype)initWithSchemaId:(NSString *)schemaId
-                        switcher:(NSDictionary<NSString *, NSString *> *)switcher
-                    optionGroups:(NSDictionary<NSString *, NSArray<NSString *> *> *)optionGroups {
+- (instancetype)initWithSchemaId:(NSString*)schemaId
+                        switcher:(NSDictionary<NSString*, NSString*>*)switcher
+                    optionGroups:(NSDictionary<NSString*, NSArray<NSString*>*>*)
+                                     optionGroups {
   if (self = [super init]) {
     _schemaId = schemaId;
     _switcher = switcher;
@@ -16,7 +17,7 @@
   return self;
 }
 
-- (instancetype)initWithSchemaId:(NSString *)schemaId {
+- (instancetype)initWithSchemaId:(NSString*)schemaId {
   if (self = [super init]) {
     _schemaId = schemaId;
     _switcher = nil;
@@ -26,17 +27,17 @@
   return self;
 }
 
-- (NSArray<NSString *> *)optionStates {
+- (NSArray<NSString*>*)optionStates {
   return _switcher.allValues;
 }
 
-- (BOOL)updateSwitcher:(NSDictionary<NSString *, NSString *> *)switcher {
+- (BOOL)updateSwitcher:(NSDictionary<NSString*, NSString*>*)switcher {
   if (switcher.count != _switcher.count) {
     return NO;
   }
-  NSMutableDictionary *updatedSwitcher = [[NSMutableDictionary alloc]
-                                          initWithCapacity:switcher.count];
-  for (NSString *option in _optionNames) {
+  NSMutableDictionary* updatedSwitcher =
+      [[NSMutableDictionary alloc] initWithCapacity:switcher.count];
+  for (NSString* option in _optionNames) {
     if (switcher[option] == nil) {
       return NO;
     }
@@ -46,35 +47,33 @@
   return YES;
 }
 
-- (BOOL)updateGroupState:(NSString *)optionState
-                ofOption:(NSString *)optionName {
-  NSArray *optionGroup = _optionGroups[optionName];
+- (BOOL)updateGroupState:(NSString*)optionState ofOption:(NSString*)optionName {
+  NSArray* optionGroup = _optionGroups[optionName];
   if (![optionGroup containsObject:optionState]) {
     return NO;
   }
-  NSMutableDictionary *updatedSwitcher = [_switcher mutableCopy];
-  for (NSString *option in optionGroup) {
+  NSMutableDictionary* updatedSwitcher = [_switcher mutableCopy];
+  for (NSString* option in optionGroup) {
     updatedSwitcher[option] = optionState;
   }
   _switcher = [updatedSwitcher copy];
   return YES;
 }
 
-- (BOOL)containsOption:(NSString *)optionName {
+- (BOOL)containsOption:(NSString*)optionName {
   return [_optionNames containsObject:optionName];
 }
 
-- (NSMutableDictionary<NSString *, NSString *> *)mutableSwitcher {
+- (NSMutableDictionary<NSString*, NSString*>*)mutableSwitcher {
   return [_switcher mutableCopy];
 }
 
-@end // SquirrelOptionSwitcher
-
+@end  // SquirrelOptionSwitcher
 
 @implementation SquirrelConfig {
-  NSCache *_cache;
+  NSCache* _cache;
   RimeConfig _config;
-  SquirrelConfig *_baseConfig;
+  SquirrelConfig* _baseConfig;
 }
 
 - (instancetype)init {
@@ -87,14 +86,14 @@
 
 - (BOOL)openBaseConfig {
   [self close];
-  _isOpen = !!rime_get_api()->config_open("squirrel", &_config);
+  _isOpen = (BOOL)rime_get_api()->config_open("squirrel", &_config);
   return _isOpen;
 }
 
-- (BOOL)openWithSchemaId:(NSString *)schemaId
-              baseConfig:(SquirrelConfig *)baseConfig {
+- (BOOL)openWithSchemaId:(NSString*)schemaId
+              baseConfig:(SquirrelConfig*)baseConfig {
   [self close];
-  _isOpen = !!rime_get_api()->schema_open(schemaId.UTF8String, &_config);
+  _isOpen = (BOOL)rime_get_api()->schema_open(schemaId.UTF8String, &_config);
   if (_isOpen) {
     _schemaId = schemaId;
     _baseConfig = baseConfig;
@@ -102,15 +101,16 @@
   return _isOpen;
 }
 
-- (BOOL)openUserConfig:(NSString *)configId {
+- (BOOL)openUserConfig:(NSString*)configId {
   [self close];
-  _isOpen = !!rime_get_api()->user_config_open(configId.UTF8String, &_config);
+  _isOpen =
+      (BOOL)rime_get_api()->user_config_open(configId.UTF8String, &_config);
   return _isOpen;
 }
 
-- (BOOL)openWithConfigId:(NSString *)configId {
+- (BOOL)openWithConfigId:(NSString*)configId {
   [self close];
-  _isOpen = !!rime_get_api()->config_open(configId.UTF8String, &_config);
+  _isOpen = (BOOL)rime_get_api()->config_open(configId.UTF8String, &_config);
   return _isOpen;
 }
 
@@ -126,10 +126,11 @@
   [self close];
 }
 
-- (BOOL)hasSection:(NSString *)section {
+- (BOOL)hasSection:(NSString*)section {
   if (_isOpen) {
     RimeConfigIterator iterator = {0};
-    if (rime_get_api()->config_begin_map(&iterator, &_config, section.UTF8String)) {
+    if (rime_get_api()->config_begin_map(&iterator, &_config,
+                                         section.UTF8String)) {
       rime_get_api()->config_end(&iterator);
       return YES;
     }
@@ -137,110 +138,122 @@
   return NO;
 }
 
-- (BOOL)setOption:(NSString *)option withBool:(bool)value {
-  return (BOOL)(rime_get_api()->config_set_bool(&_config, option.UTF8String, value));
+- (BOOL)setOption:(NSString*)option withBool:(bool)value {
+  return (BOOL)(rime_get_api()->config_set_bool(&_config, option.UTF8String,
+                                                value));
 }
 
-- (BOOL)setOption:(NSString *)option withInt:(int)value {
-  return (BOOL)(rime_get_api()->config_set_int(&_config, option.UTF8String, value));
+- (BOOL)setOption:(NSString*)option withInt:(int)value {
+  return (
+      BOOL)(rime_get_api()->config_set_int(&_config, option.UTF8String, value));
 }
 
-- (BOOL)setOption:(NSString *)option withDouble:(double)value {
-  return (BOOL)(rime_get_api()->config_set_double(&_config, option.UTF8String, value));
+- (BOOL)setOption:(NSString*)option withDouble:(double)value {
+  return (BOOL)(rime_get_api()->config_set_double(&_config, option.UTF8String,
+                                                  value));
 }
 
-- (BOOL)setOption:(NSString *)option withString:(NSString *)value {
-  return (BOOL)(rime_get_api()->config_set_string(&_config, option.UTF8String, value.UTF8String));
+- (BOOL)setOption:(NSString*)option withString:(NSString*)value {
+  return (BOOL)(rime_get_api()->config_set_string(&_config, option.UTF8String,
+                                                  value.UTF8String));
 }
 
-- (BOOL)getBoolForOption:(NSString *)option {
+- (BOOL)getBoolForOption:(NSString*)option {
   return [self getOptionalBoolForOption:option].boolValue;
 }
 
-- (int)getIntForOption:(NSString *)option {
+- (int)getIntForOption:(NSString*)option {
   return [self getOptionalIntForOption:option].intValue;
 }
 
-- (double)getDoubleForOption:(NSString *)option {
+- (double)getDoubleForOption:(NSString*)option {
   return [self getOptionalDoubleForOption:option].doubleValue;
 }
 
-- (double)getDoubleForOption:(NSString *)option
+- (double)getDoubleForOption:(NSString*)option
              applyConstraint:(double (*)(double param))func {
-  NSNumber *value = [self getOptionalDoubleForOption:option];
+  NSNumber* value = [self getOptionalDoubleForOption:option];
   return func(value.doubleValue);
 }
 
-- (NSNumber *)getOptionalBoolForOption:(NSString *)option {
-  NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(BOOL) forKey:option];
+- (NSNumber*)getOptionalBoolForOption:(NSString*)option {
+  NSNumber* cachedValue = [self cachedValueOfObjCType:@encode(BOOL)
+                                               forKey:option];
   if (cachedValue) {
     return cachedValue;
   }
   Bool value;
-  if (_isOpen && rime_get_api()->config_get_bool(&_config, option.UTF8String, &value)) {
-    NSNumber *number = [NSNumber numberWithBool:(BOOL)value];
+  if (_isOpen &&
+      rime_get_api()->config_get_bool(&_config, option.UTF8String, &value)) {
+    NSNumber* number = [NSNumber numberWithBool:(BOOL)value];
     [_cache setObject:number forKey:option];
     return number;
   }
   return [_baseConfig getOptionalBoolForOption:option];
 }
 
-- (NSNumber *)getOptionalIntForOption:(NSString *)option {
-  NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(int) forKey:option];
+- (NSNumber*)getOptionalIntForOption:(NSString*)option {
+  NSNumber* cachedValue = [self cachedValueOfObjCType:@encode(int)
+                                               forKey:option];
   if (cachedValue) {
     return cachedValue;
   }
   int value;
-  if (_isOpen && rime_get_api()->config_get_int(&_config, option.UTF8String, &value)) {
-    NSNumber *number = [NSNumber numberWithInt:value];
+  if (_isOpen &&
+      rime_get_api()->config_get_int(&_config, option.UTF8String, &value)) {
+    NSNumber* number = [NSNumber numberWithInt:value];
     [_cache setObject:number forKey:option];
     return number;
   }
   return [_baseConfig getOptionalIntForOption:option];
 }
 
-- (NSNumber *)getOptionalDoubleForOption:(NSString *)option {
-  NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(double) forKey:option];
+- (NSNumber*)getOptionalDoubleForOption:(NSString*)option {
+  NSNumber* cachedValue = [self cachedValueOfObjCType:@encode(double)
+                                               forKey:option];
   if (cachedValue) {
     return cachedValue;
   }
   double value;
-  if (_isOpen && rime_get_api()->config_get_double(&_config, option.UTF8String, &value)) {
-    NSNumber *number = [NSNumber numberWithDouble:value];
+  if (_isOpen &&
+      rime_get_api()->config_get_double(&_config, option.UTF8String, &value)) {
+    NSNumber* number = [NSNumber numberWithDouble:value];
     [_cache setObject:number forKey:option];
     return number;
   }
   return [_baseConfig getOptionalDoubleForOption:option];
 }
 
-- (NSNumber *)getOptionalDoubleForOption:(NSString *)option
-                         applyConstraint:(double (*)(double param))func {
-  NSNumber *value = [self getOptionalDoubleForOption:option];
+- (NSNumber*)getOptionalDoubleForOption:(NSString*)option
+                        applyConstraint:(double (*)(double param))func {
+  NSNumber* value = [self getOptionalDoubleForOption:option];
   return value ? [NSNumber numberWithDouble:func(value.doubleValue)] : nil;
 }
 
-- (NSString *)getStringForOption:(NSString *)option {
-  NSString *cachedValue = [self cachedValueOfClass:NSString.class forKey:option];
+- (NSString*)getStringForOption:(NSString*)option {
+  NSString* cachedValue =
+      [self cachedValueOfClass:NSString.class forKey:option];
   if (cachedValue) {
     return cachedValue;
   }
-  const char *value =
-    _isOpen ? rime_get_api()->config_get_cstring(&_config, option.UTF8String) : NULL;
+  const char* value =
+      _isOpen ? rime_get_api()->config_get_cstring(&_config, option.UTF8String)
+              : NULL;
   if (value) {
-    NSString *string = [@(value) stringByTrimmingCharactersInSet:
-                        NSCharacterSet.whitespaceCharacterSet];
+    NSString* string = [@(value)
+        stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
     [_cache setObject:string forKey:option];
     return string;
   }
   return [_baseConfig getStringForOption:option];
 }
 
-- (NSColor *)getColorForOption:(NSString *)option {
-  NSColor *cachedValue = [self cachedValueOfClass:NSColor.class forKey:option];
+- (NSColor*)getColorForOption:(NSString*)option {
+  NSColor* cachedValue = [self cachedValueOfClass:NSColor.class forKey:option];
   if (cachedValue) {
     return cachedValue;
   }
-  NSColor *color = [self colorFromString:[self getStringForOption:option]];
+  NSColor* color = [self colorFromString:[self getStringForOption:option]];
   if (color) {
     [_cache setObject:color forKey:option];
     return color;
@@ -248,12 +261,12 @@
   return [_baseConfig getColorForOption:option];
 }
 
-- (NSImage *)getImageForOption:(NSString *)option {
-  NSImage *cachedValue = [self cachedValueOfClass:NSImage.class forKey:option];
+- (NSImage*)getImageForOption:(NSString*)option {
+  NSImage* cachedValue = [self cachedValueOfClass:NSImage.class forKey:option];
   if (cachedValue) {
     return cachedValue;
   }
-  NSImage *image = [self imageFromFile:[self getStringForOption:option]];
+  NSImage* image = [self imageFromFile:[self getStringForOption:option]];
   if (image) {
     [_cache setObject:image forKey:option];
     return image;
@@ -261,51 +274,57 @@
   return [_baseConfig getImageForOption:option];
 }
 
-- (NSUInteger)getListSizeForOption:(NSString *)option {
+- (NSUInteger)getListSizeForOption:(NSString*)option {
   return rime_get_api()->config_list_size(&_config, option.UTF8String);
 }
 
-- (NSArray<NSString *> *)getListForOption:(NSString *)option {
+- (NSArray<NSString*>*)getListForOption:(NSString*)option {
   RimeConfigIterator iterator;
-  if (!rime_get_api()->config_begin_list(&iterator, &_config, option.UTF8String)) {
+  if (!rime_get_api()->config_begin_list(&iterator, &_config,
+                                         option.UTF8String)) {
     return nil;
   }
-  NSMutableArray *strList = [[NSMutableArray alloc] init];
-  while (rime_get_api()->config_next(&iterator)) {
+  NSMutableArray* strList = [[NSMutableArray alloc] init];
+  while (rime_get_api()->config_next(&iterator))
     [strList addObject:[self getStringForOption:@(iterator.path)]];
-  }
   rime_get_api()->config_end(&iterator);
   return strList;
 }
 
-- (SquirrelOptionSwitcher *)getOptionSwitcher {
+- (SquirrelOptionSwitcher*)getOptionSwitcher {
   RimeConfigIterator switchIter;
   if (!rime_get_api()->config_begin_list(&switchIter, &_config, "switches")) {
     return nil;
   }
-  NSMutableDictionary *switcher = [[NSMutableDictionary alloc] init];
-  NSMutableDictionary *optionGroups = [[NSMutableDictionary alloc] init];
+  NSMutableDictionary* switcher = [[NSMutableDictionary alloc] init];
+  NSMutableDictionary* optionGroups = [[NSMutableDictionary alloc] init];
   while (rime_get_api()->config_next(&switchIter)) {
-    int reset = [self getIntForOption:[@(switchIter.path) stringByAppendingString:@"/reset"]];
-    NSString *name = [self getStringForOption:[@(switchIter.path) stringByAppendingString:@"/name"]];
+    int reset = [self
+        getIntForOption:[@(switchIter.path) stringByAppendingString:@"/reset"]];
+    NSString* name =
+        [self getStringForOption:[@(switchIter.path)
+                                     stringByAppendingString:@"/name"]];
     if (name) {
       if ([self hasSection:[@"style/!" stringByAppendingString:name]] ||
           [self hasSection:[@"style/" stringByAppendingString:name]]) {
         switcher[name] = reset ? name : [@"!" stringByAppendingString:name];
-        optionGroups[name] = @[name];
+        optionGroups[name] = @[ name ];
       }
     } else {
       RimeConfigIterator optionIter;
-      if (!rime_get_api()->config_begin_list(&optionIter, &_config,
-          [@(switchIter.path) stringByAppendingString:@"/options"].UTF8String)) {
+      if (!rime_get_api()->config_begin_list(
+              &optionIter, &_config,
+              [@(switchIter.path) stringByAppendingString:@"/options"]
+                  .UTF8String)) {
         continue;
       }
-      NSMutableArray *optionGroup = [[NSMutableArray alloc] init];
+      NSMutableArray* optionGroup = [[NSMutableArray alloc] init];
       BOOL hasStyleSection = NO;
       while (rime_get_api()->config_next(&optionIter)) {
-        NSString *option = [self getStringForOption:@(optionIter.path)];
+        NSString* option = [self getStringForOption:@(optionIter.path)];
         [optionGroup addObject:option];
-        hasStyleSection |= [self hasSection:[@"style/" stringByAppendingString:option]];
+        hasStyleSection |=
+            [self hasSection:[@"style/" stringByAppendingString:option]];
       }
       rime_get_api()->config_end(&optionIter);
       if (hasStyleSection) {
@@ -322,15 +341,18 @@
                                              optionGroups:optionGroups];
 }
 
-- (SquirrelAppOptions *)getAppOptions:(NSString *)appName {
-  NSString *rootKey = [@"app_options/" stringByAppendingString:appName];
-  SquirrelMutableAppOptions *appOptions = [[SquirrelMutableAppOptions alloc] init];
+- (SquirrelAppOptions*)getAppOptions:(NSString*)appName {
+  NSString* rootKey = [@"app_options/" stringByAppendingString:appName];
+  SquirrelMutableAppOptions* appOptions =
+      [[SquirrelMutableAppOptions alloc] init];
   RimeConfigIterator iterator;
-  if (!rime_get_api()->config_begin_map(&iterator, &_config, rootKey.UTF8String)) {
+  if (!rime_get_api()->config_begin_map(&iterator, &_config,
+                                        rootKey.UTF8String)) {
     return nil;
   }
   while (rime_get_api()->config_next(&iterator)) {
-    //NSLog(@"DEBUG option[%d]: %s (%s)", iterator.index, iterator.key, iterator.path);
+    // NSLog(@"DEBUG option[%d]: %s (%s)", iterator.index, iterator.key,
+    // iterator.path);
     NSNumber *value = [self getOptionalBoolForOption:@(iterator.path)] ? :
                       [self getOptionalIntForOption:@(iterator.path)] ? :
                       [self getOptionalDoubleForOption:@(iterator.path)];
@@ -344,8 +366,7 @@
 
 #pragma mark - Private methods
 
-- (id)cachedValueOfClass:(Class)aClass
-                  forKey:(NSString *)key {
+- (id)cachedValueOfClass:(Class)aClass forKey:(NSString*)key {
   id value = [_cache objectForKey:key];
   if ([value isMemberOfClass:aClass]) {
     return value;
@@ -353,8 +374,7 @@
   return nil;
 }
 
-- (NSNumber *)cachedValueOfObjCType:(const char *)type
-                             forKey:(NSString *)key {
+- (NSNumber*)cachedValueOfObjCType:(const char*)type forKey:(NSString*)key {
   id value = [_cache objectForKey:key];
   if ([value isMemberOfClass:NSNumber.class] &&
       !strcmp([value objCType], type)) {
@@ -363,7 +383,7 @@
   return nil;
 }
 
-- (NSColor *)colorFromString:(NSString *)string {
+- (NSColor*)colorFromString:(NSString*)string {
   if (string == nil) {
     return nil;
   }
@@ -389,20 +409,21 @@
   }
 }
 
-- (NSImage *)imageFromFile:(NSString *)filePath {
+- (NSImage*)imageFromFile:(NSString*)filePath {
   if (filePath == nil) {
     return nil;
   }
-  NSURL *userDataDir = [NSURL fileURLWithPath:@"~/Library/Rime".stringByExpandingTildeInPath
-                                  isDirectory:YES];
-  NSURL *imageFile = [NSURL fileURLWithPath:filePath
-                                isDirectory:NO 
+  NSURL* userDataDir =
+      [NSURL fileURLWithPath:@"~/Library/Rime".stringByExpandingTildeInPath
+                 isDirectory:YES];
+  NSURL* imageFile = [NSURL fileURLWithPath:filePath
+                                isDirectory:NO
                               relativeToURL:userDataDir];
   if ([imageFile checkResourceIsReachableAndReturnError:nil]) {
-    NSImage *image = [[NSImage alloc] initByReferencingURL:imageFile];
+    NSImage* image = [[NSImage alloc] initByReferencingURL:imageFile];
     return image;
   }
   return nil;
 }
 
-@end // SquirrelConfig
+@end  // SquirrelConfig

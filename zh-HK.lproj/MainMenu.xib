@@ -43,11 +43,6 @@
                         <action selector="openWiki:" target="252" id="798"/>
                     </connections>
                 </menuItem>
-                <menuItem title="錯誤與警告記錄" id="809">
-                    <connections>
-                        <action selector="openLogFolder:" target="252" id="811"/>
-                    </connections>
-                </menuItem>
                 <menuItem title="檢查更新項目⋯" id="776">
                     <connections>
                         <action selector="checkForUpdates:" target="772" id="796"/>

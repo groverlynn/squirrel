@@ -14,9 +14,9 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="252" userLabel="SquirrelApplicationDelegate" customClass="SquirrelApplicationDelegate">
             <connections>
-                <outlet property="_menu" destination="773" id="779"/>
-                <outlet property="_panel" destination="770" id="771"/>
-                <outlet property="_updater" destination="772" id="794"/>
+                <outlet property="menu" destination="773" id="779"/>
+                <outlet property="panel" destination="770" id="771"/>
+                <outlet property="updater" destination="772" id="794"/>
             </connections>
         </customObject>
         <customObject id="770" userLabel="SquirrelPanel" customClass="SquirrelPanel"/>
@@ -41,11 +41,6 @@
                 <menuItem title="Rime Wiki…" id="797">
                     <connections>
                         <action selector="openWiki:" target="252" id="798"/>
-                    </connections>
-                </menuItem>
-                <menuItem title="Error and warning logs" id="809">
-                    <connections>
-                        <action selector="openLogFolder:" target="252" id="811"/>
                     </connections>
                 </menuItem>
                 <menuItem title="Check for updates…" id="776">

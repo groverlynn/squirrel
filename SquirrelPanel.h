@@ -14,7 +14,8 @@ typedef NS_ENUM(NSUInteger, SquirrelAppear) {
 
 // Linear candidate list layout, as opposed to stacked candidate list layout.
 @property(nonatomic, readonly) BOOL linear;
-// Tabular candidate list layout, initializes as tab-aligned linear layout, expandable to stack more candidates
+// Tabular candidate list layout, initializes as tab-aligned linear layout,
+// expandable to stack more candidates
 @property(nonatomic, readonly) BOOL tabular;
 @property(nonatomic, readonly) BOOL locked;
 @property(nonatomic) BOOL expanded;
@@ -26,31 +27,32 @@ typedef NS_ENUM(NSUInteger, SquirrelAppear) {
 // Show primary candidate inline
 @property(nonatomic, readonly) BOOL inlineCandidate;
 // Store switch options that change style (color theme) settings
-@property(nonatomic, strong, nullable) SquirrelOptionSwitcher *optionSwitcher;
-// Status message before pop-up is displayed; nil before normal panel is displayed
-@property(nonatomic, strong, readonly, nullable) NSString *statusMessage;
+@property(nonatomic, strong, nullable) SquirrelOptionSwitcher* optionSwitcher;
+// Status message before pop-up is displayed; nil before normal panel is
+// displayed
+@property(nonatomic, strong, readonly, nullable) NSString* statusMessage;
 // position of the text input I-beam cursor on screen.
 @property(nonatomic) NSRect IbeamRect;
 
 - (NSUInteger)candidateIndexOnDirection:(SquirrelIndex)arrowKey;
 
-- (void)showPreedit:(NSString * _Nullable)preedit
-           selRange:(NSRange)selRange
-           caretPos:(NSUInteger)caretPos
-         candidates:(NSArray<NSString *> * _Nullable)candidates
-           comments:(NSArray<NSString *> * _Nullable)comments
-   highlightedIndex:(NSUInteger)highlightedIndex
-            pageNum:(NSUInteger)pageNum
-          finalPage:(BOOL)finalPage;
+- (void)showPreedit:(NSString* _Nullable)preedit
+            selRange:(NSRange)selRange
+            caretPos:(NSUInteger)caretPos
+          candidates:(NSArray<NSString*>* _Nullable)candidates
+            comments:(NSArray<NSString*>* _Nullable)comments
+    highlightedIndex:(NSUInteger)highlightedIndex
+             pageNum:(NSUInteger)pageNum
+           finalPage:(BOOL)finalPage;
 
 - (void)hide;
 
-- (void)updateStatusLong:(NSString * _Nullable)messageLong
-             statusShort:(NSString * _Nullable)messageShort;
+- (void)updateStatusLong:(NSString* _Nullable)messageLong
+             statusShort:(NSString* _Nullable)messageShort;
 
-- (void)loadConfig:(SquirrelConfig * _Nonnull)config;
+- (void)loadConfig:(SquirrelConfig* _Nonnull)config;
 
-- (void)loadLabelConfig:(SquirrelConfig * _Nonnull)config
+- (void)loadLabelConfig:(SquirrelConfig* _Nonnull)config
            directUpdate:(BOOL)update;
 
-@end // SquirrelPanel
+@end  // SquirrelPanel
