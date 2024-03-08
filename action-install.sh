@@ -3,13 +3,13 @@
 set -e
 
 rime_version=1.10.0-e
-rime_git_hash=f5ee2e9
+rime_git_hash=aabc6c2
 
-rime_archive="rime-${rime_git_hash}-macOS.tar.bz2"
-rime_download_url="https://github.com/rime/librime/releases/download/${rime_version}/${rime_archive}"
+rime_archive="rime-${rime_git_hash}-macOS-universal.tar.bz2"
+rime_download_url="https://github.com/groverlynn/librime/releases/download/${rime_version}/${rime_archive}"
 
-rime_deps_archive="rime-deps-${rime_git_hash}-macOS.tar.bz2"
-rime_deps_download_url="https://github.com/rime/librime/releases/download/${rime_version}/${rime_deps_archive}"
+rime_deps_archive="rime-deps-${rime_git_hash}-macOS-universal.tar.bz2"
+rime_deps_download_url="https://github.com/groverlynn/librime/releases/download/${rime_version}/${rime_deps_archive}"
 
 mkdir -p download && (
     cd download

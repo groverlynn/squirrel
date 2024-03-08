@@ -76,29 +76,21 @@
 		A4B8E1B30F645B870094E08B /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4B8E1B20F645B870094E08B /* Carbon.framework */; };
 		A4FC48CB0F6530EF0069BE81 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A4FC48C90F6530EF0069BE81 /* Localizable.strings */; };
 		E93074B70A5C264700470842 /* InputMethodKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E93074B60A5C264700470842 /* InputMethodKit.framework */; };
+		F44ACB192B9BBB3800D80CFA /* s2twp.json in Resources */ = {isa = PBXBuildFile; fileRef = F44ACB182B9BBB3800D80CFA /* s2twp.json */; };
+		F44ACB1B2B9BBB5600D80CFA /* tw2sp.json in Resources */ = {isa = PBXBuildFile; fileRef = F44ACB1A2B9BBB5600D80CFA /* tw2sp.json */; };
+		F44ACB1E2B9BBB7000D80CFA /* TWPhrasesRev.ocd2 in Resources */ = {isa = PBXBuildFile; fileRef = F44ACB1C2B9BBB7000D80CFA /* TWPhrasesRev.ocd2 */; };
+		F44ACB1F2B9BBB7000D80CFA /* TWPhrases.ocd2 in Resources */ = {isa = PBXBuildFile; fileRef = F44ACB1D2B9BBB7000D80CFA /* TWPhrases.ocd2 */; };
+		F44ACB202B9BBBAE00D80CFA /* s2twp.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F44ACB182B9BBB3800D80CFA /* s2twp.json */; };
+		F44ACB212B9BBBAE00D80CFA /* tw2sp.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F44ACB1A2B9BBB5600D80CFA /* tw2sp.json */; };
+		F44ACB222B9BBBAE00D80CFA /* TWPhrases.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F44ACB1D2B9BBB7000D80CFA /* TWPhrases.ocd2 */; };
+		F44ACB232B9BBBAE00D80CFA /* TWPhrasesRev.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F44ACB1C2B9BBB7000D80CFA /* TWPhrasesRev.ocd2 */; };
 		F478A3592B1078F500D7794A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F478A3582B1078D600D7794A /* Cocoa.framework */; };
 		F478A35A2B1078F900D7794A /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F478A3572B1078D200D7794A /* QuartzCore.framework */; };
 		F478A35B2B10795800D7794A /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97324FDCFA39411CA2CEA /* AppKit.framework */; };
 		F478A35C2B10795B00D7794A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97325FDCFA39411CA2CEA /* Foundation.framework */; };
 		F48CFB692B326F4900DB9CF9 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 447765C725C30E6B002415AF /* Sparkle.framework */; };
+		F440EC552B9C73A200059E3A /* rime-plugins in Copy 3rd-party Frameworks */ = {isa = PBXBuildFile; fileRef = F440EC542B9C73A200059E3A /* rime-plugins */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		F493BF7B2B76F28A008BD7D0 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F493BF7A2B76F27E008BD7D0 /* UserNotifications.framework */; };
-		F4E457B92AD97412003F6D79 /* EmojiCategoryTW.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457A82AD97411003F6D79 /* EmojiCategoryTW.ocd2 */; };
-		F4E457BA2AD97412003F6D79 /* t2emoji.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457A92AD97411003F6D79 /* t2emoji.json */; };
-		F4E457BB2AD97412003F6D79 /* hk2t.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457AA2AD97411003F6D79 /* hk2t.json */; };
-		F4E457BC2AD97412003F6D79 /* EmojiWordEN.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457AB2AD97411003F6D79 /* EmojiWordEN.ocd2 */; };
-		F4E457BD2AD97412003F6D79 /* s2emoji.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457AC2AD97412003F6D79 /* s2emoji.json */; };
-		F4E457BE2AD97412003F6D79 /* EmojiCategoryHK.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457AD2AD97412003F6D79 /* EmojiCategoryHK.ocd2 */; };
-		F4E457BF2AD97412003F6D79 /* EmojiWordT.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457AE2AD97412003F6D79 /* EmojiWordT.ocd2 */; };
-		F4E457C02AD97412003F6D79 /* EmojiCategoryEN.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457AF2AD97412003F6D79 /* EmojiCategoryEN.ocd2 */; };
-		F4E457C12AD97412003F6D79 /* EmojiWordTW.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457B02AD97412003F6D79 /* EmojiWordTW.ocd2 */; };
-		F4E457C22AD97412003F6D79 /* EmojiWordHK.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457B12AD97412003F6D79 /* EmojiWordHK.ocd2 */; };
-		F4E457C32AD97412003F6D79 /* EmojiWordS.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457B22AD97412003F6D79 /* EmojiWordS.ocd2 */; };
-		F4E457C42AD97412003F6D79 /* en2emoji.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457B32AD97412003F6D79 /* en2emoji.json */; };
-		F4E457C52AD97412003F6D79 /* EmojiCategoryS.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457B42AD97412003F6D79 /* EmojiCategoryS.ocd2 */; };
-		F4E457C62AD97412003F6D79 /* tw2t.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457B52AD97412003F6D79 /* tw2t.json */; };
-		F4E457C72AD97412003F6D79 /* EmojiCategoryT.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457B62AD97412003F6D79 /* EmojiCategoryT.ocd2 */; };
-		F4E457C82AD97412003F6D79 /* hk2emoji.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457B72AD97412003F6D79 /* hk2emoji.json */; };
-		F4E457C92AD97412003F6D79 /* tw2emoji.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F4E457B82AD97412003F6D79 /* tw2emoji.json */; };
 		F4EC47AA2B3239A2004862A4 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4EC47A92B323999004862A4 /* IOKit.framework */; };
 /* End PBXBuildFile section */
 
@@ -109,23 +101,11 @@
 			dstPath = opencc;
 			dstSubfolderSpec = 12;
 			files = (
-				F4E457C42AD97412003F6D79 /* en2emoji.json in Copy opencc Files */,
-				F4E457C82AD97412003F6D79 /* hk2emoji.json in Copy opencc Files */,
-				F4E457BD2AD97412003F6D79 /* s2emoji.json in Copy opencc Files */,
-				F4E457BA2AD97412003F6D79 /* t2emoji.json in Copy opencc Files */,
-				F4E457C92AD97412003F6D79 /* tw2emoji.json in Copy opencc Files */,
-				F4E457C02AD97412003F6D79 /* EmojiCategoryEN.ocd2 in Copy opencc Files */,
-				F4E457BE2AD97412003F6D79 /* EmojiCategoryHK.ocd2 in Copy opencc Files */,
-				F4E457C52AD97412003F6D79 /* EmojiCategoryS.ocd2 in Copy opencc Files */,
-				F4E457C72AD97412003F6D79 /* EmojiCategoryT.ocd2 in Copy opencc Files */,
-				F4E457B92AD97412003F6D79 /* EmojiCategoryTW.ocd2 in Copy opencc Files */,
-				F4E457BC2AD97412003F6D79 /* EmojiWordEN.ocd2 in Copy opencc Files */,
-				F4E457C22AD97412003F6D79 /* EmojiWordHK.ocd2 in Copy opencc Files */,
-				F4E457C32AD97412003F6D79 /* EmojiWordS.ocd2 in Copy opencc Files */,
-				F4E457BF2AD97412003F6D79 /* EmojiWordT.ocd2 in Copy opencc Files */,
-				F4E457C12AD97412003F6D79 /* EmojiWordTW.ocd2 in Copy opencc Files */,
+				F44ACB202B9BBBAE00D80CFA /* s2twp.json in Copy opencc Files */,
+				F44ACB212B9BBBAE00D80CFA /* tw2sp.json in Copy opencc Files */,
+				F44ACB222B9BBBAE00D80CFA /* TWPhrases.ocd2 in Copy opencc Files */,
+				F44ACB232B9BBBAE00D80CFA /* TWPhrasesRev.ocd2 in Copy opencc Files */,
 				77AA68142588916F00A592E2 /* hk2s.json in Copy opencc Files */,
-				F4E457BB2AD97412003F6D79 /* hk2t.json in Copy opencc Files */,
 				77AA68152588916F00A592E2 /* HKVariants.ocd2 in Copy opencc Files */,
 				77AA68162588916F00A592E2 /* HKVariantsRev.ocd2 in Copy opencc Files */,
 				77AA68172588916F00A592E2 /* HKVariantsRevPhrases.ocd2 in Copy opencc Files */,
@@ -146,7 +126,6 @@
 				77AA68272588916F00A592E2 /* TSCharacters.ocd2 in Copy opencc Files */,
 				77AA68282588916F00A592E2 /* TSPhrases.ocd2 in Copy opencc Files */,
 				77AA68292588916F00A592E2 /* tw2s.json in Copy opencc Files */,
-				F4E457C62AD97412003F6D79 /* tw2t.json in Copy opencc Files */,
 				77AA682D2588916F00A592E2 /* TWVariants.ocd2 in Copy opencc Files */,
 				77AA682E2588916F00A592E2 /* TWVariantsRev.ocd2 in Copy opencc Files */,
 				77AA682F2588916F00A592E2 /* TWVariantsRevPhrases.ocd2 in Copy opencc Files */,
@@ -208,6 +187,7 @@
 			files = (
 				44CD640C15E2646B0021234E /* librime.1.dylib in Copy 3rd-party Frameworks */,
 				447765CA25C30E97002415AF /* Sparkle.framework in Copy 3rd-party Frameworks */,
+				F440EC552B9C73A200059E3A /* rime-plugins in Copy 3rd-party Frameworks */,
 			);
 			name = "Copy 3rd-party Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -298,31 +278,19 @@
 		A4B8E1B20F645B870094E08B /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		A4FC48CA0F6530EF0069BE81 /* en */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E93074B60A5C264700470842 /* InputMethodKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InputMethodKit.framework; path = System/Library/Frameworks/InputMethodKit.framework; sourceTree = SDKROOT; };
+		F44ACB182B9BBB3800D80CFA /* s2twp.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = s2twp.json; sourceTree = "<group>"; };
+		F44ACB1A2B9BBB5600D80CFA /* tw2sp.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = tw2sp.json; sourceTree = "<group>"; };
+		F44ACB1C2B9BBB7000D80CFA /* TWPhrasesRev.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = TWPhrasesRev.ocd2; sourceTree = "<group>"; };
+		F44ACB1D2B9BBB7000D80CFA /* TWPhrases.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = TWPhrases.ocd2; sourceTree = "<group>"; };
 		F478A3572B1078D200D7794A /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		F478A3582B1078D600D7794A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		F440EC542B9C73A200059E3A /* rime-plugins */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "rime-plugins"; path = "librime/build/lib/rime-plugins"; sourceTree = "<group>"; };
 		F493BF7A2B76F27E008BD7D0 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		F4A90994297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		F4A90995297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		F4AD6DDD2B8D914400792DDB /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "zh-HK"; path = "zh-HK.lproj/MainMenu.xib"; sourceTree = "<group>"; };
 		F4AD6DDE2B8D918C00792DDB /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "zh-Hant"; path = "zh-Hant.lproj/MainMenu.xib"; sourceTree = "<group>"; };
 		F4AD6DDF2B8D91BF00792DDB /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "zh-Hans"; path = "zh-Hans.lproj/MainMenu.xib"; sourceTree = "<group>"; };
-		F4E457A82AD97411003F6D79 /* EmojiCategoryTW.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryTW.ocd2; sourceTree = "<group>"; };
-		F4E457A92AD97411003F6D79 /* t2emoji.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = t2emoji.json; sourceTree = "<group>"; };
-		F4E457AA2AD97411003F6D79 /* hk2t.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = hk2t.json; sourceTree = "<group>"; };
-		F4E457AB2AD97411003F6D79 /* EmojiWordEN.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiWordEN.ocd2; sourceTree = "<group>"; };
-		F4E457AC2AD97412003F6D79 /* s2emoji.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = s2emoji.json; sourceTree = "<group>"; };
-		F4E457AD2AD97412003F6D79 /* EmojiCategoryHK.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryHK.ocd2; sourceTree = "<group>"; };
-		F4E457AE2AD97412003F6D79 /* EmojiWordT.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiWordT.ocd2; sourceTree = "<group>"; };
-		F4E457AF2AD97412003F6D79 /* EmojiCategoryEN.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryEN.ocd2; sourceTree = "<group>"; };
-		F4E457B02AD97412003F6D79 /* EmojiWordTW.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiWordTW.ocd2; sourceTree = "<group>"; };
-		F4E457B12AD97412003F6D79 /* EmojiWordHK.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiWordHK.ocd2; sourceTree = "<group>"; };
-		F4E457B22AD97412003F6D79 /* EmojiWordS.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiWordS.ocd2; sourceTree = "<group>"; };
-		F4E457B32AD97412003F6D79 /* en2emoji.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = en2emoji.json; sourceTree = "<group>"; };
-		F4E457B42AD97412003F6D79 /* EmojiCategoryS.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryS.ocd2; sourceTree = "<group>"; };
-		F4E457B52AD97412003F6D79 /* tw2t.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = tw2t.json; sourceTree = "<group>"; };
-		F4E457B62AD97412003F6D79 /* EmojiCategoryT.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = EmojiCategoryT.ocd2; sourceTree = "<group>"; };
-		F4E457B72AD97412003F6D79 /* hk2emoji.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = hk2emoji.json; sourceTree = "<group>"; };
-		F4E457B82AD97412003F6D79 /* tw2emoji.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = tw2emoji.json; sourceTree = "<group>"; };
 		F4EC47A92B323999004862A4 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -332,9 +300,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				F478A35B2B10795800D7794A /* AppKit.framework in Frameworks */,
-				D26434552706A15100857391 /* QuartzCore.framework in Frameworks */,
-				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
-				F45E005F2B8CA81C00179B75 /* UserNotifications.framework in Frameworks */,
 				E93074B70A5C264700470842 /* InputMethodKit.framework in Frameworks */,
 				A4B8E1B30F645B870094E08B /* Carbon.framework in Frameworks */,
 				F478A3592B1078F500D7794A /* Cocoa.framework in Frameworks */,
@@ -373,6 +338,7 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F440EC542B9C73A200059E3A /* rime-plugins */,
 				44CD640915E2633D0021234E /* librime.1.dylib */,
 				447765C725C30E6B002415AF /* Sparkle.framework */,
 			);
@@ -444,23 +410,6 @@
 		4407F39D14EC071E001329FE /* opencc */ = {
 			isa = PBXGroup;
 			children = (
-				F4E457AF2AD97412003F6D79 /* EmojiCategoryEN.ocd2 */,
-				F4E457AD2AD97412003F6D79 /* EmojiCategoryHK.ocd2 */,
-				F4E457B42AD97412003F6D79 /* EmojiCategoryS.ocd2 */,
-				F4E457B62AD97412003F6D79 /* EmojiCategoryT.ocd2 */,
-				F4E457A82AD97411003F6D79 /* EmojiCategoryTW.ocd2 */,
-				F4E457AB2AD97411003F6D79 /* EmojiWordEN.ocd2 */,
-				F4E457B12AD97412003F6D79 /* EmojiWordHK.ocd2 */,
-				F4E457B22AD97412003F6D79 /* EmojiWordS.ocd2 */,
-				F4E457AE2AD97412003F6D79 /* EmojiWordT.ocd2 */,
-				F4E457B02AD97412003F6D79 /* EmojiWordTW.ocd2 */,
-				F4E457B32AD97412003F6D79 /* en2emoji.json */,
-				F4E457B72AD97412003F6D79 /* hk2emoji.json */,
-				F4E457AA2AD97411003F6D79 /* hk2t.json */,
-				F4E457AC2AD97412003F6D79 /* s2emoji.json */,
-				F4E457A92AD97411003F6D79 /* t2emoji.json */,
-				F4E457B82AD97412003F6D79 /* tw2emoji.json */,
-				F4E457B52AD97412003F6D79 /* tw2t.json */,
 				77AA67E22588916300A592E2 /* hk2s.json */,
 				77AA67DC2588916300A592E2 /* HKVariants.ocd2 */,
 				77AA67E02588916300A592E2 /* HKVariantsRev.ocd2 */,
@@ -473,6 +422,7 @@
 				77AA67F02588916300A592E2 /* s2hk.json */,
 				77AA67ED2588916300A592E2 /* s2t.json */,
 				77AA67F52588916400A592E2 /* s2tw.json */,
+				F44ACB182B9BBB3800D80CFA /* s2twp.json */,
 				77AA67F32588916400A592E2 /* STCharacters.ocd2 */,
 				77AA67F72588916400A592E2 /* STPhrases.ocd2 */,
 				77AA67E82588916300A592E2 /* t2hk.json */,
@@ -482,6 +432,9 @@
 				77AA67E32588916300A592E2 /* TSCharacters.ocd2 */,
 				77AA67F62588916400A592E2 /* TSPhrases.ocd2 */,
 				77AA67DF2588916300A592E2 /* tw2s.json */,
+				F44ACB1A2B9BBB5600D80CFA /* tw2sp.json */,
+				F44ACB1D2B9BBB7000D80CFA /* TWPhrases.ocd2 */,
+				F44ACB1C2B9BBB7000D80CFA /* TWPhrasesRev.ocd2 */,
 				77AA67F12588916300A592E2 /* TWVariants.ocd2 */,
 				77AA67F42588916400A592E2 /* TWVariantsRev.ocd2 */,
 				77AA67F22588916300A592E2 /* TWVariantsRevPhrases.ocd2 */,
@@ -608,7 +561,11 @@
 			files = (
 				446C01D71F767BD400A6C23E /* Assets.xcassets in Resources */,
 				44F7708F152B3334005CF491 /* dsa_pub.pem in Resources */,
+				F44ACB192B9BBB3800D80CFA /* s2twp.json in Resources */,
+				F44ACB1B2B9BBB5600D80CFA /* tw2sp.json in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
+				F44ACB1F2B9BBB7000D80CFA /* TWPhrases.ocd2 in Resources */,
+				F44ACB1E2B9BBB7000D80CFA /* TWPhrasesRev.ocd2 in Resources */,
 				A4FC48CB0F6530EF0069BE81 /* Localizable.strings in Resources */,
 				A45578F51146A75200592C6E /* MainMenu.xib in Resources */,
 				44986A95184B421700B3278D /* LICENSE.txt in Resources */,
@@ -690,7 +647,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 0.16.3;
+				CURRENT_PROJECT_VERSION = 0.16.2e;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -751,7 +708,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 0.16.3;
+				CURRENT_PROJECT_VERSION = 0.16.2e;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
