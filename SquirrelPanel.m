@@ -2037,38 +2037,37 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
   NSBezierPath* buttonPath;
   switch (_functionButton) {
     case kPageUpKey:
-      buttonColor =
-          hooverColor(theme.linear ? theme.highlightedCandidateBackColor
-                                   : theme.highlightedPreeditBackColor,
-                      self.appear);
+      buttonColor = hooverColor(theme.linear && !theme.tabular
+                                    ? theme.highlightedCandidateBackColor
+                                    : theme.highlightedPreeditBackColor,
+                                self.appear);
       buttonPath = _pagingPaths[0];
       break;
     case kHomeKey:
-      buttonColor =
-          disabledColor(theme.linear ? theme.highlightedCandidateBackColor
-                                     : theme.highlightedPreeditBackColor,
-                        self.appear);
+      buttonColor = disabledColor(theme.linear && !theme.tabular
+                                      ? theme.highlightedCandidateBackColor
+                                      : theme.highlightedPreeditBackColor,
+                                  self.appear);
       buttonPath = _pagingPaths[0];
       break;
     case kPageDownKey:
-      buttonColor =
-          hooverColor(theme.linear ? theme.highlightedCandidateBackColor
-                                   : theme.highlightedPreeditBackColor,
-                      self.appear);
+      buttonColor = hooverColor(theme.linear && !theme.tabular
+                                    ? theme.highlightedCandidateBackColor
+                                    : theme.highlightedPreeditBackColor,
+                                self.appear);
       buttonPath = _pagingPaths[1];
       break;
     case kEndKey:
-      buttonColor =
-          disabledColor(theme.linear ? theme.highlightedCandidateBackColor
-                                     : theme.highlightedPreeditBackColor,
-                        self.appear);
+      buttonColor = disabledColor(theme.linear && !theme.tabular
+                                      ? theme.highlightedCandidateBackColor
+                                      : theme.highlightedPreeditBackColor,
+                                  self.appear);
       buttonPath = _pagingPaths[1];
       break;
     case kExpandButton:
     case kCompressButton:
     case kLockButton:
-      buttonColor =
-          hooverColor(theme.highlightedCandidateBackColor, self.appear);
+      buttonColor = hooverColor(theme.highlightedPreeditBackColor, self.appear);
       buttonPath = _expanderPath;
       break;
     case kBackSpaceKey:
@@ -2457,7 +2456,7 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
   // Draw paging Rect
   _pagingBlock = NSZeroRect;
   NSBezierPath* scrollerPath;
-  if (theme.tabular) {
+  if (theme.tabular && candidateBlockRange.length > 0) {
     NSRect expanderRect =
         [self blockRectForRange:NSMakeRange(_textStorage.length - 1, 1)];
     expanderRect.size.width += theme.separatorWidth;
@@ -2474,21 +2473,20 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
         squirclePath(expanderVertices, 4,
                      MIN(theme.highlightedCornerRadius,
                          theme.paragraphStyle.minimumLineHeight * 0.5));
-    if (self.expanded && _tabularPositions[_numCandidates - 1].row > 0) {
+    if (theme.showPaging && self.expanded &&
+        _tabularPositions[_numCandidates - 1].row > 0) {
       _pagingBlock =
           NSMakeRect(NSMaxX(_candidateBlock), NSMinY(_candidateBlock),
                      NSMaxX(backgroundRect) - NSMaxX(_candidateBlock),
                      NSMinY(expanderRect) - NSMinY(_candidateBlock));
-      CGFloat sideLength =
+      CGFloat width =
           MIN(theme.paragraphStyle.minimumLineHeight, NSWidth(_pagingBlock));
-      NSRect pageUpRect = NSMakeRect(NSMinX(_pagingBlock),
-                                     NSMidY(_pagingBlock) - sideLength * 0.5,
-                                     sideLength, sideLength * 0.5);
+      CGFloat height = MIN(width, NSHeight(_pagingBlock) * 0.5);
+      NSRect pageUpRect = NSMakeRect(
+          NSMinX(_pagingBlock), NSMidY(_pagingBlock) - height, width, height);
       NSRect pageDownRect =
-          NSMakeRect(NSMinX(_pagingBlock), NSMidY(_pagingBlock), sideLength,
-                     sideLength * 0.5);
-      CGFloat cornerRadius =
-          MIN(theme.highlightedCornerRadius, sideLength * 0.25);
+          NSMakeRect(NSMinX(_pagingBlock), NSMidY(_pagingBlock), width, height);
+      CGFloat cornerRadius = MIN(theme.highlightedCornerRadius, height * 0.5);
       NSPoint pageUpVertices[4], pageDownVertices[4];
       rectVertices(pageUpRect, pageUpVertices);
       rectVertices(pageDownRect, pageDownVertices);
@@ -2497,25 +2495,23 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
 
       scrollerPath = NSBezierPath.bezierPath;
       [scrollerPath
-          moveToPoint:NSMakePoint(NSMinX(pageUpRect) + ceil(sideLength * 0.2),
-                                  NSMaxY(pageUpRect) - ceil(sideLength * 0.1))];
+          moveToPoint:NSMakePoint(NSMinX(pageUpRect) + ceil(width * 0.2),
+                                  NSMaxY(pageUpRect) - ceil(width * 0.2))];
       [scrollerPath
           lineToPoint:NSMakePoint(NSMidX(pageUpRect),
-                                  NSMinY(pageUpRect) + ceil(sideLength * 0.1))];
+                                  NSMaxY(pageUpRect) - ceil(width * 0.4))];
       [scrollerPath
-          lineToPoint:NSMakePoint(NSMaxX(pageUpRect) - ceil(sideLength * 0.2),
-                                  NSMaxY(pageUpRect) - ceil(sideLength * 0.1))];
+          lineToPoint:NSMakePoint(NSMaxX(pageUpRect) - ceil(width * 0.2),
+                                  NSMaxY(pageUpRect) - ceil(width * 0.2))];
       [scrollerPath
-          moveToPoint:NSMakePoint(
-                          NSMinX(pageDownRect) + ceil(sideLength * 0.2),
-                          NSMinY(pageDownRect) + ceil(sideLength * 0.1))];
-      [scrollerPath lineToPoint:NSMakePoint(NSMidX(pageDownRect),
-                                            NSMaxY(pageDownRect) -
-                                                ceil(sideLength * 0.1))];
+          moveToPoint:NSMakePoint(NSMinX(pageDownRect) + ceil(width * 0.2),
+                                  NSMinY(pageDownRect) + ceil(width * 0.2))];
       [scrollerPath
-          lineToPoint:NSMakePoint(
-                          NSMaxX(pageDownRect) - ceil(sideLength * 0.2),
-                          NSMinY(pageDownRect) + ceil(sideLength * 0.1))];
+          lineToPoint:NSMakePoint(NSMidX(pageDownRect),
+                                  NSMinY(pageDownRect) + ceil(width * 0.4))];
+      [scrollerPath
+          lineToPoint:NSMakePoint(NSMaxX(pageDownRect) - ceil(width * 0.2),
+                                  NSMinY(pageDownRect) + ceil(width * 0.2))];
     }
   } else if (pagingRange.length > 0) {
     NSRect pageUpRect =
@@ -2564,6 +2560,10 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
   self.layer.sublayers = nil;
   // layers of large background elements
   CALayer* BackLayers = [[CALayer alloc] init];
+  CAShapeLayer* shapeLayer = [[CAShapeLayer alloc] init];
+  shapeLayer.path = panelPath.quartzPath;
+  shapeLayer.fillColor = NSColor.whiteColor.CGColor;
+  BackLayers.mask = shapeLayer;
   if (@available(macOS 10.14, *)) {
     BackLayers.opacity = 1.0f - (float)theme.translucency;
     BackLayers.allowsGroupOpacity = YES;
@@ -2587,7 +2587,8 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
   }
   // background color layer
   CAShapeLayer* backColorLayer = [[CAShapeLayer alloc] init];
-  if ((!NSIsEmptyRect(_preeditBlock) || !NSIsEmptyRect(_pagingBlock)) &&
+  if ((!NSIsEmptyRect(_preeditBlock) || !NSIsEmptyRect(_pagingBlock) ||
+       _expanderPath) &&
       theme.preeditBackColor) {
     if (candidateBlockPath) {
       NSBezierPath* nonCandidatePath = [backgroundPath copy];
@@ -2910,6 +2911,12 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
   return _view.currentTheme.inlineCandidate;
 }
 
+- (BOOL)topRow {
+  return _view.tabularPositions
+             ? _view.tabularPositions[_highlightedIndex].row == 0
+             : YES;
+}
+
 - (BOOL)expanded {
   return _view.expanded;
 }
@@ -3018,36 +3025,30 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
     if (_highlightedIndex == _candidates.count - 1 && _finalPage) {
       return NSNotFound;
     }
-    NSUInteger newIndex = _highlightedIndex;
-    do {
+    NSUInteger newIndex = _highlightedIndex + 1;
+    while (newIndex < _candidates.count &&
+           (_view.tabularPositions[newIndex].row == currentRow ||
+            (_view.tabularPositions[newIndex].row == currentRow + 1 &&
+             _view.tabularPositions[newIndex].tabColumn <= currentTabColumn))) {
       ++newIndex;
-    } while (newIndex < _candidates.count &&
-             (_view.tabularPositions[newIndex].row == currentRow ||
-              (_view.tabularPositions[newIndex].row == currentRow + 1 &&
-               _view.tabularPositions[newIndex].tabColumn < currentTabColumn)));
-    if (newIndex == _candidates.count) {
-      return newIndex + pageSize * (_pageNum - _activePage) -
-             (_finalPage ? 1 : 0);
-    } else {
-      return newIndex + pageSize * (_pageNum - _activePage);
     }
-  } else if (arrowKey == (self.vertical ? kRightKey : kUpKey)) {
-    if (_highlightedIndex == 0 && _pageNum == 0) {
-      return NSNotFound;
-    }
-    NSInteger newIndex = (NSInteger)_highlightedIndex;
-    do {
+    if (newIndex != _candidates.count || _finalPage) {
       --newIndex;
-    } while (newIndex >= 0 &&
-             (_view.tabularPositions[newIndex].row == currentRow ||
-              (_view.tabularPositions[newIndex].row == currentRow - 1 &&
-               _view.tabularPositions[newIndex].tabColumn > currentTabColumn)));
-    if (newIndex == -1) {
+    }
+    return newIndex + pageSize * (_pageNum - _activePage);
+  } else if (arrowKey == (self.vertical ? kRightKey : kUpKey)) {
+    if (currentRow == 0) {
       return _pageNum == 0 ? NSNotFound
                            : pageSize * (_pageNum - _activePage) - 1;
-    } else {
-      return (NSUInteger)newIndex + pageSize * (_pageNum - _activePage);
     }
+    NSInteger newIndex = (NSInteger)_highlightedIndex - 1;
+    while (newIndex > 0 &&
+           (_view.tabularPositions[newIndex].row == currentRow ||
+            (_view.tabularPositions[newIndex].row == currentRow - 1 &&
+             _view.tabularPositions[newIndex].tabColumn > currentTabColumn))) {
+      --newIndex;
+    }
+    return (NSUInteger)newIndex + pageSize * (_pageNum - _activePage);
   }
   return NSNotFound;
 }
@@ -3267,6 +3268,9 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
         _functionButton = cursorIndex;
       }
     } break;
+    case NSEventTypeMouseExited:
+      [_toolTip.displayTimer invalidate];
+      break;
     case NSEventTypeLeftMouseDragged:
       // reset the remember_size references after moving the panel
       _maxSize = NSZeroSize;
@@ -3620,12 +3624,14 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
   NSRect viewRect = self.contentView.bounds;
   _view.boundsOrigin = NSZeroPoint;
   _view.frame = viewRect;
+  _view.needsDisplay = YES;
 
   _view.textView.boundsRotation = 0.0;
   _view.textView.boundsOrigin = NSZeroPoint;
   _view.textView.frame =
       NSOffsetRect(viewRect, insets.left - _view.textView.textContainerOrigin.x,
                    insets.top - _view.textView.textContainerOrigin.y);
+  _view.textView.needsDisplay = YES;
 
   if (@available(macOS 10.14, *)) {
     if (theme.translucency > 0) {
@@ -3637,7 +3643,7 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
     }
   }
   self.alphaValue = theme.alpha;
-  [self orderFrontRegardless];
+  [self orderFront:nil];
   // reset to initial position after showing status message
   _initPosition = _statusMessage != nil;
   // voila !
@@ -3832,6 +3838,7 @@ static inline NSColor* disabledColor(NSColor* color, SquirrelAppear appear) {
 }
 
 - (void)updateContents {
+  [_toolTip.displayTimer invalidate];
   SquirrelTheme* theme = _view.currentTheme;
   if (theme.lineLength > 0) {
     _maxSize.width = MIN(theme.lineLength, _textWidthLimit);
@@ -4954,9 +4961,10 @@ double clamp_uni(double param) {
   preeditHighlightedAttrs[NSForegroundColorAttributeName] =
       highlightedTextColor;
   pagingAttrs[NSForegroundColorAttributeName] =
-      linear ? candidateLabelColor : textColor;
+      linear && !tabular ? candidateLabelColor : textColor;
   pagingHighlightedAttrs[NSForegroundColorAttributeName] =
-      linear ? highlightedCandidateLabelColor : highlightedTextColor;
+      linear && !tabular ? highlightedCandidateLabelColor
+                         : highlightedTextColor;
   statusAttrs[NSForegroundColorAttributeName] = commentTextColor;
 
   NSSize borderInset =

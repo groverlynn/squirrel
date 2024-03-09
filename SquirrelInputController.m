@@ -22,7 +22,7 @@ static NSString* const kFullWidthSpace = @"　";
   NSArray<NSString*>* _candidates;
   NSEventModifierFlags _lastModifiers;
   uint _lastEventCount;
-  NSUInteger _lastPageNum;
+  NSUInteger _currentIndex;
   RimeSessionId _session;
   NSString* _schemaId;
   BOOL _inlinePreedit;
@@ -316,12 +316,14 @@ void set_CapsLock_LED_state(bool target_state) {
       if (!panel.locked && !panel.expanded &&
           rime_keycode == (is_vertical ? XK_Left : XK_Down)) {
         [panel setExpanded:YES];
+        _currentIndex = NSNotFound;
       }
       return (BOOL)rime_get_api()->highlight_candidate(_session, newIndex) ||
              panel.visible;
-    } else if (!panel.locked && panel.expanded && _lastPageNum == 0 &&
+    } else if (!panel.locked && panel.expanded && panel.activePage == 0 &&
                rime_keycode == (is_vertical ? XK_Right : XK_Up)) {
       [panel setExpanded:NO];
+      _currentIndex = NSNotFound;
       return panel.visible;
     }
   }
@@ -443,6 +445,7 @@ void set_CapsLock_LED_state(bool target_state) {
         handled = rime_get_api()->process_key(_session, (int)index, 0);
       } else if (index >= kExpandButton && index <= kLockButton) {
         handled = true;
+        _currentIndex = NSNotFound;
       }
       break;
     case kSELECT:
@@ -450,13 +453,13 @@ void set_CapsLock_LED_state(bool target_state) {
       break;
     case kHIGHLIGHT:
       rime_get_api()->highlight_candidate(_session, index);
+      _currentIndex = index;
       break;
     case kDELETE:
       handled = rime_get_api()->delete_candidate(_session, index);
       break;
   }
   if (handled) {
-    _lastPageNum = NSNotFound;
     [self rimeUpdate];
   }
 }
@@ -862,7 +865,6 @@ NSString* getOptionLabel(RimeSessionId session,
                    finalPage:(BOOL)finalPage {
   // NSLog(@"showPanelWithPreedit:...:");
   _candidates = candidates;
-  _lastPageNum = pageNum;
   SquirrelPanel* panel = NSApp.squirrelAppDelegate.panel;
   panel.IbeamRect = [self getIbeamRect];
   if (NSIsEmptyRect(panel.IbeamRect) && panel.statusMessage.length > 0) {
@@ -989,7 +991,7 @@ NSUInteger inline UTF8LengthToUTF16Length(const char* string, int length) {
     NSString* preeditText = preedit ? @(preedit) : @"";
 
     // update composed string
-    NSString *composedText;
+    NSString* composedText;
     if (!preedit || _showingSwitcherMenu) {
       composedText = @"";
     } else if (!_inlinePreedit) {  // remove soft cursor
@@ -1027,26 +1029,36 @@ NSUInteger inline UTF8LengthToUTF16Length(const char* string, int length) {
                            : (NSUInteger)ctx.menu.highlighted_candidate_index;
     BOOL finalPage = (BOOL)ctx.menu.is_last_page;
 
-    // update expander and active page status in tabular layout
+    // update expander and active page status in tabular layout;
+    // already processed the action if _currentIndex == NSNotFound
     if (panel.tabular && !showingStatus) {
       if (numCandidates == 0 || didCompose) {
         panel.activePage = 0;
-      } else if (_lastPageNum != NSNotFound) {
-        if (!panel.locked && !panel.expanded && pageNum > 0 &&
-            pageNum > _lastPageNum) {
+      } else if (_currentIndex != NSNotFound) {
+        NSUInteger currentPageNum = _currentIndex / pageSize;
+        if (!panel.locked && panel.expanded && panel.topRow && pageNum == 0 &&
+            highlightedIndex == 0) {
+          panel.expanded = NO;
+        } else if (!panel.locked && !panel.expanded &&
+                   pageNum > currentPageNum) {
           panel.expanded = YES;
         }
-        if (panel.expanded && pageNum > _lastPageNum && panel.activePage < 4) {
-          panel.activePage = MIN(panel.activePage + pageNum - _lastPageNum,
+        if (panel.expanded && pageNum > currentPageNum &&
+            panel.activePage < 4) {
+          panel.activePage = MIN(panel.activePage + pageNum - currentPageNum,
                                  finalPage ? 4UL : 3UL);
-        } else if (panel.expanded && pageNum < _lastPageNum &&
+        } else if (panel.expanded && pageNum < currentPageNum &&
                    panel.activePage > 0) {
-          panel.activePage = MAX(panel.activePage + pageNum - _lastPageNum,
+          panel.activePage = MAX(panel.activePage + pageNum - currentPageNum,
                                  pageNum == 0 ? 0UL : 1UL);
         }
       }
       highlightedIndex += pageSize * panel.activePage;
     }
+    _currentIndex =
+        numCandidates == 0
+            ? NSNotFound
+            : highlightedIndex + pageSize * (pageNum - panel.activePage);
 
     if (showingStatus) {
       [self clearBuffer];
