@@ -36,13 +36,25 @@ func main(_ argc: Int32,
     return 0
   }
 
-  if argc > 1 && (strcmp("--install", argv[1]) == 0) {
-    // register and enable Squirrel
+  if (argc > 1 && (strcmp("--register-input-source", argv[1]) == 0 ||
+                   strcmp("--install", argv[1]) == 0)) {
     RegisterInputSource()
-    let input_modes: RimeInputMode? = GetEnabledInputModes()
-    DeactivateInputSource()
-    ActivateInputSource(modes: input_modes ?? RimeInputMode(arrayLiteral: .DEFAULT_INPUT_MODE))
     return 0
+  }
+
+  if (argc > 1 && strcmp("--enable-input-source", argv[1]) == 0) {
+    EnableInputSource();
+    return 0;
+  }
+
+  if (argc > 1 && strcmp("--disable-input-source", argv[1]) == 0) {
+    DisableInputSource();
+    return 0;
+  }
+
+  if (argc > 1 && strcmp("--select-input-source", argv[1]) == 0) {
+    SelectInputSource();
+    return 0;
   }
 
   if argc > 1 && (strcmp("--build", argv[1]) == 0) {
