@@ -1,0 +1,13 @@
+//
+//  rime_api.modulemap
+//  Squirrel
+//
+//  Created by Grover on 24.03.2024.
+//
+
+module RimeAPI {
+    header "rime_api.h"
+    header "rime/key_table.h"
+
+    export *
+}
