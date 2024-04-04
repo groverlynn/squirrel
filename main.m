@@ -3,18 +3,12 @@
 #import <Cocoa/Cocoa.h>
 #import <InputMethodKit/InputMethodKit.h>
 #import <rime_api.h>
-
-typedef NS_OPTIONS(int, RimeInputMode) {
-  DEFAULT_INPUT_MODE = 1 << 0,
-  HANS_INPUT_MODE = 1 << 0,
-  HANT_INPUT_MODE = 1 << 1,
-  CANT_INPUT_MODE = 1 << 2
-};
+#import <string.h>
 
 void RegisterInputSource(void);
-RimeInputMode GetEnabledInputModes(void);
-void DeactivateInputSource(void);
-void ActivateInputSource(RimeInputMode modes);
+void DisableInputSource(void);
+void EnableInputSource(void);
+void SelectInputSource(void);
 
 // Each input method needs a unique connection name.
 // Note that periods and spaces are not allowed in the connection name.
@@ -38,12 +32,24 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  if (argc > 1 && !strcmp("--install", argv[1])) {
-    // register and enable Squirrel
+  if (argc > 1 && (!strcmp("--register-input-source", argv[1]) ||
+                   !strcmp("--install", argv[1]))) {
     RegisterInputSource();
-    RimeInputMode input_modes = GetEnabledInputModes();
-    DeactivateInputSource();
-    ActivateInputSource(input_modes ? : DEFAULT_INPUT_MODE);
+    return 0;
+  }
+
+  if (argc > 1 && !strcmp("--enable-input-source", argv[1])) {
+    EnableInputSource();
+    return 0;
+  }
+
+  if (argc > 1 && !strcmp("--disable-input-source", argv[1])) {
+    DisableInputSource();
+    return 0;
+  }
+
+  if (argc > 1 && !strcmp("--select-input-source", argv[1])) {
+    SelectInputSource();
     return 0;
   }
 
