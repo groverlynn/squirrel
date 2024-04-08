@@ -4,4 +4,3 @@
 
 #include "rime_api.h"
 #include "rime/key_table.h"
-
