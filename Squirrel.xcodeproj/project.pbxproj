@@ -19,22 +19,22 @@
 		441E638022B7E96F006DCCDD /* terra_pinyin.schema.yaml in Copy Shared Support Files */ = {isa = PBXBuildFile; fileRef = 441E636522B7E90C006DCCDD /* terra_pinyin.schema.yaml */; };
 		442B5B881570C37200370DEA /* squirrel.yaml in Copy Shared Support Files */ = {isa = PBXBuildFile; fileRef = 442B5B871570C37200370DEA /* squirrel.yaml */; };
 		442C64921F7A410A0027EFBE /* rime-install in CopyFiles */ = {isa = PBXBuildFile; fileRef = 442C64901F7A404A0027EFBE /* rime-install */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		4443A83A1828CC5100731305 /* input_source.m in Sources */ = {isa = PBXBuildFile; fileRef = 4443A8391828CC5100731305 /* input_source.m */; };
+		4443A83A1828CC5100731305 /* input_source.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4443A8391828CC5100731305 /* input_source.mm */; };
 		446C01D71F767BD400A6C23E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 446C01D61F767BD400A6C23E /* Assets.xcassets */; };
 		447765CA25C30E97002415AF /* Sparkle.framework in Copy 3rd-party Frameworks */ = {isa = PBXBuildFile; fileRef = 447765C725C30E6B002415AF /* Sparkle.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		448363DD25BDBBED0022C7BA /* pinyin.yaml in Copy Shared Support Files */ = {isa = PBXBuildFile; fileRef = 448363D925BDBBBF0022C7BA /* pinyin.yaml */; };
 		448363DE25BDBBED0022C7BA /* zhuyin.yaml in Copy Shared Support Files */ = {isa = PBXBuildFile; fileRef = 448363DA25BDBBBF0022C7BA /* zhuyin.yaml */; };
 		44986A95184B421700B3278D /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 44986A93184B421700B3278D /* LICENSE.txt */; };
 		44986A96184B421700B3278D /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 44986A94184B421700B3278D /* README.md */; };
-		44AC951A1430CF6000C888FB /* SquirrelApplicationDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 44AC95171430CF6000C888FB /* SquirrelApplicationDelegate.m */; };
-		44AC951B1430CF6000C888FB /* SquirrelInputController.m in Sources */ = {isa = PBXBuildFile; fileRef = 44AC95191430CF6000C888FB /* SquirrelInputController.m */; };
+		44AC951A1430CF6000C888FB /* SquirrelApplicationDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 44AC95171430CF6000C888FB /* SquirrelApplicationDelegate.mm */; };
+		44AC951B1430CF6000C888FB /* SquirrelInputController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 44AC95191430CF6000C888FB /* SquirrelInputController.mm */; };
 		44AEBC7521F569FD00344375 /* key_bindings.yaml in Copy Shared Support Files */ = {isa = PBXBuildFile; fileRef = 44AEBC7221F569CF00344375 /* key_bindings.yaml */; };
 		44AEBC7621F569FD00344375 /* punctuation.yaml in Copy Shared Support Files */ = {isa = PBXBuildFile; fileRef = 44AEBC7121F569CF00344375 /* punctuation.yaml */; };
 		44CD640C15E2646B0021234E /* librime.1.dylib in Copy 3rd-party Frameworks */ = {isa = PBXBuildFile; fileRef = 44CD640915E2633D0021234E /* librime.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		44E21A9016A653E700C2B08F /* rime_deployer in CopyFiles */ = {isa = PBXBuildFile; fileRef = 44E21A8E16A653E700C2B08F /* rime_deployer */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		44E21A9116A653E700C2B08F /* rime_dict_manager in CopyFiles */ = {isa = PBXBuildFile; fileRef = 44E21A8F16A653E700C2B08F /* rime_dict_manager */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		44F7708F152B3334005CF491 /* dsa_pub.pem in Resources */ = {isa = PBXBuildFile; fileRef = 44F7708E152B3334005CF491 /* dsa_pub.pem */; };
-		44F84AD714E94C490005D70B /* SquirrelPanel.m in Sources */ = {isa = PBXBuildFile; fileRef = 44F84AD614E94C490005D70B /* SquirrelPanel.m */; };
+		44F84AD714E94C490005D70B /* SquirrelPanel.mm in Sources */ = {isa = PBXBuildFile; fileRef = 44F84AD614E94C490005D70B /* SquirrelPanel.mm */; };
 		77AA68142588916F00A592E2 /* hk2s.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = 77AA67E22588916300A592E2 /* hk2s.json */; };
 		77AA68152588916F00A592E2 /* HKVariants.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = 77AA67DC2588916300A592E2 /* HKVariants.ocd2 */; };
 		77AA68162588916F00A592E2 /* HKVariantsRev.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = 77AA67E02588916300A592E2 /* HKVariantsRev.ocd2 */; };
@@ -68,25 +68,23 @@
 		7B5488C01D2DACDF0056A1BE /* luna_pinyin.schema.yaml in Copy Shared Support Files */ = {isa = PBXBuildFile; fileRef = 7B5488321D2DAAD10056A1BE /* luna_pinyin.schema.yaml */; };
 		7B5488C11D2DACDF0056A1BE /* luna_quanpin.schema.yaml in Copy Shared Support Files */ = {isa = PBXBuildFile; fileRef = 7B5488331D2DAAD10056A1BE /* luna_quanpin.schema.yaml */; };
 		7B5488C91D2DACDF0056A1BE /* symbols.yaml in Copy Shared Support Files */ = {isa = PBXBuildFile; fileRef = 7B54883B1D2DAAD10056A1BE /* symbols.yaml */; };
-		7BDB21231C6EF1BE0025E351 /* SquirrelConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BDB21221C6EF1BE0025E351 /* SquirrelConfig.m */; };
+		7BDB21231C6EF1BE0025E351 /* SquirrelConfig.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7BDB21221C6EF1BE0025E351 /* SquirrelConfig.mm */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
-		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
+		8D11072D0486CEB800E47090 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.mm */; settings = {ATTRIBUTES = (); }; };
 		A45578F51146A75200592C6E /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = A45578F41146A75200592C6E /* MainMenu.xib */; };
-		A47C48DF105E8CE8006D528B /* macos_keycode.m in Sources */ = {isa = PBXBuildFile; fileRef = A47C48DE105E8CE8006D528B /* macos_keycode.m */; };
+		A47C48DF105E8CE8006D528B /* macos_keycode.mm in Sources */ = {isa = PBXBuildFile; fileRef = A47C48DE105E8CE8006D528B /* macos_keycode.mm */; };
 		A4FC48CB0F6530EF0069BE81 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A4FC48C90F6530EF0069BE81 /* Localizable.strings */; };
 		E93074B70A5C264700470842 /* InputMethodKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E93074B60A5C264700470842 /* InputMethodKit.framework */; };
-		F44ACB202B9BBBAE00D80CFA /* s2twp.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F44ACB182B9BBB3800D80CFA /* s2twp.json */; };
-		F44ACB212B9BBBAE00D80CFA /* tw2sp.json in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F44ACB1A2B9BBB5600D80CFA /* tw2sp.json */; };
-		F44ACB222B9BBBAE00D80CFA /* TWPhrases.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F44ACB1D2B9BBB7000D80CFA /* TWPhrases.ocd2 */; };
-		F44ACB232B9BBBAE00D80CFA /* TWPhrasesRev.ocd2 in Copy opencc Files */ = {isa = PBXBuildFile; fileRef = F44ACB1C2B9BBB7000D80CFA /* TWPhrasesRev.ocd2 */; };
-		F478A3592B1078F500D7794A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F478A3582B1078D600D7794A /* Cocoa.framework */; };
-		F478A35A2B1078F900D7794A /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F478A3572B1078D200D7794A /* QuartzCore.framework */; };
-		F478A35B2B10795800D7794A /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97324FDCFA39411CA2CEA /* AppKit.framework */; };
-		F478A35C2B10795B00D7794A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97325FDCFA39411CA2CEA /* Foundation.framework */; };
-		F48CFB692B326F4900DB9CF9 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 447765C725C30E6B002415AF /* Sparkle.framework */; };
+		F4483C062BDE44B1005B6DE7 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4483C052BDE4483005B6DE7 /* Quartz.framework */; };
+		F4483C072BDE44B5005B6DE7 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 447765C725C30E6B002415AF /* Sparkle.framework */; };
+		F4483C082BDE44C0005B6DE7 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4483C022BDE446E005B6DE7 /* Cocoa.framework */; };
+		F492C3D72BDE424B0031987C /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97324FDCFA39411CA2CEA /* AppKit.framework */; };
+		F492C3D82BDE42590031987C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97325FDCFA39411CA2CEA /* Foundation.framework */; };
 		F493BF7B2B76F28A008BD7D0 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F493BF7A2B76F27E008BD7D0 /* UserNotifications.framework */; };
 		F49829B72B9D8A180093E3A9 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4B8E1B20F645B870094E08B /* Carbon.framework */; };
-		F49829B82B9D8A620093E3A9 /* rime-plugins in Copy 3rd-party Frameworks */ = {isa = PBXBuildFile; fileRef = F49829AF2B9D80700093E3A9 /* rime-plugins */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		F4DCD9F52BDBEF4000CEFEBB /* librime-lua.dylib in Copy Rime plugins */ = {isa = PBXBuildFile; fileRef = F4DCD9F12BDBEF2C00CEFEBB /* librime-lua.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		F4DCD9F62BDBEF4000CEFEBB /* librime-octagram.dylib in Copy Rime plugins */ = {isa = PBXBuildFile; fileRef = F4DCD9EF2BDBEF2C00CEFEBB /* librime-octagram.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		F4DCD9F72BDBEF4000CEFEBB /* librime-predict.dylib in Copy Rime plugins */ = {isa = PBXBuildFile; fileRef = F4DCD9F02BDBEF2C00CEFEBB /* librime-predict.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		F4EC47AA2B3239A2004862A4 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4EC47A92B323999004862A4 /* IOKit.framework */; };
 /* End PBXBuildFile section */
 
@@ -97,10 +95,6 @@
 			dstPath = opencc;
 			dstSubfolderSpec = 12;
 			files = (
-				F44ACB202B9BBBAE00D80CFA /* s2twp.json in Copy opencc Files */,
-				F44ACB212B9BBBAE00D80CFA /* tw2sp.json in Copy opencc Files */,
-				F44ACB222B9BBBAE00D80CFA /* TWPhrases.ocd2 in Copy opencc Files */,
-				F44ACB232B9BBBAE00D80CFA /* TWPhrasesRev.ocd2 in Copy opencc Files */,
 				77AA68142588916F00A592E2 /* hk2s.json in Copy opencc Files */,
 				77AA68152588916F00A592E2 /* HKVariants.ocd2 in Copy opencc Files */,
 				77AA68162588916F00A592E2 /* HKVariantsRev.ocd2 in Copy opencc Files */,
@@ -183,19 +177,30 @@
 			files = (
 				44CD640C15E2646B0021234E /* librime.1.dylib in Copy 3rd-party Frameworks */,
 				447765CA25C30E97002415AF /* Sparkle.framework in Copy 3rd-party Frameworks */,
-				F49829B82B9D8A620093E3A9 /* rime-plugins in Copy 3rd-party Frameworks */,
 			);
 			name = "Copy 3rd-party Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F4DCD9EE2BDBEEBA00CEFEBB /* Copy Rime plugins */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "rime-plugins";
+			dstSubfolderSpec = 10;
+			files = (
+				F4DCD9F52BDBEF4000CEFEBB /* librime-lua.dylib in Copy Rime plugins */,
+				F4DCD9F62BDBEF4000CEFEBB /* librime-octagram.dylib in Copy Rime plugins */,
+				F4DCD9F72BDBEF4000CEFEBB /* librime-predict.dylib in Copy Rime plugins */,
+			);
+			name = "Copy Rime plugins";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		089C165DFE840E0CC02AAC07 /* en */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		29B97316FDCFA39411CA2CEA /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		32CA4F630368D1EE00C91783 /* Squirrel_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Squirrel_Prefix.pch; sourceTree = "<group>"; };
 		441E636322B7E90C006DCCDD /* cangjie5.schema.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = cangjie5.schema.yaml; path = data/plum/cangjie5.schema.yaml; sourceTree = "<group>"; };
 		441E636422B7E90C006DCCDD /* terra_pinyin.dict.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = terra_pinyin.dict.yaml; path = data/plum/terra_pinyin.dict.yaml; sourceTree = "<group>"; };
 		441E636522B7E90C006DCCDD /* terra_pinyin.schema.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = terra_pinyin.schema.yaml; path = data/plum/terra_pinyin.schema.yaml; sourceTree = "<group>"; };
@@ -208,7 +213,7 @@
 		441E636C22B7E90D006DCCDD /* bopomofo_express.schema.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = bopomofo_express.schema.yaml; path = data/plum/bopomofo_express.schema.yaml; sourceTree = "<group>"; };
 		442B5B871570C37200370DEA /* squirrel.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = squirrel.yaml; path = data/squirrel.yaml; sourceTree = "<group>"; };
 		442C64901F7A404A0027EFBE /* rime-install */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = "rime-install"; path = "bin/rime-install"; sourceTree = "<group>"; };
-		4443A8391828CC5100731305 /* input_source.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = input_source.m; sourceTree = "<group>"; };
+		4443A8391828CC5100731305 /* input_source.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = input_source.mm; sourceTree = "<group>"; };
 		446C01D61F767BD400A6C23E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		446D18E014F0191200EC3116 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		446D18E114F0193100EC3116 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
@@ -217,10 +222,10 @@
 		448363DA25BDBBBF0022C7BA /* zhuyin.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; name = zhuyin.yaml; path = data/plum/zhuyin.yaml; sourceTree = "<group>"; };
 		44986A93184B421700B3278D /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		44986A94184B421700B3278D /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
-		44AC95161430CF6000C888FB /* SquirrelApplicationDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SquirrelApplicationDelegate.h; sourceTree = "<group>"; };
-		44AC95171430CF6000C888FB /* SquirrelApplicationDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SquirrelApplicationDelegate.m; sourceTree = "<group>"; };
-		44AC95181430CF6000C888FB /* SquirrelInputController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SquirrelInputController.h; sourceTree = "<group>"; };
-		44AC95191430CF6000C888FB /* SquirrelInputController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = SquirrelInputController.m; sourceTree = "<group>"; };
+		44AC95161430CF6000C888FB /* SquirrelApplicationDelegate.hh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SquirrelApplicationDelegate.hh; sourceTree = "<group>"; };
+		44AC95171430CF6000C888FB /* SquirrelApplicationDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SquirrelApplicationDelegate.mm; sourceTree = "<group>"; };
+		44AC95181430CF6000C888FB /* SquirrelInputController.hh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SquirrelInputController.hh; sourceTree = "<group>"; };
+		44AC95191430CF6000C888FB /* SquirrelInputController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SquirrelInputController.mm; sourceTree = "<group>"; };
 		44AEBC7121F569CF00344375 /* punctuation.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = punctuation.yaml; path = data/plum/punctuation.yaml; sourceTree = "<group>"; };
 		44AEBC7221F569CF00344375 /* key_bindings.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = key_bindings.yaml; path = data/plum/key_bindings.yaml; sourceTree = "<group>"; };
 		44CB5E872585EFAE0022654F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
@@ -229,8 +234,8 @@
 		44E21A8F16A653E700C2B08F /* rime_dict_manager */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = rime_dict_manager; path = bin/rime_dict_manager; sourceTree = "<group>"; };
 		44F1EB381431F8270015FD04 /* Squirrel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Squirrel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		44F7708E152B3334005CF491 /* dsa_pub.pem */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dsa_pub.pem; sourceTree = "<group>"; };
-		44F84AD514E94C490005D70B /* SquirrelPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SquirrelPanel.h; sourceTree = "<group>"; };
-		44F84AD614E94C490005D70B /* SquirrelPanel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SquirrelPanel.m; sourceTree = "<group>"; };
+		44F84AD514E94C490005D70B /* SquirrelPanel.hh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SquirrelPanel.hh; sourceTree = "<group>"; };
+		44F84AD614E94C490005D70B /* SquirrelPanel.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SquirrelPanel.mm; sourceTree = "<group>"; };
 		44FA4D891685997300116C1F /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		44FA4D8E16859B2900116C1F /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		77AA67DC2588916300A592E2 /* HKVariants.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = HKVariants.ocd2; sourceTree = "<group>"; };
@@ -266,27 +271,25 @@
 		7B5488321D2DAAD10056A1BE /* luna_pinyin.schema.yaml */ = {isa = PBXFileReference; lastKnownFileType = text; name = luna_pinyin.schema.yaml; path = data/plum/luna_pinyin.schema.yaml; sourceTree = "<group>"; };
 		7B5488331D2DAAD10056A1BE /* luna_quanpin.schema.yaml */ = {isa = PBXFileReference; lastKnownFileType = text; name = luna_quanpin.schema.yaml; path = data/plum/luna_quanpin.schema.yaml; sourceTree = "<group>"; };
 		7B54883B1D2DAAD10056A1BE /* symbols.yaml */ = {isa = PBXFileReference; lastKnownFileType = text; name = symbols.yaml; path = data/plum/symbols.yaml; sourceTree = "<group>"; };
-		7BDB21211C6EF1BE0025E351 /* SquirrelConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SquirrelConfig.h; sourceTree = "<group>"; };
-		7BDB21221C6EF1BE0025E351 /* SquirrelConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SquirrelConfig.m; sourceTree = "<group>"; };
+		7BDB21211C6EF1BE0025E351 /* SquirrelConfig.hh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = SquirrelConfig.hh; sourceTree = "<group>"; };
+		7BDB21221C6EF1BE0025E351 /* SquirrelConfig.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SquirrelConfig.mm; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		A44571AB0DBF42C200F793F9 /* macos_keycode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = macos_keycode.h; sourceTree = "<group>"; };
-		A47C48DE105E8CE8006D528B /* macos_keycode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = macos_keycode.m; sourceTree = "<group>"; };
+		A44571AB0DBF42C200F793F9 /* macos_keycode.hh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = macos_keycode.hh; sourceTree = "<group>"; usesTabs = 0; };
+		A47C48DE105E8CE8006D528B /* macos_keycode.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = macos_keycode.mm; sourceTree = "<group>"; };
 		A4B8E1B20F645B870094E08B /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		A4FC48CA0F6530EF0069BE81 /* en */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E93074B60A5C264700470842 /* InputMethodKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InputMethodKit.framework; path = System/Library/Frameworks/InputMethodKit.framework; sourceTree = SDKROOT; };
-		F44ACB182B9BBB3800D80CFA /* s2twp.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = s2twp.json; sourceTree = "<group>"; };
-		F44ACB1A2B9BBB5600D80CFA /* tw2sp.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = tw2sp.json; sourceTree = "<group>"; };
-		F44ACB1C2B9BBB7000D80CFA /* TWPhrasesRev.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = TWPhrasesRev.ocd2; sourceTree = "<group>"; };
-		F44ACB1D2B9BBB7000D80CFA /* TWPhrases.ocd2 */ = {isa = PBXFileReference; lastKnownFileType = file; path = TWPhrases.ocd2; sourceTree = "<group>"; };
-		F478A3572B1078D200D7794A /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
-		F478A3582B1078D600D7794A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		F4483C022BDE446E005B6DE7 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		F4483C052BDE4483005B6DE7 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		F493BF7A2B76F27E008BD7D0 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
-		F49829AF2B9D80700093E3A9 /* rime-plugins */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "rime-plugins"; path = "lib/rime-plugins"; sourceTree = "<group>"; };
 		F4A90994297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		F4A90995297F63AE00D9F520 /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-HK"; path = "zh-HK.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		F4AD6DDD2B8D914400792DDB /* zh-HK */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "zh-HK"; path = "zh-HK.lproj/MainMenu.xib"; sourceTree = "<group>"; };
 		F4AD6DDE2B8D918C00792DDB /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "zh-Hant"; path = "zh-Hant.lproj/MainMenu.xib"; sourceTree = "<group>"; };
 		F4AD6DDF2B8D91BF00792DDB /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "zh-Hans"; path = "zh-Hans.lproj/MainMenu.xib"; sourceTree = "<group>"; };
+		F4DCD9EF2BDBEF2C00CEFEBB /* librime-octagram.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "librime-octagram.dylib"; path = "lib/rime-plugins/librime-octagram.dylib"; sourceTree = "<group>"; };
+		F4DCD9F02BDBEF2C00CEFEBB /* librime-predict.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "librime-predict.dylib"; path = "lib/rime-plugins/librime-predict.dylib"; sourceTree = "<group>"; };
+		F4DCD9F12BDBEF2C00CEFEBB /* librime-lua.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "librime-lua.dylib"; path = "lib/rime-plugins/librime-lua.dylib"; sourceTree = "<group>"; };
 		F4EC47A92B323999004862A4 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -295,15 +298,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F478A35B2B10795800D7794A /* AppKit.framework in Frameworks */,
-				E93074B70A5C264700470842 /* InputMethodKit.framework in Frameworks */,
-				F478A3592B1078F500D7794A /* Cocoa.framework in Frameworks */,
+				F492C3D72BDE424B0031987C /* AppKit.framework in Frameworks */,
 				F49829B72B9D8A180093E3A9 /* Carbon.framework in Frameworks */,
-				F478A35C2B10795B00D7794A /* Foundation.framework in Frameworks */,
+				F4483C082BDE44C0005B6DE7 /* Cocoa.framework in Frameworks */,
+				F492C3D82BDE42590031987C /* Foundation.framework in Frameworks */,
 				E93074B70A5C264700470842 /* InputMethodKit.framework in Frameworks */,
 				F4EC47AA2B3239A2004862A4 /* IOKit.framework in Frameworks */,
-				F478A35A2B1078F900D7794A /* QuartzCore.framework in Frameworks */,
-				F48CFB692B326F4900DB9CF9 /* Sparkle.framework in Frameworks */,
+				F4483C062BDE44B1005B6DE7 /* Quartz.framework in Frameworks */,
+				F4483C072BDE44B5005B6DE7 /* Sparkle.framework in Frameworks */,
 				F493BF7B2B76F28A008BD7D0 /* UserNotifications.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -314,19 +316,18 @@
 		080E96DDFE201D6D7F000001 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				44AC95161430CF6000C888FB /* SquirrelApplicationDelegate.h */,
-				44AC95171430CF6000C888FB /* SquirrelApplicationDelegate.m */,
-				44AC95181430CF6000C888FB /* SquirrelInputController.h */,
-				44AC95191430CF6000C888FB /* SquirrelInputController.m */,
-				A44571AB0DBF42C200F793F9 /* macos_keycode.h */,
-				A47C48DE105E8CE8006D528B /* macos_keycode.m */,
-				32CA4F630368D1EE00C91783 /* Squirrel_Prefix.pch */,
-				4443A8391828CC5100731305 /* input_source.m */,
-				29B97316FDCFA39411CA2CEA /* main.m */,
-				44F84AD514E94C490005D70B /* SquirrelPanel.h */,
-				44F84AD614E94C490005D70B /* SquirrelPanel.m */,
-				7BDB21211C6EF1BE0025E351 /* SquirrelConfig.h */,
-				7BDB21221C6EF1BE0025E351 /* SquirrelConfig.m */,
+				44AC95161430CF6000C888FB /* SquirrelApplicationDelegate.hh */,
+				44AC95171430CF6000C888FB /* SquirrelApplicationDelegate.mm */,
+				44AC95181430CF6000C888FB /* SquirrelInputController.hh */,
+				44AC95191430CF6000C888FB /* SquirrelInputController.mm */,
+				A44571AB0DBF42C200F793F9 /* macos_keycode.hh */,
+				A47C48DE105E8CE8006D528B /* macos_keycode.mm */,
+				4443A8391828CC5100731305 /* input_source.mm */,
+				29B97316FDCFA39411CA2CEA /* main.mm */,
+				44F84AD514E94C490005D70B /* SquirrelPanel.hh */,
+				44F84AD614E94C490005D70B /* SquirrelPanel.mm */,
+				7BDB21211C6EF1BE0025E351 /* SquirrelConfig.hh */,
+				7BDB21221C6EF1BE0025E351 /* SquirrelConfig.mm */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -336,11 +337,11 @@
 			children = (
 				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
 				A4B8E1B20F645B870094E08B /* Carbon.framework */,
-				F478A3582B1078D600D7794A /* Cocoa.framework */,
+				F4483C022BDE446E005B6DE7 /* Cocoa.framework */,
 				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
 				E93074B60A5C264700470842 /* InputMethodKit.framework */,
 				F4EC47A92B323999004862A4 /* IOKit.framework */,
-				F478A3572B1078D200D7794A /* QuartzCore.framework */,
+				F4483C052BDE4483005B6DE7 /* Quartz.framework */,
 				F493BF7A2B76F27E008BD7D0 /* UserNotifications.framework */,
 			);
 			name = "Linked Frameworks";
@@ -351,7 +352,6 @@
 			children = (
 				44CD640915E2633D0021234E /* librime.1.dylib */,
 				447765C725C30E6B002415AF /* Sparkle.framework */,
-				F49829AF2B9D80700093E3A9 /* rime-plugins */,
 			);
 			name = "Other Frameworks";
 			sourceTree = "<group>";
@@ -399,6 +399,7 @@
 			children = (
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
+				F4DCD9E32BDBCF6300CEFEBB /* Plugins */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -418,7 +419,6 @@
 				77AA67F02588916300A592E2 /* s2hk.json */,
 				77AA67ED2588916300A592E2 /* s2t.json */,
 				77AA67F52588916400A592E2 /* s2tw.json */,
-				F44ACB182B9BBB3800D80CFA /* s2twp.json */,
 				77AA67F32588916400A592E2 /* STCharacters.ocd2 */,
 				77AA67F72588916400A592E2 /* STPhrases.ocd2 */,
 				77AA67E82588916300A592E2 /* t2hk.json */,
@@ -428,9 +428,6 @@
 				77AA67E32588916300A592E2 /* TSCharacters.ocd2 */,
 				77AA67F62588916400A592E2 /* TSPhrases.ocd2 */,
 				77AA67DF2588916300A592E2 /* tw2s.json */,
-				F44ACB1A2B9BBB5600D80CFA /* tw2sp.json */,
-				F44ACB1D2B9BBB7000D80CFA /* TWPhrases.ocd2 */,
-				F44ACB1C2B9BBB7000D80CFA /* TWPhrasesRev.ocd2 */,
 				77AA67F12588916300A592E2 /* TWVariants.ocd2 */,
 				77AA67F42588916400A592E2 /* TWVariantsRev.ocd2 */,
 				77AA67F22588916300A592E2 /* TWVariantsRevPhrases.ocd2 */,
@@ -489,6 +486,16 @@
 			name = plum;
 			sourceTree = "<group>";
 		};
+		F4DCD9E32BDBCF6300CEFEBB /* Plugins */ = {
+			isa = PBXGroup;
+			children = (
+				F4DCD9F12BDBEF2C00CEFEBB /* librime-lua.dylib */,
+				F4DCD9EF2BDBEF2C00CEFEBB /* librime-octagram.dylib */,
+				F4DCD9F02BDBEF2C00CEFEBB /* librime-predict.dylib */,
+			);
+			name = Plugins;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -500,6 +507,7 @@
 				8D11072C0486CEB800E47090 /* Sources */,
 				8D11072E0486CEB800E47090 /* Frameworks */,
 				A464E3780F65263000148227 /* Copy 3rd-party Frameworks */,
+				F4DCD9EE2BDBEEBA00CEFEBB /* Copy Rime plugins */,
 				44DA7A1614DD581B00C1ED3B /* Copy Shared Support Files */,
 				4407F3CA14EC079A001329FE /* Copy opencc Files */,
 				44E21A8D16A653AC00C2B08F /* CopyFiles */,
@@ -572,13 +580,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7BDB21231C6EF1BE0025E351 /* SquirrelConfig.m in Sources */,
-				8D11072D0486CEB800E47090 /* main.m in Sources */,
-				A47C48DF105E8CE8006D528B /* macos_keycode.m in Sources */,
-				44AC951A1430CF6000C888FB /* SquirrelApplicationDelegate.m in Sources */,
-				44AC951B1430CF6000C888FB /* SquirrelInputController.m in Sources */,
-				4443A83A1828CC5100731305 /* input_source.m in Sources */,
-				44F84AD714E94C490005D70B /* SquirrelPanel.m in Sources */,
+				7BDB21231C6EF1BE0025E351 /* SquirrelConfig.mm in Sources */,
+				8D11072D0486CEB800E47090 /* main.mm in Sources */,
+				A47C48DF105E8CE8006D528B /* macos_keycode.mm in Sources */,
+				44AC951A1430CF6000C888FB /* SquirrelApplicationDelegate.mm in Sources */,
+				44AC951B1430CF6000C888FB /* SquirrelInputController.mm in Sources */,
+				4443A83A1828CC5100731305 /* input_source.mm in Sources */,
+				44F84AD714E94C490005D70B /* SquirrelPanel.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -776,6 +784,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
@@ -789,7 +798,8 @@
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_INPUT_FILETYPE = automatic;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
@@ -856,6 +866,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
@@ -869,7 +880,8 @@
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/Release";
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_INPUT_FILETYPE = automatic;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;

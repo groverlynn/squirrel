@@ -1,9 +1,8 @@
 
-#import "SquirrelApplicationDelegate.h"
+#import "SquirrelApplicationDelegate.hh"
 #import <Cocoa/Cocoa.h>
 #import <InputMethodKit/InputMethodKit.h>
 #import <rime_api.h>
-#import <string.h>
 
 void RegisterInputSource(void);
 void DisableInputSource(void);
@@ -17,7 +16,7 @@ static NSString* const kConnectionName = @"Squirrel_1_Connection";
 int main(int argc, char* argv[]) {
   if (argc > 1 && !strcmp("--quit", argv[1])) {
     NSString* bundleId = NSBundle.mainBundle.bundleIdentifier;
-    NSArray* runningSquirrels =
+    NSArray<NSRunningApplication*>* runningSquirrels =
         [NSRunningApplication runningApplicationsWithBundleIdentifier:bundleId];
     for (NSRunningApplication* squirrelApp in runningSquirrels) {
       [squirrelApp terminate];
@@ -75,8 +74,8 @@ int main(int argc, char* argv[]) {
     // find the bundle identifier and then initialize the input method server
     NSBundle* main = NSBundle.mainBundle;
     IMKServer* server __unused =
-        [[IMKServer alloc] initWithName:kConnectionName
-                       bundleIdentifier:main.bundleIdentifier];
+        [IMKServer.alloc initWithName:kConnectionName
+                     bundleIdentifier:main.bundleIdentifier];
 
     // load the bundle explicitly because in this case the input method is a
     // background only application
@@ -90,7 +89,7 @@ int main(int argc, char* argv[]) {
 
     if (NSApp.squirrelAppDelegate.problematicLaunchDetected) {
       NSLog(@"Problematic launch detected!");
-      NSArray* args = @[
+      NSArray<NSString*>* args = @[
         @"-v", NSLocalizedString(@"say_voice", nil),
         NSLocalizedString(@"problematic_launch", nil)
       ];

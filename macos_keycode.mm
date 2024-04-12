@@ -1,5 +1,5 @@
+#import "macos_keycode.hh"
 
-#import "macos_keycode.h"
 #import <rime/key_table.h>
 #import <Carbon/Carbon.h>
 
@@ -33,7 +33,7 @@ struct mapping_t {
   int to_rime;
 };
 
-static struct mapping_t keycode_mappings[] = {
+static const struct mapping_t keycode_mappings[] = {
     // modifiers
     {kVK_CapsLock, XK_Caps_Lock},
     {kVK_Command, XK_Super_L},       // XK_Meta_L?
@@ -125,7 +125,7 @@ static struct mapping_t keycode_mappings[] = {
 
     {-1, -1}};
 
-static struct mapping_t keychar_mappings[] = {
+static const struct mapping_t keychar_mappings[] = {
     // ASCII control characters
     {NSEnterCharacter, XK_KP_Enter},
     {NSBackspaceCharacter, XK_BackSpace},
@@ -203,8 +203,8 @@ static struct mapping_t keychar_mappings[] = {
     {-1, -1}};
 
 int get_rime_keycode(ushort keycode, unichar keychar, bool shift, bool caps) {
-  for (struct mapping_t* mapping = keycode_mappings; mapping->from_osx >= 0;
-       ++mapping) {
+  for (const struct mapping_t* mapping = keycode_mappings;
+       mapping->from_osx >= 0; ++mapping) {
     if (keycode == mapping->from_osx) {
       return mapping->to_rime;
     }
@@ -220,12 +220,43 @@ int get_rime_keycode(ushort keycode, unichar keychar, bool shift, bool caps) {
     return keychar;
   }
 
-  for (struct mapping_t* mapping = keychar_mappings; mapping->from_osx >= 0;
-       ++mapping) {
+  for (const struct mapping_t* mapping = keychar_mappings;
+       mapping->from_osx >= 0; ++mapping) {
     if (keychar == mapping->from_osx) {
       return mapping->to_rime;
     }
   }
 
   return XK_VoidSymbol;
+}
+
+static const char* rime_modidifers[] = {
+    "Lock",     // 1 << 16
+    "Shift",    // 1 << 17
+    "Control",  // 1 << 18
+    "Alt",      // 1 << 19
+    "Super",    // 1 << 20
+    NULL,       // 1 << 21
+    NULL,       // 1 << 22
+    "Hyper",    // 1 << 23
+};
+
+NSEventModifierFlags parse_macos_modifiers(const char* modifier_name) {
+  static const size_t n = sizeof(rime_modidifers) / sizeof(const char*);
+  if (!modifier_name)
+    return 0;
+  for (size_t i = 0; i < n; ++i) {
+    if (rime_modidifers[i] && !strcmp(modifier_name, rime_modidifers[i])) {
+      return (1 << (i + 16));
+    }
+  }
+  return 0;
+}
+
+int parse_rime_modifiers(const char* modifier_name) {
+  return RimeGetModifierByName(modifier_name);
+}
+
+int parse_keycode(const char* key_name) {
+  return RimeGetKeycodeByName(key_name);
 }

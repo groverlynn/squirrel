@@ -14,15 +14,21 @@
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="252" userLabel="SquirrelApplicationDelegate" customClass="SquirrelApplicationDelegate">
             <connections>
-                <outlet property="_menu" destination="773" id="779"/>
-                <outlet property="_panel" destination="770" id="771"/>
-                <outlet property="_updater" destination="772" id="794"/>
+                <outlet property="menu" destination="773" id="779"/>
+                <outlet property="panel" destination="770" id="771"/>
+                <outlet property="updater" destination="772" id="794"/>
             </connections>
         </customObject>
         <customObject id="770" userLabel="SquirrelPanel" customClass="SquirrelPanel"/>
         <menu id="773" userLabel="Menu">
             <items>
-                <menuItem title="重新部署" keyEquivalent="`" id="774">
+                <menuItem title="鼠鬚管〔方案選單〕" allowsKeyEquivalentWhenHidden="YES" id="780">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="showSwitcher:" target="252" id="781"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="重新部署" keyEquivalent="`" allowsKeyEquivalentWhenHidden="YES" id="774">
                     <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
                     <connections>
                         <action selector="deploy:" target="252" id="795"/>
@@ -43,13 +49,12 @@
                         <action selector="openWiki:" target="252" id="798"/>
                     </connections>
                 </menuItem>
-                <menuItem title="檢查更新項目⋯" id="776">
+                <menuItem title="檢查更新項目⋯" tag="1" id="776">
                     <connections>
                         <action selector="checkForUpdates:" target="772" id="796"/>
                     </connections>
                 </menuItem>
             </items>
-            <point key="canvasLocation" x="102.5" y="-74.5"/>
         </menu>
         <customObject id="772" userLabel="Updater" customClass="SUUpdater"/>
     </objects>
