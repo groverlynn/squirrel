@@ -21,6 +21,13 @@
         <customObject id="770" userLabel="SquirrelPanel" customClass="SquirrelPanel"/>
         <menu id="773" userLabel="Menu">
             <items>
+                <menuItem title="Squirrel Switcher" allowsKeyEquivalentWhenHidden="YES" id="780">
+                    <attributedString key="attributedTitle"/>
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="showSwitcher:" target="252" id="781"/>
+                    </connections>
+                </menuItem>
                 <menuItem title="Deploy" keyEquivalent="`" id="774">
                     <modifierMask key="keyEquivalentModifierMask" control="YES" option="YES"/>
                     <connections>
@@ -45,19 +52,18 @@
                         <action selector="openWiki:" target="252" id="798"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Error and warning logs" id="809">
-                    <connections>
-                        <action selector="openLogFolder:" target="252" id="811"/>
-                    </connections>
-                </menuItem>
                 <menuItem title="Check for updates…" tag="1" id="776">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="checkForUpdates:" target="772" id="796"/>
                     </connections>
                 </menuItem>
+                <menuItem title="Error and warning logs" id="809">
+                    <connections>
+                        <action selector="openLogFolder:" target="252" id="811"/>
+                    </connections>
+                </menuItem>
             </items>
-            <point key="canvasLocation" x="132" y="-74"/>
         </menu>
         <customObject id="772" userLabel="Updater" customClass="SUUpdater"/>
     </objects>

@@ -33,12 +33,13 @@ typedef NS_ENUM(NSUInteger, SquirrelIndex) {
 };
 
 @property(class, weak, readonly, nullable) SquirrelInputController *currentController;
+@property(nonatomic, weak, readonly, nullable) NSAppearance *clientViewEffectiveAppearance API_AVAILABLE(macos(10.14));
 
+- (void)showInitialStatus;
 - (void)moveCursor:(NSUInteger)cursorPosition
         toPosition:(NSUInteger)targetPosition
      inlinePreedit:(BOOL)inlinePreedit
    inlineCandidate:(BOOL)inlineCandidate;
-
 - (void)performAction:(SquirrelAction)action
               onIndex:(SquirrelIndex)index;
 

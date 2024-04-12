@@ -18,9 +18,12 @@ typedef NS_ENUM(NSUInteger, SquirrelNotificationPolicy) {
 @property(nonatomic, weak, nullable) IBOutlet SquirrelPanel *panel;
 @property(nonatomic, weak, nullable) IBOutlet id updater;
 
-@property(nonatomic, strong, readonly, nullable) SquirrelConfig *config;
+@property(nonatomic, readonly, strong, nullable) SquirrelConfig *config;
 @property(nonatomic, readonly) SquirrelNotificationPolicy showNotifications;
+@property(nonatomic, readonly) BOOL problematicLaunchDetected;
+@property(nonatomic) BOOL isCurrentInputMethod;
 
+- (IBAction)showSwitcher:(id _Nullable)sender;
 - (IBAction)deploy:(id _Nullable)sender;
 - (IBAction)syncUserData:(id _Nullable)sender;
 - (IBAction)configure:(id _Nullable)sender;
@@ -33,8 +36,6 @@ typedef NS_ENUM(NSUInteger, SquirrelNotificationPolicy) {
 - (void)loadSchemaSpecificSettings:(NSString * _Nonnull)schemaId
                    withRimeSession:(RimeSessionId)sessionId;
 - (void)loadSchemaSpecificLabels:(NSString * _Nonnull)schemaId;
-
-@property(nonatomic, readonly) BOOL problematicLaunchDetected;
 
 @end  // SquirrelApplicationDelegate
 

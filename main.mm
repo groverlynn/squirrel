@@ -1,9 +1,8 @@
 
-#import "SquirrelApplicationDelegate.h"
+#import "SquirrelApplicationDelegate.hh"
 #import <Cocoa/Cocoa.h>
 #import <InputMethodKit/InputMethodKit.h>
 #import <rime_api.h>
-#import <string.h>
 
 void RegisterInputSource(void);
 void DisableInputSource(void);
@@ -75,8 +74,8 @@ int main(int argc, char *argv[]) {
     // find the bundle identifier and then initialize the input method server
     NSBundle *main = NSBundle.mainBundle;
     IMKServer *server __unused =
-      [[IMKServer alloc] initWithName:kConnectionName
-                     bundleIdentifier:main.bundleIdentifier];
+      [IMKServer.alloc initWithName:kConnectionName
+                   bundleIdentifier:main.bundleIdentifier];
 
     // load the bundle explicitly because in this case the input method is a
     // background only application

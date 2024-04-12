@@ -23,5 +23,8 @@
 int get_rime_modifiers(NSEventModifierFlags modifiers);
 int get_rime_keycode(ushort keycode, unichar keychar, bool shift, bool caps);
 
+NSEventModifierFlags parse_macos_modifiers(const char *modifier_name);
+int parse_rime_modifiers(const char *modifier_name);
+int parse_keycode(const char *key_name);
 
 #endif /* _MACOS_KEYCODE_H_ */
