@@ -16,7 +16,7 @@ static NSString *const kConnectionName = @"Squirrel_1_Connection";
 int main(int argc, char *argv[]) {
   if (argc > 1 && !strcmp("--quit", argv[1])) {
     NSString *bundleId = NSBundle.mainBundle.bundleIdentifier;
-    NSArray *runningSquirrels =
+    NSArray<NSRunningApplication *> *runningSquirrels =
       [NSRunningApplication runningApplicationsWithBundleIdentifier:bundleId];
     for (NSRunningApplication *squirrelApp in runningSquirrels) {
       [squirrelApp terminate];
@@ -89,8 +89,8 @@ int main(int argc, char *argv[]) {
 
     if (NSApp.squirrelAppDelegate.problematicLaunchDetected) {
       NSLog(@"Problematic launch detected!");
-      NSArray *args = @[@"-v", NSLocalizedString(@"say_voice", nil),
-                        NSLocalizedString(@"problematic_launch", nil)];
+      NSArray<NSString *> *args = @[@"-v", NSLocalizedString(@"say_voice", nil),
+                                    NSLocalizedString(@"problematic_launch", nil)];
       if (@available(macOS 10.13, *)) {
         [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/say"
                                                          isDirectory:NO]

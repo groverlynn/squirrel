@@ -1,5 +1,8 @@
 #import <Cocoa/Cocoa.h>
 
+typedef uintptr_t RimeSessionId; 
+
+__attribute__((objc_direct_members))
 @interface SquirrelOptionSwitcher : NSObject
 
 @property(nonatomic, strong, readonly, nonnull) NSString *schemaId;
@@ -22,17 +25,18 @@
 - (BOOL)updateGroupState:(NSString * _Nonnull)optionState
                 ofOption:(NSString * _Nonnull)optionName;
 - (BOOL)updateCurrentScriptVariant:(NSString * _Nonnull)scriptVariant;
+- (void)updateWithRimeSession:(RimeSessionId)session;
 
 @end  // SquirrelOptionSwitcher
 
 
+__attribute__((objc_direct_members))
 @interface SquirrelConfig : NSObject
 
 typedef NSDictionary<NSString *, NSNumber *> SquirrelAppOptions;
 
 @property(nonatomic, strong, readonly, nonnull) NSString *schemaId;
 @property(nonatomic, strong, nonnull) NSString *colorSpace;
-@property(nonatomic, readonly) BOOL isOpen;
 
 - (BOOL)openBaseConfig;
 - (BOOL)openWithSchemaId:(NSString * _Nonnull)schemaId

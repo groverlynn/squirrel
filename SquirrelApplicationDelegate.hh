@@ -1,6 +1,5 @@
 #import <Cocoa/Cocoa.h>
 
-#import <rime_api.h>
 @class SquirrelConfig;
 @class SquirrelPanel;
 @class SquirrelOptionSwitcher;
@@ -14,14 +13,16 @@ typedef NS_ENUM(NSUInteger, SquirrelNotificationPolicy) {
   kShowNotificationsAlways = 2
 };
 
+typedef uintptr_t RimeSessionId;
+
 @property(nonatomic, weak, nullable) IBOutlet NSMenu *menu;
 @property(nonatomic, weak, nullable) IBOutlet SquirrelPanel *panel;
 @property(nonatomic, weak, nullable) IBOutlet id updater;
 
-@property(nonatomic, readonly, strong, nullable) SquirrelConfig *config;
-@property(nonatomic, readonly) SquirrelNotificationPolicy showNotifications;
-@property(nonatomic, readonly) BOOL problematicLaunchDetected;
-@property(nonatomic) BOOL isCurrentInputMethod;
+@property(nonatomic, readonly, strong, nullable, direct) SquirrelConfig *config;
+@property(nonatomic, readonly, direct) SquirrelNotificationPolicy showNotifications;
+@property(nonatomic, readonly, direct) BOOL problematicLaunchDetected;
+@property(nonatomic, direct) BOOL isCurrentInputMethod;
 
 - (IBAction)showSwitcher:(id _Nullable)sender;
 - (IBAction)deploy:(id _Nullable)sender;
@@ -30,19 +31,19 @@ typedef NS_ENUM(NSUInteger, SquirrelNotificationPolicy) {
 - (IBAction)openWiki:(id _Nullable)sender;
 - (IBAction)openLogFolder:(id _Nullable)sender;
 
-- (void)setupRime;
-- (void)startRimeWithFullCheck:(BOOL)fullCheck;
-- (void)loadSettings;
+- (void)setupRime __attribute__((objc_direct));
+- (void)startRimeWithFullCheck:(BOOL)fullCheck __attribute__((objc_direct));
+- (void)loadSettings __attribute__((objc_direct));
 - (void)loadSchemaSpecificSettings:(NSString * _Nonnull)schemaId
-                   withRimeSession:(RimeSessionId)sessionId;
-- (void)loadSchemaSpecificLabels:(NSString * _Nonnull)schemaId;
+                   withRimeSession:(RimeSessionId)sessionId __attribute__((objc_direct));
+- (void)loadSchemaSpecificLabels:(NSString * _Nonnull)schemaId __attribute__((objc_direct));
 
 @end  // SquirrelApplicationDelegate
 
 
 @interface NSApplication (SquirrelApp)
 
-@property(nonatomic, strong, readonly, nonnull) SquirrelApplicationDelegate *squirrelAppDelegate;
+@property(nonatomic, strong, readonly, nonnull, direct) SquirrelApplicationDelegate *squirrelAppDelegate;
 
 @end  // NSApplication (SquirrelApp)
 

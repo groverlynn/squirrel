@@ -10,7 +10,7 @@
 #import <IOKit/hid/IOHIDLib.h>
 #import <IOKit/hidsystem/IOHIDLib.h>
 
-extern NSString *const kFullWidthSpace = @"　";
+static NSString *const kFullWidthSpace = @"　";
 static const int N_KEY_ROLL_OVER = 50;
 
 @implementation SquirrelInputController {
@@ -19,6 +19,7 @@ static const int N_KEY_ROLL_OVER = 50;
   NSString *_composedString;
   NSString *_schemaId;
   NSRange _selRange;
+  NSRange _candidateIndices;
   NSUInteger _caretPos;
   NSUInteger _converted;
   NSUInteger _currentIndex;
@@ -222,7 +223,7 @@ static Bool _asciiMode = -1;
   return YES;
 }
 
-void set_CapsLock_LED_state(bool target_state) {
+static void set_CapsLock_LED_state(bool target_state) {
   io_service_t ioService = IOServiceGetMatchingService(kIOMasterPortDefault,
                             IOServiceMatching(kIOHIDSystemClass));
   io_connect_t ioConnect = 0;
@@ -236,7 +237,7 @@ void set_CapsLock_LED_state(bool target_state) {
 }
 
 - (BOOL)processKey:(int)rime_keycode
-         modifiers:(int)rime_modifiers {
+         modifiers:(int)rime_modifiers __attribute__((objc_direct)) {
   SquirrelPanel *panel = NSApp.squirrelAppDelegate.panel;
   // with linear candidate list, arrow keys may behave differently.
   Bool is_linear = (Bool)panel.linear;
@@ -309,7 +310,7 @@ void set_CapsLock_LED_state(bool target_state) {
 - (void)moveCursor:(NSUInteger)cursorPosition
         toPosition:(NSUInteger)targetPosition
      inlinePreedit:(BOOL)inlinePreedit
-   inlineCandidate:(BOOL)inlineCandidate {
+   inlineCandidate:(BOOL)inlineCandidate __attribute__((objc_direct)) {
   BOOL vertical = NSApp.squirrelAppDelegate.panel.vertical;
   @autoreleasepool {
     NSString *composition = !inlinePreedit && !inlineCandidate ? _composedString : _preeditString.string;
@@ -363,7 +364,7 @@ void set_CapsLock_LED_state(bool target_state) {
 }
 
 - (void)performAction:(SquirrelAction)action
-              onIndex:(SquirrelIndex)index {
+              onIndex:(SquirrelIndex)index __attribute__((objc_direct)) {
   //NSLog(@"perform action: %lu on index: %lu", action, index);
   bool handled = false;
   switch (action) {
@@ -391,7 +392,7 @@ void set_CapsLock_LED_state(bool target_state) {
   }
 }
 
-- (void)onChordTimer:(NSTimer *)timer {
+- (void)onChordTimer:(NSTimer *)timer  {
   // chord release triggered by timer
   int processed_keys = 0;
   if (_chordKeyCount && _session) {
@@ -410,7 +411,7 @@ void set_CapsLock_LED_state(bool target_state) {
 }
 
 - (void)updateChord:(int)keycode
-          modifiers:(int)modifiers {
+          modifiers:(int)modifiers __attribute__((objc_direct)) {
   //NSLog(@"update chord: {%s} << %x", _chord, keycode);
   for (int i = 0; i < _chordKeyCount; ++i) {
     if (_chordKeyCodes[i] == keycode) {
@@ -441,7 +442,7 @@ void set_CapsLock_LED_state(bool target_state) {
                                                 repeats:NO];
 }
 
-- (void)clearChord {
+- (void)clearChord __attribute__((objc_direct)) {
   _chordKeyCount = 0;
   if (_chordTimer.valid) {
     [_chordTimer invalidate];
@@ -454,7 +455,7 @@ void set_CapsLock_LED_state(bool target_state) {
   return NSEventMaskKeyDown | NSEventMaskFlagsChanged | NSEventMaskLeftMouseDown;
 }
 
-NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) {
+static NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) {
   RimeStringSlice short_label = rime_get_api()->
                                 get_state_label_abbreviated(session, option, state, True);
   if (short_label.str && short_label.length >= strlen(short_label.str)) {
@@ -467,7 +468,7 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
   }
 }
 
-- (void)showInitialStatus {
+- (void)showInitialStatus __attribute__((objc_direct)) {
   RIME_STRUCT(RimeStatus, status);
   if (_session && rime_get_api()->get_status(_session, &status)) {
     _schemaId = @(status.schema_id);
@@ -544,6 +545,9 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
                         client:inputClient];
   if (self) {
     [self createSession];
+    self.delegate = self;
+    _candidateTexts = NSMutableArray.alloc.init;
+    _candidateComments = NSMutableArray.alloc.init;
   }
   return self;
 }
@@ -571,13 +575,13 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
 - (void)commitComposition:(id)sender {
   //NSLog(@"commitComposition:");
   [self commitString:[self composedString:sender]];
-  [self hidePalettes];
   if (_session) {
     rime_get_api()->clear_composition(_session);
   }
+  [self hidePalettes];
 }
 
-- (void)clearBuffer {
+- (void)clearBuffer __attribute__((objc_direct)) {
   NSApp.squirrelAppDelegate.panel.IbeamRect = NSZeroRect;
   _preeditString = nil;
   _originalString = nil;
@@ -631,6 +635,10 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
                                                     withString:@""];
 }
 
+- (NSArray*)candidates:(id)sender {
+  return [_candidateTexts subarrayWithRange:_candidateIndices];
+}
+
 - (void)hidePalettes {
   [NSApp.squirrelAppDelegate.panel hide];
   [super hidePalettes];
@@ -654,7 +662,7 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
   //NSLog(@"commitString:");
   if (string) {
     [self.client insertText:string
-           replacementRange:self.replacementRange];
+           replacementRange:NSMakeRange(NSNotFound, NSNotFound)];
   }
   [self clearBuffer];
 }
@@ -669,11 +677,11 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
 
 - (void)updateComposition {
   [self.client setMarkedText:_preeditString
-              selectionRange:self.selectionRange
-            replacementRange:self.replacementRange];
+              selectionRange:NSMakeRange(_caretPos, 0)
+            replacementRange:NSMakeRange(NSNotFound, NSNotFound)];
 }
 
-- (void)showPlaceholder:(NSString *)placeholder {
+- (void)showPlaceholder:(NSString *)placeholder __attribute__((objc_direct)) {
   NSDictionary *attrs = [self markForStyle:kTSMHiliteSelectedRawText
                                    atRange:NSMakeRange(0, placeholder ? placeholder.length : 1)];
   _preeditString = [[NSMutableAttributedString alloc] initWithString:placeholder ? : @"█"
@@ -684,7 +692,7 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
 
 - (void)showPreeditString:(NSString *)preedit
                  selRange:(NSRange)range
-                 caretPos:(NSUInteger)pos {
+                 caretPos:(NSUInteger)pos __attribute__((objc_direct)) {
   //NSLog(@"showPreeditString: '%@'", preedit);
   if ([preedit isEqualToString:_preeditString.string] &&
       NSEqualRanges(range, _selRange) && pos == _caretPos) {
@@ -711,7 +719,7 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
   [self updateComposition];
 }
 
-- (CGRect)getIbeamRect {
+- (CGRect)getIbeamRect __attribute__((objc_direct)) {
   NSRect IbeamRect = NSZeroRect;
   [self.client attributesForCharacterIndex:0
                        lineHeightRectangle:&IbeamRect];
@@ -773,21 +781,22 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
 - (void)showPanelWithPreedit:(NSString *)preedit
                     selRange:(NSRange)selRange
                     caretPos:(NSUInteger)caretPos
-            candidateIndices:(NSRange)indexRange
+            candidateIndices:(NSRange)candidateIndices
             highlightedIndex:(NSUInteger)highlightedIndex
                      pageNum:(NSUInteger)pageNum
                    finalPage:(BOOL)finalPage
-                  didCompose:(BOOL)didCompose {
+                  didCompose:(BOOL)didCompose __attribute__((objc_direct)) {
   //NSLog(@"showPanelWithPreedit:...:");
   SquirrelPanel *panel = NSApp.squirrelAppDelegate.panel;
   panel.IbeamRect = [self getIbeamRect];
   if (NSIsEmptyRect(panel.IbeamRect) && panel.statusMessage.length > 0) {
     [panel updateStatusLong:nil statusShort:nil];
   } else {
+    _candidateIndices = candidateIndices;
     [panel showPreedit:preedit
               selRange:selRange
               caretPos:caretPos
-      candidateIndices:indexRange
+      candidateIndices:candidateIndices
       highlightedIndex:highlightedIndex
                pageNum:pageNum
              finalPage:finalPage
@@ -797,7 +806,7 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
 
 #pragma mark - Private methods
 
-- (void)createSession {
+- (void)createSession __attribute__((objc_direct)) {
   NSString *app = self.client.bundleIdentifier;
   //NSLog(@"createSession: %@", app);
   _session = rime_get_api()->create_session();
@@ -827,7 +836,7 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
   }
 }
 
-- (void)destroySession {
+- (void)destroySession __attribute__((objc_direct)) {
   //NSLog(@"destroySession:");
   if (_session) {
     rime_get_api()->destroy_session(_session);
@@ -836,7 +845,7 @@ NSString *getOptionLabel(RimeSessionId session, const char *option, Bool state) 
   [self clearChord];
 }
 
-- (BOOL)rimeConsumeCommittedText {
+- (BOOL)rimeConsumeCommittedText __attribute__((objc_direct)) {
   RIME_STRUCT(RimeCommit, commit);
   if (rime_get_api()->get_commit(_session, &commit)) {
     NSString *commitText = @(commit.text);
@@ -860,7 +869,7 @@ static NSUInteger inline UTF8LengthToUTF16Length(const char *string, int length)
                                 encoding:NSUTF8StringEncoding].length;
 }
 
-- (void)rimeUpdate {
+- (void)rimeUpdate __attribute__((objc_direct)) {
   //NSLog(@"rimeUpdate");
   BOOL didCommit = self.rimeConsumeCommittedText;
   BOOL didCompose = didCommit;
@@ -1015,25 +1024,25 @@ static NSUInteger inline UTF8LengthToUTF16Length(const char *string, int length)
     }
 
     // overwrite old cached candidates (index = 0) OR continue cache more candidates
-    NSUInteger index = didCompose || numCandidates == 0 ? 0 : panel.numCachedCandidates;
+    if (didCompose || numCandidates == 0) {
+      [_candidateTexts removeAllObjects];
+      [_candidateComments removeAllObjects];
+    }
+    NSUInteger index = _candidateTexts.count;
     // cache candidates
     if (index < pageSize * pageNum) {
       RimeCandidateListIterator iterator;
       if (rime_get_api()->candidate_list_from_index(_session, &iterator, (int)index)) {
         NSUInteger endIndex = pageSize * pageNum;
         while (index < endIndex && rime_get_api()->candidate_list_next(&iterator)) {
-          [panel setCandidateAtIndex:index++
-                            withText:@(iterator.candidate.text)
-                             comment:@(iterator.candidate.comment ? : "")];
+          [self updateCandidate:&iterator.candidate atIndex:index++];
         }
         rime_get_api()->candidate_list_end(&iterator);
       }
     }
     if (index < pageSize * pageNum + numCandidates) {
       for (NSUInteger i = 0; i < numCandidates; ++i) {
-        [panel setCandidateAtIndex:index++
-                          withText:@(ctx.menu.candidates[i].text)
-                           comment: @(ctx.menu.candidates[i].comment ? : "")];
+        [self updateCandidate:&ctx.menu.candidates[i] atIndex:index++];
       }
     }
     if (index < NSMaxRange(candidateIndices)) {
@@ -1041,16 +1050,14 @@ static NSUInteger inline UTF8LengthToUTF16Length(const char *string, int length)
       if (rime_get_api()->candidate_list_from_index(_session, &iterator, (int)index)) {
         NSUInteger endIndex = pageSize * (pageNum + (panel.vertical ? 3 : 5) - panel.sectionNum);
         while (index < endIndex && rime_get_api()->candidate_list_next(&iterator)) {
-          [panel setCandidateAtIndex:index++
-                            withText:@(iterator.candidate.text)
-                             comment:@(iterator.candidate.comment ? : "")];
+          [self updateCandidate:&iterator.candidate atIndex:index++];
         }
         rime_get_api()->candidate_list_end(&iterator);
         candidateIndices.length = index - candidateIndices.location;
       }
     }
     // remove old candidates that were not overwritted, if any, subscripted from index
-    [panel setCandidateAtIndex:index withText:nil comment:nil];
+    [self updateCandidate:NULL atIndex:index];
 
     [self showPanelWithPreedit:_inlinePreedit && !_showingSwitcherMenu ? nil : preeditText
                       selRange:NSMakeRange(start, end - start)
@@ -1064,6 +1071,26 @@ static NSUInteger inline UTF8LengthToUTF16Length(const char *string, int length)
   } else {
     [self hidePalettes];
     [self clearBuffer];
+  }
+}
+
+- (void)updateCandidate:(RimeCandidate *)candidate
+                atIndex:(NSUInteger)index __attribute__((objc_direct)) {
+  if (candidate == NULL || index > _candidateTexts.count) {
+    if (index < _candidateTexts.count) {
+      NSRange remove = NSMakeRange(index, _candidateTexts.count - index);
+      [_candidateTexts removeObjectsInRange:remove];
+      [_candidateComments removeObjectsInRange:remove];
+    }
+    return;
+  }
+  if (index == _candidateTexts.count ||
+      strcmp(candidate->text, _candidateTexts[index].UTF8String)) {
+    _candidateTexts[index] = @(candidate->text);
+  }
+  if (index == _candidateComments.count ||
+      strcmp(candidate->comment ? : "", _candidateComments[index].UTF8String)) {
+    _candidateComments[index] = @(candidate->comment ? : "");
   }
 }
 

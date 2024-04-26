@@ -2,8 +2,8 @@
 
 #import <rime_api.h>
 
-static NSArray *const scripts = @[@"zh-Hans", @"zh-Hant", @"zh-TW", @"zh-HK",
-                                  @"zh-MO", @"zh-SG", @"zh-CN", @"zh"];
+static NSArray<NSString *> *const scripts = @[@"zh-Hans", @"zh-Hant", @"zh-TW", @"zh-HK",
+                                              @"zh-MO", @"zh-SG", @"zh-CN", @"zh"];
 
 @implementation SquirrelOptionSwitcher
 
@@ -87,15 +87,44 @@ static NSArray *const scripts = @[@"zh-Hans", @"zh-Hant", @"zh-TW", @"zh-HK",
   return YES;
 }
 
+- (void)updateWithRimeSession:(RimeSessionId)session {
+  for (NSString *state in _optionStates) {
+    NSString *updatedState;
+    NSArray<NSString *> *optionGroup = [_switcher allKeysForObject:state];
+    for (NSString *option in optionGroup) {
+      if (rime_get_api()->get_option(session, option.UTF8String)) {
+        updatedState = option;
+        break;
+      }
+    }
+    updatedState = updatedState ? : [@"!" stringByAppendingString:optionGroup[0]];
+    if (![updatedState isEqualToString:state]) {
+      [self updateGroupState:updatedState ofOption:state];
+    }
+  }
+  // update script variant
+  if (_scriptVariantOptions.count > 0) {
+    for (NSString *option in _scriptVariantOptions) {
+      if ([option hasPrefix:@"!"]
+          ? !rime_get_api()->get_option(session, [option substringFromIndex:1].UTF8String)
+          : rime_get_api()->get_option(session, option.UTF8String)) {
+        [self updateCurrentScriptVariant:option];
+        break;
+      }
+    }
+  }
+}
+
 @end  // SquirrelOptionSwitcher
 
 
 @implementation SquirrelConfig {
-  NSCache *_cache;
+  NSCache<NSString *, id> *_cache;
   SquirrelConfig *_baseConfig;
   NSColorSpace *_colorSpace;
   NSString *_colorSpaceName;
   RimeConfig _config;
+  BOOL _isOpen;
 }
 
 - (instancetype)init {
@@ -419,20 +448,20 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
   return strList;
 }
 
-static NSDictionary *const localeScript =
-@{@"simplification"  : @"zh-Hans",
-  @"simplified"      : @"zh-Hans",
-  @"!traditional"    : @"zh-Hans",
-  @"traditional"     : @"zh-Hant",
-  @"!simplification" : @"zh-Hant",
-  @"!simplified"     : @"zh-Hant"};
-static NSDictionary *const localeRegion =
-@{@"tw"       : @"zh-TW", @"taiwan"   : @"zh-TW",
-  @"hk"       : @"zh-HK", @"hongkong" : @"zh-HK",
-  @"hong_kong": @"zh-HK", @"mo"       : @"zh-MO",
-  @"macau"    : @"zh-MO", @"macao"    : @"zh-MO",
-  @"sg"       : @"zh-SG", @"singapore": @"zh-SG",
-  @"cn"       : @"zh-CN", @"china"    : @"zh-CN"};
+static NSDictionary<NSString *, NSString *> *const localeScript =
+  @{@"simplification"  : @"zh-Hans",
+    @"simplified"      : @"zh-Hans",
+    @"!traditional"    : @"zh-Hans",
+    @"traditional"     : @"zh-Hant",
+    @"!simplification" : @"zh-Hant",
+    @"!simplified"     : @"zh-Hant"};
+static NSDictionary<NSString *, NSString *> *const localeRegion =
+  @{@"tw"       : @"zh-TW", @"taiwan"   : @"zh-TW",
+    @"hk"       : @"zh-HK", @"hongkong" : @"zh-HK",
+    @"hong_kong": @"zh-HK", @"mo"       : @"zh-MO",
+    @"macau"    : @"zh-MO", @"macao"    : @"zh-MO",
+    @"sg"       : @"zh-SG", @"singapore": @"zh-SG",
+    @"cn"       : @"zh-CN", @"china"    : @"zh-CN"};
 
 static NSString *codeForScriptVariant(NSString *scriptVariant) {
   for (NSString *script in localeScript) {

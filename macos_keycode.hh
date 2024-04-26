@@ -1,5 +1,5 @@
-#ifndef _MACOS_KEYCODE_H_
-#define _MACOS_KEYCODE_H_
+#ifndef _MACOS_KEYCODE_HH_
+#define _MACOS_KEYCODE_HH_
 
 #import <AppKit/AppKit.h>
 
@@ -27,4 +27,4 @@ NSEventModifierFlags parse_macos_modifiers(const char *modifier_name);
 int parse_rime_modifiers(const char *modifier_name);
 int parse_keycode(const char *key_name);
 
-#endif /* _MACOS_KEYCODE_H_ */
+#endif /* _MACOS_KEYCODE_HH_ */

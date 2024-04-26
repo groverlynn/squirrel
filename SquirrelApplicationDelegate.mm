@@ -3,6 +3,7 @@
 #import "SquirrelConfig.hh"
 #import "SquirrelPanel.hh"
 #import "macos_keycode.hh"
+#import "rime_api.h"
 #import <UserNotifications/UserNotifications.h>
 
 static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
@@ -48,7 +49,7 @@ static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
   [NSWorkspace.sharedWorkspace activateFileViewerSelectingURLs:@[logFile]];
 }
 
-void show_notification(const char *msg_text) {
+ void show_notification(const char *msg_text) {
   if (@available(macOS 10.14, *)) {
     UNUserNotificationCenter *center = UNUserNotificationCenter.currentNotificationCenter;
     [center requestAuthorizationWithOptions:UNAuthorizationOptionAlert | UNAuthorizationOptionProvisional
@@ -198,47 +199,18 @@ static void notification_handler(void *context_object,
   rime_get_api()->finalize();
 }
 
-static void updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitcher,
-                                 RimeSessionId sessionId) {
-  for (NSString *state in optionSwitcher.optionStates) {
-    NSString *updatedState;
-    NSArray *optionGroup = [optionSwitcher.switcher allKeysForObject:state];
-    for (NSString *option in optionGroup) {
-      if (rime_get_api()->get_option(sessionId, option.UTF8String)) {
-        updatedState = option;
-        break;
-      }
-    }
-    updatedState = updatedState ? : [@"!" stringByAppendingString:optionGroup[0]];
-    if (![updatedState isEqualToString:state]) {
-      [optionSwitcher updateGroupState:updatedState ofOption:state];
-    }
-  }
-  // update script variant
-  if (optionSwitcher.scriptVariantOptions.count > 0) {
-    for (NSString *option in optionSwitcher.scriptVariantOptions) {
-      if ([option hasPrefix:@"!"] 
-          ? !rime_get_api()->get_option(sessionId, [option substringFromIndex:1].UTF8String)
-          : rime_get_api()->get_option(sessionId, option.UTF8String)) {
-        [optionSwitcher updateCurrentScriptVariant:option];
-        break;
-      }
-    }
-  }
-}
-
 - (void)loadSettings {
   SquirrelConfig *defaultConfig = SquirrelConfig.alloc.init;
   if ([defaultConfig openWithConfigId:@"default"]) {
     NSString *hotKeys = [defaultConfig getStringForOption:@"switcher/hotkeys/@0"];
-    NSArray *keys = [hotKeys componentsSeparatedByString:@"+"];
+    NSArray<NSString *> *keys = [hotKeys componentsSeparatedByString:@"+"];
     NSEventModifierFlags modifiers = 0;
     int rime_modifiers = 0;
     for (NSUInteger i = 0; i < keys.count - 1; ++i) {
-      modifiers |= parse_macos_modifiers([keys[i] UTF8String]);
-      rime_modifiers |= parse_rime_modifiers([keys[i] UTF8String]);
+      modifiers |= parse_macos_modifiers(keys[i].UTF8String);
+      rime_modifiers |= parse_rime_modifiers(keys[i].UTF8String);
     }
-    int keycode = parse_keycode([keys.lastObject UTF8String]);
+    int keycode = parse_keycode(keys.lastObject.UTF8String);
     unichar keychar = keycode <= 0xFFFF ? (unichar)keycode : 0;
     _menu.itemArray[0].keyEquivalent = [NSString stringWithCharacters:&keychar length:1];
     _menu.itemArray[0].keyEquivalentModifierMask = modifiers;
@@ -275,7 +247,7 @@ static void updateOptionSwitcher(SquirrelOptionSwitcher *optionSwitcher,
   SquirrelConfig *schema = SquirrelConfig.alloc.init;
   if ([schema openWithSchemaId:schemaId baseConfig:_config]) {
     _panel.optionSwitcher = schema.getOptionSwitcher;
-    updateOptionSwitcher(_panel.optionSwitcher, sessionId);
+    [_panel.optionSwitcher updateWithRimeSession:sessionId];
     if ([schema hasSection:@"style"]) {
       [_panel loadConfig:schema];
     } else {

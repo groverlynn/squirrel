@@ -7,38 +7,33 @@
 @interface SquirrelPanel : NSPanel <NSWindowDelegate>
 
 // Show preedit text inline.
-@property(nonatomic, readonly) BOOL inlinePreedit;
+@property(nonatomic, readonly, direct) BOOL inlinePreedit;
 // Show primary candidate inline
-@property(nonatomic, readonly) BOOL inlineCandidate;
+@property(nonatomic, readonly, direct) BOOL inlineCandidate;
 // Vertical text orientation, as opposed to horizontal text orientation.
-@property(nonatomic, readonly) BOOL vertical;
+@property(nonatomic, readonly, direct) BOOL vertical;
 // Linear candidate list layout, as opposed to stacked candidate list layout.
-@property(nonatomic, readonly) BOOL linear;
+@property(nonatomic, readonly, direct) BOOL linear;
 // Tabular candidate list layout, initializes as tab-aligned linear layout,
 // expandable to stack 5 (3 for vertical) pages/sections of candidates
-@property(nonatomic, readonly) BOOL tabular;
-@property(nonatomic, readonly) BOOL locked;
-@property(nonatomic, readonly) BOOL firstLine;
-@property(nonatomic) BOOL expanded;
-@property(nonatomic) NSUInteger sectionNum;
+@property(nonatomic, readonly, direct) BOOL tabular;
+@property(nonatomic, readonly, direct) BOOL locked;
+@property(nonatomic, readonly, direct) BOOL firstLine;
+@property(nonatomic, direct) BOOL expanded;
+@property(nonatomic, direct) NSUInteger sectionNum;
 // position of the text input I-beam cursor on screen.
-@property(nonatomic) NSRect IbeamRect;
+@property(nonatomic, direct) NSRect IbeamRect;
 @property(nonatomic, strong, readonly, nullable) NSScreen *screen;
-@property(nonatomic, weak, readonly, nullable) SquirrelInputController *inputController;
 // Status message before pop-up is displayed; nil before normal panel is displayed
-@property(nonatomic, strong, readonly, nullable) NSString *statusMessage;
+@property(nonatomic, strong, readonly, nullable, direct) NSString *statusMessage;
 // Store switch options that change style (color theme) settings
-@property(nonatomic, strong, nonnull) SquirrelOptionSwitcher *optionSwitcher;
+@property(nonatomic, strong, nonnull, direct) SquirrelOptionSwitcher *optionSwitcher;
 
 // query
-- (NSUInteger)candidateIndexOnDirection:(SquirrelIndex)arrowKey;
-- (NSUInteger)numCachedCandidates;
-// updating contents
-- (void)setCandidateAtIndex:(NSUInteger)index
-                   withText:(NSString * _Nullable)text
-                    comment:(NSString * _Nullable)comment;
+- (NSUInteger)candidateIndexOnDirection:(SquirrelIndex)arrowKey __attribute__((objc_direct));
+// status message
 - (void)updateStatusLong:(NSString * _Nullable)messageLong
-             statusShort:(NSString * _Nullable)messageShort;
+             statusShort:(NSString * _Nullable)messageShort __attribute__((objc_direct));
 // display
 - (void)showPreedit:(NSString * _Nullable)preeditString
            selRange:(NSRange)selRange
@@ -47,12 +42,12 @@
    highlightedIndex:(NSUInteger)highlightedIndex
             pageNum:(NSUInteger)pageNum
           finalPage:(BOOL)finalPage
-         didCompose:(BOOL)didCompose;
-- (void)hide;
+         didCompose:(BOOL)didCompose __attribute__((objc_direct));
+- (void)hide __attribute__((objc_direct));
 // settings
-- (void)loadConfig:(SquirrelConfig * _Nonnull)config;
+- (void)loadConfig:(SquirrelConfig * _Nonnull)config __attribute__((objc_direct));
 - (void)loadLabelConfig:(SquirrelConfig * _Nonnull)config
-           directUpdate:(BOOL)update;
-- (void)updateScriptVariant;
+           directUpdate:(BOOL)update __attribute__((objc_direct));
+- (void)updateScriptVariant __attribute__((objc_direct));
 
 @end  // SquirrelPanel
