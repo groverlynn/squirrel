@@ -20,8 +20,8 @@ static const int N_KEY_ROLL_OVER = 50;
   NSString* _schemaId;
   NSRange _selRange;
   NSRange _candidateIndices;
-  NSUInteger _caretPos;
-  NSUInteger _converted;
+  NSRange _inlineSelRange;
+  NSUInteger _inlineCaretPos;
   NSUInteger _currentIndex;
   NSEventModifierFlags _lastModifiers;
   uint _lastEventCount;
@@ -244,7 +244,7 @@ static Bool _asciiMode = -1;
                            client:(id)sender {
   *keepTracking = NO;
   if ((!_inlinePreedit && !_inlineCandidate) || _composedString.length == 0 ||
-      _caretPos == index ||
+      _inlineCaretPos == index ||
       (flags & NSEventModifierFlagDeviceIndependentFlagsMask)) {
     return NO;
   }
@@ -263,7 +263,7 @@ static Bool _asciiMode = -1;
   } else if (point.x < head.x || index <= 0) {
     [self performAction:kPROCESS onIndex:kHomeKey];
   } else {
-    [self moveCursor:_caretPos
+    [self moveCursor:_inlineCaretPos
              toPosition:index
           inlinePreedit:_inlinePreedit
         inlineCandidate:_inlineCandidate];
@@ -735,7 +735,7 @@ static NSString* getOptionLabel(RimeSessionId session,
 }
 
 - (NSRange)selectionRange {
-  return NSMakeRange(_caretPos, 0);
+  return NSMakeRange(_inlineCaretPos, 0);
 }
 
 - (NSRange)replacementRange {
@@ -761,7 +761,7 @@ static NSString* getOptionLabel(RimeSessionId session,
 
 - (void)updateComposition {
   [self.client setMarkedText:_preeditString
-              selectionRange:NSMakeRange(_caretPos, 0)
+              selectionRange:NSMakeRange(_inlineCaretPos, 0)
             replacementRange:NSMakeRange(NSNotFound, NSNotFound)];
 }
 
@@ -772,7 +772,7 @@ static NSString* getOptionLabel(RimeSessionId session,
   _preeditString =
       [[NSMutableAttributedString alloc] initWithString:placeholder ?: @"█"
                                              attributes:attrs];
-  _caretPos = 0;
+  _inlineCaretPos = 0;
   [self updateComposition];
 }
 
@@ -781,11 +781,11 @@ static NSString* getOptionLabel(RimeSessionId session,
                  caretPos:(NSUInteger)pos __attribute__((objc_direct)) {
   // NSLog(@"showPreeditString: '%@'", preedit);
   if ([preedit isEqualToString:_preeditString.string] &&
-      NSEqualRanges(range, _selRange) && pos == _caretPos) {
+      NSEqualRanges(range, _inlineSelRange) && pos == _inlineCaretPos) {
     return;
   }
-  _selRange = range;
-  _caretPos = pos;
+  _inlineSelRange = range;
+  _inlineCaretPos = pos;
   // NSLog(@"selRange.location = %ld, selRange.length = %ld; caretPos = %ld",
   //       range.location, range.length, pos);
   NSDictionary* attrs = [self markForStyle:kTSMHiliteRawText
@@ -1040,8 +1040,9 @@ static NSUInteger inline UTF8LengthToUTF16Length(const char* string,
                            : (NSUInteger)ctx.menu.highlighted_candidate_index;
     BOOL finalPage = (BOOL)ctx.menu.is_last_page;
 
-    didCompose |= start != _converted;
-    _converted = start;
+    NSRange selRange = NSMakeRange(start, end - start);
+    didCompose |= !NSEqualRanges(_selRange, selRange);
+    _selRange = selRange;
     // update expander and section status in tabular layout;
     // already processed the action if _currentIndex == NSNotFound
     if (panel.tabular && !showingStatus) {
@@ -1087,8 +1088,7 @@ static NSUInteger inline UTF8LengthToUTF16Length(const char* string,
       }
     } else if (_inlineCandidate) {
       const char* candidatePreview = ctx.commit_text_preview;
-      NSString* candidatePreviewText =
-          candidatePreview ? @(candidatePreview) : @"";
+      NSString* candidatePreviewText = @(candidatePreview ?: "");
       if (_inlinePreedit) {
         if (end <= caretPos && caretPos < length) {
           candidatePreviewText = [candidatePreviewText
@@ -1115,12 +1115,12 @@ static NSUInteger inline UTF8LengthToUTF16Length(const char* string,
               substringToIndex:candidatePreviewText.length - (length - end)];
         }
         if (!didCommit || candidatePreviewText.length > 0) {
-          [self showPreeditString:candidatePreviewText
-                         selRange:NSMakeRange(start - (caretPos < end),
-                                              candidatePreviewText.length -
-                                                  start + (caretPos < end))
-                         caretPos:caretPos < end ? caretPos - 1
-                                                 : candidatePreviewText.length];
+          [self
+              showPreeditString:candidatePreviewText
+                       selRange:NSMakeRange(start,
+                                            candidatePreviewText.length - start)
+                       caretPos:caretPos < end ? caretPos
+                                               : candidatePreviewText.length];
         }
       }
     } else {
@@ -1188,7 +1188,7 @@ static NSUInteger inline UTF8LengthToUTF16Length(const char* string,
     [self showPanelWithPreedit:_inlinePreedit && !_showingSwitcherMenu
                                    ? nil
                                    : preeditText
-                      selRange:NSMakeRange(start, end - start)
+                      selRange:selRange
                       caretPos:_showingSwitcherMenu ? NSNotFound : caretPos
               candidateIndices:candidateIndices
               highlightedIndex:highlightedIndex

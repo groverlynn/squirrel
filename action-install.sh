@@ -2,14 +2,14 @@
 
 set -e
 
-rime_version=1.11.0
-rime_git_hash=76a0a16
+rime_version=1.11.2-e
+rime_git_hash=0c0f481
 
 rime_archive="rime-${rime_git_hash}-macOS-universal.tar.bz2"
-rime_download_url="https://github.com/rime/librime/releases/download/${rime_version}/${rime_archive}"
+rime_download_url="https://github.com/groverlynn/librime/releases/download/${rime_version}/${rime_archive}"
 
 rime_deps_archive="rime-deps-${rime_git_hash}-macOS-universal.tar.bz2"
-rime_deps_download_url="https://github.com/rime/librime/releases/download/${rime_version}/${rime_deps_archive}"
+rime_deps_download_url="https://github.com/groverlynn/librime/releases/download/${rime_version}/${rime_deps_archive}"
 
 mkdir -p download && (
     cd download
