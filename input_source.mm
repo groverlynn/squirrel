@@ -19,20 +19,19 @@ typedef CF_OPTIONS(CFIndex, RimeInputMode) {
 RimeInputMode GetEnabledInputModes(void);
 
 void RegisterInputSource(void) {
-  if (GetEnabledInputModes()) {  // Already registered
+  if (GetEnabledInputModes() != 0) {  // Already registered
     return;
   }
   CFURLRef installPathURL = CFURLCreateFromFileSystemRepresentation(
       NULL, (UInt8*)kInstallPath, (CFIndex)strlen(kInstallPath), false);
-  if (installPathURL) {
+  if (installPathURL != NULL) {
     TISRegisterInputSource((CFURLRef)CFAutorelease(installPathURL));
     NSLog(@"Registered input source from %s", kInstallPath);
   }
 }
 
 void EnableInputSource(void) {
-  RimeInputMode input_modes_enabled = GetEnabledInputModes();
-  if (input_modes_enabled != 0) {
+  if (GetEnabledInputModes() != 0) {
     // keep user's manually enabled input modes
     return;
   }
@@ -40,15 +39,20 @@ void EnableInputSource(void) {
   CFArrayRef localizations = CFArrayCreate(
       NULL, (CFTypeRef[]){CFSTR("zh-Hans"), CFSTR("zh-Hant"), CFSTR("zh-HK")},
       3, &kCFTypeArrayCallBacks);
-  CFArrayRef preferred =
-      CFBundleCopyLocalizationsForPreferences(localizations, NULL);
+  CFArrayRef preferred = CFBundleCopyLocalizationsForPreferences(
+      (CFArrayRef)CFAutorelease(localizations), NULL);
   if (CFArrayGetCount(preferred) > 0) {
     CFStringRef language = (CFStringRef)CFArrayGetValueAtIndex(preferred, 0);
-    if (!CFStringCompare(language, CFSTR("zh-Hans"), 0)) {
+    if (CFStringCompare(language, CFSTR("zh-Hans"),
+                        kCFCompareCaseInsensitive) == kCFCompareEqualTo) {
       input_modes_to_enable |= HANS_INPUT_MODE;
-    } else if (!CFStringCompare(language, CFSTR("zh-Hant"), 0)) {
+    } else if (CFStringCompare(language, CFSTR("zh-Hant"),
+                               kCFCompareCaseInsensitive) ==
+               kCFCompareEqualTo) {
       input_modes_to_enable |= HANT_INPUT_MODE;
-    } else if (!CFStringCompare(language, CFSTR("zh-HK"), 0)) {
+    } else if (CFStringCompare(language, CFSTR("zh-HK"),
+                               kCFCompareCaseInsensitive) ==
+               kCFCompareEqualTo) {
       input_modes_to_enable |= CANT_INPUT_MODE;
     }
   } else {
@@ -59,24 +63,24 @@ void EnableInputSource(void) {
       NULL, (CFTypeRef[]){kTISPropertyBundleID},
       (CFTypeRef[]){CFBundleGetIdentifier(CFBundleGetMainBundle())}, 1,
       &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-  CFArrayRef sourceList = TISCreateInputSourceList(property, true);
+  CFArrayRef sourceList =
+      TISCreateInputSourceList((CFDictionaryRef)CFAutorelease(property), true);
   for (CFIndex i = 0; i < CFArrayGetCount(sourceList); ++i) {
     TISInputSourceRef inputSource =
         (TISInputSourceRef)CFArrayGetValueAtIndex(sourceList, i);
     CFStringRef sourceID = (CFStringRef)TISGetInputSourceProperty(
         inputSource, kTISPropertyInputSourceID);
     // NSLog(@"Examining input source: %@", sourceID);
-    if ((!CFStringCompare(sourceID, kHansInputModeID, 0) &&
+    if ((CFStringCompare(sourceID, kHansInputModeID, 0) == kCFCompareEqualTo &&
          (input_modes_to_enable & HANS_INPUT_MODE)) ||
-        (!CFStringCompare(sourceID, kHantInputModeID, 0) &&
+        (CFStringCompare(sourceID, kHantInputModeID, 0) == kCFCompareEqualTo &&
          (input_modes_to_enable & HANT_INPUT_MODE)) ||
-        (!CFStringCompare(sourceID, kCantInputModeID, 0) &&
+        (CFStringCompare(sourceID, kCantInputModeID, 0) == kCFCompareEqualTo &&
          (input_modes_to_enable & CANT_INPUT_MODE))) {
       CFBooleanRef isEnabled = (CFBooleanRef)TISGetInputSourceProperty(
           inputSource, kTISPropertyInputSourceIsEnabled);
       if (!CFBooleanGetValue(isEnabled)) {
-        OSStatus enableError = TISEnableInputSource(inputSource);
-        if (enableError) {
+        if (OSStatus enableError = TISEnableInputSource(inputSource) != 0) {
           NSLog(@"Failed to enable input source: %@ (%@)", sourceID,
                 [NSError errorWithDomain:NSOSStatusErrorDomain
                                     code:enableError
@@ -96,22 +100,25 @@ void SelectInputSource(void) {
   CFArrayRef localizations = CFArrayCreate(
       NULL, (CFTypeRef[]){CFSTR("zh-Hans"), CFSTR("zh-Hant"), CFSTR("zh-HK")},
       3, &kCFTypeArrayCallBacks);
-  CFArrayRef preferred =
-      CFBundleCopyLocalizationsForPreferences(localizations, NULL);
+  CFArrayRef preferred = CFBundleCopyLocalizationsForPreferences(
+      (CFArrayRef)CFAutorelease(localizations), NULL);
   for (CFIndex i = 0; i < CFArrayGetCount(preferred); ++i) {
     CFStringRef language = (CFStringRef)CFArrayGetValueAtIndex(preferred, i);
-    if (!CFStringCompare(language, CFSTR("zh-Hans"), 0) &&
+    if (CFStringCompare(language, CFSTR("zh-Hans"),
+                        kCFCompareCaseInsensitive) == kCFCompareEqualTo &&
         (enabled_input_modes & HANS_INPUT_MODE)) {
       input_mode_to_select = HANS_INPUT_MODE;
       break;
-    }
-    if (!CFStringCompare(language, CFSTR("zh-Hant"), 0) &&
-        (enabled_input_modes & HANT_INPUT_MODE)) {
+    } else if (CFStringCompare(language, CFSTR("zh-Hant"),
+                               kCFCompareCaseInsensitive) ==
+                   kCFCompareEqualTo &&
+               (enabled_input_modes & HANT_INPUT_MODE)) {
       input_mode_to_select = HANT_INPUT_MODE;
       break;
-    }
-    if (!CFStringCompare(language, CFSTR("zh-HK"), 0) &&
-        (enabled_input_modes & CANT_INPUT_MODE)) {
+    } else if (CFStringCompare(language, CFSTR("zh-HK"),
+                               kCFCompareCaseInsensitive) ==
+                   kCFCompareEqualTo &&
+               (enabled_input_modes & CANT_INPUT_MODE)) {
       input_mode_to_select = CANT_INPUT_MODE;
       break;
     }
@@ -125,18 +132,19 @@ void SelectInputSource(void) {
       NULL, (CFTypeRef[]){kTISPropertyBundleID},
       (CFTypeRef[]){CFBundleGetIdentifier(CFBundleGetMainBundle())}, 1,
       &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-  CFArrayRef sourceList = TISCreateInputSourceList(property, false);
+  CFArrayRef sourceList =
+      TISCreateInputSourceList((CFDictionaryRef)CFAutorelease(property), false);
   for (CFIndex i = 0; i < CFArrayGetCount(sourceList); ++i) {
     TISInputSourceRef inputSource =
         (TISInputSourceRef)CFArrayGetValueAtIndex(sourceList, i);
     CFStringRef sourceID = (CFStringRef)TISGetInputSourceProperty(
         inputSource, kTISPropertyInputSourceID);
     // NSLog(@"Examining input source: %@", sourceID);
-    if ((!CFStringCompare(sourceID, kHansInputModeID, 0) &&
+    if ((CFStringCompare(sourceID, kHansInputModeID, 0) == kCFCompareEqualTo &&
          ((input_mode_to_select & HANS_INPUT_MODE) != 0)) ||
-        (!CFStringCompare(sourceID, kHantInputModeID, 0) &&
+        (CFStringCompare(sourceID, kHantInputModeID, 0) == kCFCompareEqualTo &&
          ((input_mode_to_select & HANT_INPUT_MODE) != 0)) ||
-        (!CFStringCompare(sourceID, kCantInputModeID, 0) &&
+        (CFStringCompare(sourceID, kCantInputModeID, 0) == kCFCompareEqualTo &&
          ((input_mode_to_select & CANT_INPUT_MODE) != 0))) {
       // select the first enabled input mode in Squirrel.
       CFBooleanRef isSelectable = (CFBooleanRef)TISGetInputSourceProperty(
@@ -144,8 +152,7 @@ void SelectInputSource(void) {
       CFBooleanRef isSelected = (CFBooleanRef)TISGetInputSourceProperty(
           inputSource, kTISPropertyInputSourceIsSelected);
       if (!CFBooleanGetValue(isSelected) && CFBooleanGetValue(isSelectable)) {
-        OSStatus selectError = TISSelectInputSource(inputSource);
-        if (selectError) {
+        if (OSStatus selectError = TISSelectInputSource(inputSource) != 0) {
           NSLog(@"Failed to select input source: %@ (%@)", sourceID,
                 [NSError errorWithDomain:NSOSStatusErrorDomain
                                     code:selectError
@@ -165,18 +172,18 @@ void DisableInputSource(void) {
       NULL, (CFTypeRef[]){kTISPropertyBundleID},
       (CFTypeRef[]){CFBundleGetIdentifier(CFBundleGetMainBundle())}, 1,
       &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-  CFArrayRef sourceList = TISCreateInputSourceList(property, false);
+  CFArrayRef sourceList =
+      TISCreateInputSourceList((CFDictionaryRef)CFAutorelease(property), false);
   for (CFIndex i = CFArrayGetCount(sourceList); i > 0; --i) {
     TISInputSourceRef inputSource =
         (TISInputSourceRef)CFArrayGetValueAtIndex(sourceList, i - 1);
     CFStringRef sourceID = (CFStringRef)TISGetInputSourceProperty(
         inputSource, kTISPropertyInputSourceID);
     // NSLog(@"Examining input source: %@", sourceID);
-    if (!CFStringCompare(sourceID, kHansInputModeID, 0) ||
-        !CFStringCompare(sourceID, kHantInputModeID, 0) ||
-        !CFStringCompare(sourceID, kCantInputModeID, 0)) {
-      OSStatus disableError = TISDisableInputSource(inputSource);
-      if (disableError) {
+    if (CFStringCompare(sourceID, kHansInputModeID, 0) == kCFCompareEqualTo ||
+        CFStringCompare(sourceID, kHantInputModeID, 0) == kCFCompareEqualTo ||
+        CFStringCompare(sourceID, kCantInputModeID, 0) == kCFCompareEqualTo) {
+      if (OSStatus disableError = TISDisableInputSource(inputSource) != 0) {
         NSLog(@"Failed to disable input source: %@ (%@)", sourceID,
               [NSError errorWithDomain:NSOSStatusErrorDomain
                                   code:disableError
@@ -195,23 +202,22 @@ RimeInputMode GetEnabledInputModes(void) {
       NULL, (CFTypeRef[]){kTISPropertyBundleID},
       (CFTypeRef[]){CFBundleGetIdentifier(CFBundleGetMainBundle())}, 1,
       &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-  CFArrayRef sourceList = TISCreateInputSourceList(property, false);
+  CFArrayRef sourceList =
+      TISCreateInputSourceList((CFDictionaryRef)CFAutorelease(property), false);
   for (CFIndex i = 0; i < CFArrayGetCount(sourceList); ++i) {
     TISInputSourceRef inputSource =
         (TISInputSourceRef)CFArrayGetValueAtIndex(sourceList, i);
     CFStringRef sourceID = (CFStringRef)TISGetInputSourceProperty(
         inputSource, kTISPropertyInputSourceID);
     // NSLog(@"Examining input source: %@", sourceID);
-    if (!CFStringCompare(sourceID, kHansInputModeID, 0) ||
-        !CFStringCompare(sourceID, kHantInputModeID, 0) ||
-        !CFStringCompare(sourceID, kCantInputModeID, 0)) {
-      if (!CFStringCompare(sourceID, kHansInputModeID, 0)) {
-        input_modes |= HANS_INPUT_MODE;
-      } else if (!CFStringCompare(sourceID, kHantInputModeID, 0)) {
-        input_modes |= HANT_INPUT_MODE;
-      } else if (!CFStringCompare(sourceID, kCantInputModeID, 0)) {
-        input_modes |= CANT_INPUT_MODE;
-      }
+    if (CFStringCompare(sourceID, kHansInputModeID, 0) == kCFCompareEqualTo) {
+      input_modes |= HANS_INPUT_MODE;
+    } else if (CFStringCompare(sourceID, kHantInputModeID, 0) ==
+               kCFCompareEqualTo) {
+      input_modes |= HANT_INPUT_MODE;
+    } else if (CFStringCompare(sourceID, kCantInputModeID, 0) ==
+               kCFCompareEqualTo) {
+      input_modes |= CANT_INPUT_MODE;
     }
   }
   CFRelease(sourceList);
