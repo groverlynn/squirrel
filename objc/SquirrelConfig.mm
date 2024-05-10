@@ -1,7 +1,5 @@
 #import "SquirrelConfig.hh"
 
-#import <rime_api.h>
-
 static NSArray<NSString *> *const scripts = @[@"zh-Hans", @"zh-Hant", @"zh-TW", @"zh-HK",
                                               @"zh-MO", @"zh-SG", @"zh-CN", @"zh"];
 
@@ -12,8 +10,7 @@ static NSArray<NSString *> *const scripts = @[@"zh-Hans", @"zh-Hant", @"zh-TW", 
                     optionGroups:(NSDictionary<NSString *, NSOrderedSet<NSString *> *> *)optionGroups
             defaultScriptVariant:(NSString *)defaultScriptVariant
             scriptVariantOptions:(NSDictionary<NSString *, NSString *> *)scriptVariantOptions {
-  self = [super init];
-  if (self) {
+  if (self = [super init]) {
     _schemaId = schemaId ? : @"";
     _switcher = switcher ? : NSMutableDictionary.dictionary;
     _optionGroups = optionGroups ? : NSDictionary.dictionary;
@@ -57,7 +54,7 @@ static NSArray<NSString *> *const scripts = @[@"zh-Hans", @"zh-Hant", @"zh-TW", 
 - (BOOL)updateGroupState:(NSString *)optionState
                 ofOption:(NSString *)optionName {
   NSOrderedSet *optionGroup = _optionGroups[optionName];
-  if (!optionGroup) {
+  if (optionGroup == nil) {
     return NO;
   }
   if (optionGroup.count == 1) {
@@ -80,14 +77,71 @@ static NSArray<NSString *> *const scripts = @[@"zh-Hans", @"zh-Hant", @"zh-TW", 
     return NO;
   }
   NSString *scriptVariantCode = _scriptVariantOptions[scriptVariant];
-  if (!scriptVariantCode) {
+  if (scriptVariantCode == nil) {
     return NO;
   }
   _currentScriptVariant = scriptVariantCode;
   return YES;
 }
 
+- (void)updateWithRimeSession:(RimeSessionId)session {
+  for (NSString *state in _optionStates) {
+    NSString *updatedState;
+    NSArray<NSString *> *optionGroup = [_switcher allKeysForObject:state];
+    for (NSString *option in optionGroup) {
+      if (rime_get_api()->get_option(session, option.UTF8String)) {
+        updatedState = option;
+        break;
+      }
+    }
+    updatedState = updatedState ? : [@"!" stringByAppendingString:optionGroup[0]];
+    if (![updatedState isEqualToString:state]) {
+      [self updateGroupState:updatedState ofOption:state];
+    }
+  }
+  // update script variant
+  if (_scriptVariantOptions.count > 0) {
+    for (NSString *option in _scriptVariantOptions) {
+      if ([option hasPrefix:@"!"]
+          ? !rime_get_api()->get_option(session, [option substringFromIndex:1].UTF8String)
+          : rime_get_api()->get_option(session, option.UTF8String)) {
+        [self updateCurrentScriptVariant:option];
+        break;
+      }
+    }
+  }
+}
+
 @end  // SquirrelOptionSwitcher
+
+
+@implementation SquirrelAppOptions
+
+- (BOOL)boolValueForKey:(NSString *)key {
+  if (NSNumber *value = self[key];
+      value != nil && strcmp(value.objCType, @encode(BOOL)) == 0) {
+    return value.boolValue;
+  }
+  return NO;
+}
+
+- (int)intValueForKey:(NSString *)key {
+  if (NSNumber *value = self[key];
+      value != nil && strcmp(value.objCType, @encode(int)) == 0) {
+    return value.intValue;
+  }
+  return 0;
+}
+
+- (double)doubleValueForKey:(NSString *)key {
+  if (NSNumber *value = self[key];
+      value != nil && strcmp(value.objCType, @encode(double)) == 0) {
+    return value.doubleValue;
+  }
+  return 0.0;
+}
+
+@end  // SquirrelAppOptions
 
 
 @implementation SquirrelConfig {
@@ -100,8 +154,7 @@ static NSArray<NSString *> *const scripts = @[@"zh-Hans", @"zh-Hant", @"zh-TW", 
 }
 
 - (instancetype)init {
-  self = [super init];
-  if (self) {
+  if (self = [super init]) {
     _cache = NSCache.alloc.init;
     _colorSpace = NSColorSpace.sRGBColorSpace;
     _colorSpaceName = @"sRGB";
@@ -114,12 +167,12 @@ static NSArray<NSString *> *const scripts = @[@"zh-Hans", @"zh-Hant", @"zh-TW", 
 }
 
 static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
-@{@"deviceRGB"    : NSColorSpace.deviceRGBColorSpace,
-  @"genericRGB"   : NSColorSpace.genericRGBColorSpace,
-  @"sRGB"         : NSColorSpace.sRGBColorSpace,
-  @"displayP3"    : NSColorSpace.displayP3ColorSpace,
-  @"adobeRGB"     : NSColorSpace.adobeRGB1998ColorSpace,
-  @"extendedSRGB" : NSColorSpace.extendedSRGBColorSpace};
+  @{@"deviceRGB"    : NSColorSpace.deviceRGBColorSpace,
+    @"genericRGB"   : NSColorSpace.genericRGBColorSpace,
+    @"sRGB"         : NSColorSpace.sRGBColorSpace,
+    @"displayP3"    : NSColorSpace.displayP3ColorSpace,
+    @"adobeRGB"     : NSColorSpace.adobeRGB1998ColorSpace,
+    @"extendedSRGB" : NSColorSpace.extendedSRGBColorSpace};
 
 - (void)setColorSpace:(NSString *)colorSpace {
   colorSpace = [colorSpace stringByReplacingOccurrencesOfString:@"_" withString:@""];
@@ -168,7 +221,6 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
   if (_isOpen) {
     rime_get_api()->config_close(&_config);
     _baseConfig = nil;
-    _schemaId = nil;
     _isOpen = NO;
   }
 }
@@ -188,7 +240,7 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
   return NO;
 }
 
-- (BOOL)setOption:(NSString *)option withBool:(bool)value {
+- (BOOL)setOption:(NSString *)option withBool:(BOOL)value {
   return (BOOL)(rime_get_api()->config_set_bool(&_config, option.UTF8String, value));
 }
 
@@ -204,22 +256,21 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
   return (BOOL)(rime_get_api()->config_set_string(&_config, option.UTF8String, value.UTF8String));
 }
 
-- (BOOL)getBoolForOption:(NSString *)option {
-  return [self getOptionalBoolForOption:option].boolValue;
+- (bool)getBoolForOption:(NSString *)option {
+  return [self getOptionalBoolForOption:option alias:nil].boolValue;
 }
 
 - (int)getIntForOption:(NSString *)option {
-  return [self getOptionalIntForOption:option].intValue;
+  return [self getOptionalIntForOption:option alias:nil].intValue;
 }
 
 - (double)getDoubleForOption:(NSString *)option {
-  return [self getOptionalDoubleForOption:option].doubleValue;
+  return [self getOptionalDoubleForOption:option alias:nil].doubleValue;
 }
 
 - (double)getDoubleForOption:(NSString *)option
              applyConstraint:(double (*)(double param))func {
-  NSNumber *value = [self getOptionalDoubleForOption:option];
-  return func(value.doubleValue);
+  return func([self getOptionalDoubleForOption:option alias:nil].doubleValue);
 }
 
 - (NSNumber *)getOptionalBoolForOption:(NSString *)option {
@@ -242,12 +293,10 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
 
 - (NSNumber *)getOptionalBoolForOption:(NSString *)option
                                  alias:(NSString *)alias {
-  NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(BOOL) forKey:option];
-  if (cachedValue) {
+  if (NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(BOOL) forKey:option]) {
     return cachedValue;
   }
-  Bool value;
-  if (_isOpen && rime_get_api()->config_get_bool(&_config, option.UTF8String, &value)) {
+  if (CInt value; _isOpen && rime_get_api()->config_get_bool(&_config, option.UTF8String, &value)) {
     NSNumber *number = [NSNumber numberWithBool:(BOOL)value];
     [_cache setObject:number forKey:option];
     return number;
@@ -255,7 +304,7 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
   if (alias != nil) {
     NSString *aliasOption = [[option stringByDeletingLastPathComponent]
                              stringByAppendingPathComponent:alias.lastPathComponent];
-    if (_isOpen && rime_get_api()->config_get_bool(&_config, aliasOption.UTF8String, &value)) {
+    if (CInt value; _isOpen && rime_get_api()->config_get_bool(&_config, aliasOption.UTF8String, &value)) {
       NSNumber *number = [NSNumber numberWithBool:(BOOL)value];
       [_cache setObject:number forKey:option];
       return number;
@@ -266,12 +315,10 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
 
 - (NSNumber *)getOptionalIntForOption:(NSString *)option
                                 alias:(NSString *)alias {
-  NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(int) forKey:option];
-  if (cachedValue) {
+  if (NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(int) forKey:option]) {
     return cachedValue;
   }
-  int value;
-  if (_isOpen && rime_get_api()->config_get_int(&_config, option.UTF8String, &value)) {
+  if (int value; _isOpen && rime_get_api()->config_get_int(&_config, option.UTF8String, &value)) {
     NSNumber *number = [NSNumber numberWithInt:value];
     [_cache setObject:number forKey:option];
     return number;
@@ -279,7 +326,7 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
   if (alias != nil) {
     NSString *aliasOption = [[option stringByDeletingLastPathComponent]
                              stringByAppendingPathComponent:alias.lastPathComponent];
-    if (_isOpen && rime_get_api()->config_get_int(&_config, aliasOption.UTF8String, &value)) {
+    if (int value; _isOpen && rime_get_api()->config_get_int(&_config, aliasOption.UTF8String, &value)) {
       NSNumber *number = [NSNumber numberWithInt:value];
       [_cache setObject:number forKey:option];
       return number;
@@ -290,12 +337,10 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
 
 - (NSNumber *)getOptionalDoubleForOption:(NSString *)option
                                    alias:(NSString *)alias {
-  NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(double) forKey:option];
-  if (cachedValue) {
+  if (NSNumber *cachedValue = [self cachedValueOfObjCType:@encode(double) forKey:option]) {
     return cachedValue;
   }
-  double value;
-  if (_isOpen && rime_get_api()->config_get_double(&_config, option.UTF8String, &value)) {
+  if (double value; _isOpen && rime_get_api()->config_get_double(&_config, option.UTF8String, &value)) {
     NSNumber *number = [NSNumber numberWithDouble:value];
     [_cache setObject:number forKey:option];
     return number;
@@ -303,7 +348,7 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
   if (alias != nil) {
     NSString *aliasOption = [[option stringByDeletingLastPathComponent]
                              stringByAppendingPathComponent:alias.lastPathComponent];
-    if (_isOpen && rime_get_api()->config_get_double(&_config, aliasOption.UTF8String, &value)) {
+    if (double value; _isOpen && rime_get_api()->config_get_double(&_config, aliasOption.UTF8String, &value)) {
       NSNumber *number = [NSNumber numberWithDouble:value];
       [_cache setObject:number forKey:option];
       return number;
@@ -333,13 +378,11 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
 
 - (NSString *)getStringForOption:(NSString *)option
                            alias:(NSString *)alias {
-  NSString *cachedValue = [self cachedValueOfClass:NSString.class forKey:option];
-  if (cachedValue) {
+  if (NSString *cachedValue = [self cachedValueOfClass:NSString.class forKey:option]) {
     return cachedValue;
   }
-  const char *value =
-  _isOpen ? rime_get_api()->config_get_cstring(&_config, option.UTF8String) : NULL;
-  if (value) {
+  const char *value = _isOpen ? rime_get_api()->config_get_cstring(&_config, option.UTF8String) : NULL;
+  if (value != NULL) {
     NSString *string = [@(value) stringByTrimmingCharactersInSet:
                         NSCharacterSet.whitespaceCharacterSet];
     [_cache setObject:string forKey:option];
@@ -349,7 +392,7 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
     NSString *aliasOption = [[option stringByDeletingLastPathComponent]
                              stringByAppendingPathComponent:alias.lastPathComponent];
     value = _isOpen ? rime_get_api()->config_get_cstring(&_config, aliasOption.UTF8String) : NULL;
-    if (value) {
+    if (value != NULL) {
       NSString *string = [@(value) stringByTrimmingCharactersInSet:
                           NSCharacterSet.whitespaceCharacterSet];
       [_cache setObject:string forKey:option];
@@ -361,48 +404,26 @@ static NSDictionary<NSString *, NSColorSpace *> *const colorSpaceMap =
 
 - (NSColor *)getColorForOption:(NSString *)option
                          alias:(NSString *)alias {
-  NSColor *cachedValue = [self cachedValueOfClass:NSColor.class forKey:option];
-  if (cachedValue) {
+  if (NSColor *cachedValue = [self cachedValueOfClass:NSColor.class forKey:option]) {
     return cachedValue;
   }
-  NSColor *color = [self colorFromString:[self getStringForOption:option]];
-  if (color) {
+  if (NSColor *color = [self colorFromString:[self getStringForOption:option alias:alias]]) {
     [_cache setObject:color forKey:option];
     return color;
-  }
-  if (alias != nil) {
-    NSString *aliasOption = [option.stringByDeletingLastPathComponent
-                             stringByAppendingPathComponent:alias.lastPathComponent];
-    color = [self colorFromString:[self getStringForOption:aliasOption]];
-    if (color) {
-      [_cache setObject:color forKey:option];
-      return color;
-    }
   }
   return [_baseConfig getColorForOption:option alias:alias];
 }
 
 - (NSImage *)getImageForOption:(NSString *)option
                          alias:(NSString *)alias {
-  NSImage *cachedValue = [self cachedValueOfClass:NSImage.class forKey:option];
-  if (cachedValue) {
+  if (NSImage *cachedValue = [self cachedValueOfClass:NSImage.class forKey:option]) {
     return cachedValue;
   }
-  NSImage *image = [self imageFromFile:[self getStringForOption:option]];
-  if (image) {
+  if (NSImage *image = [self imageFromFile:[self getStringForOption:option alias:alias]]) {
     [_cache setObject:image forKey:option];
     return image;
   }
-  if (alias != nil) {
-    NSString *aliasOption = [option.stringByDeletingLastPathComponent
-                             stringByAppendingPathComponent:alias.lastPathComponent];
-    image = [self imageFromFile:[self getStringForOption:aliasOption]];
-    if (image) {
-      [_cache setObject:image forKey:option];
-      return image;
-    }
-  }
-  return [_baseConfig getImageForOption:option];
+  return [_baseConfig getImageForOption:option alias:alias];
 }
 
 - (NSUInteger)getListSizeForOption:(NSString *)option {
@@ -454,7 +475,7 @@ static NSString *codeForScriptVariant(NSString *scriptVariant) {
 - (SquirrelOptionSwitcher *)getOptionSwitcher {
   RimeConfigIterator switchIter;
   if (!rime_get_api()->config_begin_list(&switchIter, &_config, "switches")) {
-    return nil;
+    return [SquirrelOptionSwitcher.alloc initWithSchemaId:_schemaId];
   }
   NSMutableDictionary<NSString *, NSString *> *switcher = NSMutableDictionary.alloc.init;
   NSMutableDictionary<NSString *, NSOrderedSet<NSString *> *> *optionGroups = NSMutableDictionary.alloc.init;
@@ -462,17 +483,16 @@ static NSString *codeForScriptVariant(NSString *scriptVariant) {
   NSMutableDictionary<NSString *, NSString *> *scriptVariantOptions = NSMutableDictionary.alloc.init;
   while (rime_get_api()->config_next(&switchIter)) {
     int reset = [self getIntForOption:[@(switchIter.path) stringByAppendingString:@"/reset"]];
-    NSString *name = [self getStringForOption:[@(switchIter.path) stringByAppendingString:@"/name"]];
-    if (name) {
+    if (NSString *name = [self getStringForOption:[@(switchIter.path) stringByAppendingString:@"/name"]]) {
       if ([self hasSection:[@"style/!" stringByAppendingString:name]] ||
           [self hasSection:[@"style/" stringByAppendingString:name]]) {
         switcher[name] = reset ? name : [@"!" stringByAppendingString:name];
         optionGroups[name] = [NSOrderedSet orderedSetWithObject:name];
       }
       if (defaultScriptVariant == nil &&
-          ([name.lowercaseString isEqualToString:@"simplification"] ||
-           [name.lowercaseString isEqualToString:@"simplified"] ||
-           [name.lowercaseString isEqualToString:@"traditional"])) {
+          ([name caseInsensitiveCompare:@"simplification"] == NSOrderedSame ||
+           [name caseInsensitiveCompare:@"simplified"] == NSOrderedSame ||
+           [name caseInsensitiveCompare:@"traditional"] == NSOrderedSame)) {
         defaultScriptVariant = reset ? name : [@"!" stringByAppendingString:name];
         scriptVariantOptions[name] = codeForScriptVariant(name);
         scriptVariantOptions[[@"!" stringByAppendingString:name]] =
@@ -523,27 +543,26 @@ static NSString *codeForScriptVariant(NSString *scriptVariant) {
   NSMutableDictionary<NSString *, NSNumber *> *appOptions = NSMutableDictionary.alloc.init;
   RimeConfigIterator iterator;
   if (!rime_get_api()->config_begin_map(&iterator, &_config, rootKey.UTF8String)) {
-    return appOptions;
+    return appOptions.copy;
   }
   while (rime_get_api()->config_next(&iterator)) {
     //NSLog(@"DEBUG option[%d]: %s (%s)", iterator.index, iterator.key, iterator.path);
-    NSNumber *value = [self getOptionalBoolForOption:@(iterator.path)] ? :
-                      [self getOptionalIntForOption:@(iterator.path)] ? :
-                      [self getOptionalDoubleForOption:@(iterator.path)];
-    if (value) {
+    if (NSNumber *value = [self getOptionalBoolForOption:@(iterator.path)] ? :
+                          [self getOptionalIntForOption:@(iterator.path)] ? :
+                          [self getOptionalDoubleForOption:@(iterator.path)]) {
       appOptions[@(iterator.key)] = value;
     }
   }
   rime_get_api()->config_end(&iterator);
-  return appOptions;
+  return appOptions.copy;
 }
 
 #pragma mark - Private methods
 
 - (id)cachedValueOfClass:(Class)aClass
                   forKey:(NSString *)key {
-  id value = [_cache objectForKey:key];
-  if ([value isMemberOfClass:aClass]) {
+  if (id value = [_cache objectForKey:key];
+      [value isMemberOfClass:aClass]) {
     return value;
   }
   return nil;
@@ -551,9 +570,9 @@ static NSString *codeForScriptVariant(NSString *scriptVariant) {
 
 - (NSNumber *)cachedValueOfObjCType:(const char *)type
                              forKey:(NSString *)key {
-  id value = [_cache objectForKey:key];
-  if ([value isMemberOfClass:NSNumber.class] &&
-      !strcmp([value objCType], type)) {
+  if (id value = [_cache objectForKey:key];
+      [value isMemberOfClass:NSNumber.class] &&
+      strcmp([value objCType], type) == 0) {
     return value;
   }
   return nil;
@@ -565,8 +584,7 @@ static NSString *codeForScriptVariant(NSString *scriptVariant) {
     return nil;
   }
   NSScanner *hexScanner = [NSScanner scannerWithString:string];
-  UInt hex = 0x0;
-  if ([hexScanner scanHexInt:&hex] && hexScanner.atEnd) {
+  if (UInt hex = 0x0; [hexScanner scanHexInt:&hex] && hexScanner.atEnd) {
     UInt r = hex % 0x100;
     UInt g = hex / 0x100 % 0x100;
     UInt b = hex / 0x10000 % 0x100;

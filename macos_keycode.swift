@@ -21,7 +21,20 @@ struct RimeModifier: OptionSet {
 
 }
 
-func get_rime_modifiers(_ modifiers: NSEvent.ModifierFlags) -> RimeModifier {
+// powerbook
+let kVK_Enter_Powerbook: Int = 0x34
+// pc keyboard
+let kVK_PC_Application: Int = 0x6e
+//let kVK_PC_BS: Int = 0x33  // = delete (backspace)
+//let kVK_PC_Del: Int = 0x75  // = forward delete
+//let kVK_PC_Insert: Int = 0x72  // = help
+//let kVK_PC_KeypadNumLock: Int = 0x47  // = keypad clear
+//let kVK_PC_Pause: Int = 0x71  // = F15
+let kVK_PC_Power: Int = 0x7f
+//let kVK_PC_PrintScreen: Int = 0x69  // = F13
+//let kVK_PC_ScrollLock: Int = 0x6b  // = F14
+
+func rime_modifiers_from_mac_modifiers(_ modifiers: NSEvent.ModifierFlags) -> RimeModifier {
   var ret: RimeModifier = []
 
   if (modifiers.contains(.shift)) {
@@ -46,14 +59,92 @@ func get_rime_modifiers(_ modifiers: NSEvent.ModifierFlags) -> RimeModifier {
   return ret
 }
 
-func get_rime_keycode(keycode: Int, keychar: Int, shift: Boolean, caps: Boolean) -> CInt {
-  if let rime_keycode = keycode_mac_to_rime[keycode] {
-    return rime_keycode
-  }
+func rime_keycode_from_mac_keycode(_ mac_keycode: Int) -> CInt {
+  switch (mac_keycode) {
+    case kVK_CapsLock:            return XK_Caps_Lock
+    case kVK_Command:             return XK_Super_L // XK_Meta_L?
+    case kVK_RightCommand:        return XK_Super_R // XK_Meta_R?
+    case kVK_Control:             return XK_Control_L
+    case kVK_RightControl:        return XK_Control_R
+    case kVK_Function:            return XK_Hyper_L
+    case kVK_Option:              return XK_Alt_L
+    case kVK_RightOption:         return XK_Alt_R
+    case kVK_Shift:               return XK_Shift_L
+    case kVK_RightShift:          return XK_Shift_R
+    // special
+    case kVK_Delete:              return XK_BackSpace
+    case kVK_Enter_Powerbook:     return XK_ISO_Enter
+    case kVK_Escape:              return XK_Escape
+    case kVK_ForwardDelete:       return XK_Delete
+    case kVK_Help:                return XK_Help
+    case kVK_Return:              return XK_Return
+    case kVK_Space:               return XK_space
+    case kVK_Tab:                 return XK_Tab
+    // function
+    case kVK_F1:                  return XK_F1
+    case kVK_F2:                  return XK_F2
+    case kVK_F3:                  return XK_F3
+    case kVK_F4:                  return XK_F4
+    case kVK_F5:                  return XK_F5
+    case kVK_F6:                  return XK_F6
+    case kVK_F7:                  return XK_F7
+    case kVK_F8:                  return XK_F8
+    case kVK_F9:                  return XK_F9
+    case kVK_F10:                 return XK_F10
+    case kVK_F11:                 return XK_F11
+    case kVK_F12:                 return XK_F12
+    case kVK_F13:                 return XK_F13
+    case kVK_F14:                 return XK_F14
+    case kVK_F15:                 return XK_F15
+    case kVK_F16:                 return XK_F16
+    case kVK_F17:                 return XK_F17
+    case kVK_F18:                 return XK_F18
+    case kVK_F19:                 return XK_F19
+    case kVK_F20:                 return XK_F20
+    // cursor
+    case kVK_UpArrow:             return XK_Up
+    case kVK_DownArrow:           return XK_Down
+    case kVK_LeftArrow:           return XK_Left
+    case kVK_RightArrow:          return XK_Right
+    case kVK_PageUp:              return XK_Page_Up
+    case kVK_PageDown:            return XK_Page_Down
+    case kVK_Home:                return XK_Home
+    case kVK_End:                 return XK_End
+    // keypad
+    case kVK_ANSI_Keypad0:        return XK_KP_0
+    case kVK_ANSI_Keypad1:        return XK_KP_1
+    case kVK_ANSI_Keypad2:        return XK_KP_2
+    case kVK_ANSI_Keypad3:        return XK_KP_3
+    case kVK_ANSI_Keypad4:        return XK_KP_4
+    case kVK_ANSI_Keypad5:        return XK_KP_5
+    case kVK_ANSI_Keypad6:        return XK_KP_6
+    case kVK_ANSI_Keypad7:        return XK_KP_7
+    case kVK_ANSI_Keypad8:        return XK_KP_8
+    case kVK_ANSI_Keypad9:        return XK_KP_9
+    case kVK_ANSI_KeypadEnter:    return XK_KP_Enter
+    case kVK_ANSI_KeypadClear:    return XK_Clear
+    case kVK_ANSI_KeypadDecimal:  return XK_KP_Decimal
+    case kVK_ANSI_KeypadEquals:   return XK_KP_Equal
+    case kVK_ANSI_KeypadMinus:    return XK_KP_Subtract
+    case kVK_ANSI_KeypadMultiply: return XK_KP_Multiply
+    case kVK_ANSI_KeypadPlus:     return XK_KP_Add
+    case kVK_ANSI_KeypadDivide:   return XK_KP_Divide
+    // pc keyboard
+    case kVK_PC_Application:      return XK_Menu
+    //OSX_VK_PC_Power -> ?
+    // JIS keyboard
+    case kVK_JIS_KeypadComma:     return XK_KP_Separator
+    case kVK_JIS_Eisu:            return XK_Eisu_toggle
+    case kVK_JIS_Kana:            return XK_Kana_Shift
 
+    default:                      return 0
+  }
+}
+
+func rime_keycode_from_keychar(keychar: unichar, shift: Boolean, caps: Boolean) -> CInt {
   // NOTE: IBus/Rime use different keycodes for uppercase/lowercase letters.
-  if (keychar >= Int(("a" as Character).asciiValue!) &&
-      keychar <= Int(("z" as Character).asciiValue!) && (shift != caps)) {
+  if (keychar >= unichar(("a" as Character).asciiValue!) &&
+      keychar <= unichar(("z" as Character).asciiValue!) && (shift != caps)) {
     // lowercase -> Uppercase
     return CInt(keychar) + CInt(("A" as Character).asciiValue! - ("a" as Character).asciiValue!)
   }
@@ -62,33 +153,50 @@ func get_rime_keycode(keycode: Int, keychar: Int, shift: Boolean, caps: Boolean)
     return CInt(keychar)
   }
 
-  if let rime_keychar = keychar_mac_to_rime[keychar] {
-    return rime_keychar
-  }
+  switch (Int(keychar)) {
+    // ASCII control characters
+    case NSNewlineCharacter:        return XK_Linefeed
+    case NSBackTabCharacter:        return XK_ISO_Left_Tab
+    // Function key characters
+    case NSF21FunctionKey:          return XK_F21
+    case NSF22FunctionKey:          return XK_F22
+    case NSF23FunctionKey:          return XK_F23
+    case NSF24FunctionKey:          return XK_F24
+    case NSF25FunctionKey:          return XK_F25
+    case NSF26FunctionKey:          return XK_F26
+    case NSF27FunctionKey:          return XK_F27
+    case NSF28FunctionKey:          return XK_F28
+    case NSF29FunctionKey:          return XK_F29
+    case NSF30FunctionKey:          return XK_F30
+    case NSF31FunctionKey:          return XK_F31
+    case NSF32FunctionKey:          return XK_F32
+    case NSF33FunctionKey:          return XK_F33
+    case NSF34FunctionKey:          return XK_F34
+    case NSF35FunctionKey:          return XK_F35
+    // Misc functional key characters
+    case NSInsertFunctionKey:       return XK_Insert
+    case NSBeginFunctionKey:        return XK_Begin
+    case NSScrollLockFunctionKey:   return XK_Scroll_Lock
+    case NSPauseFunctionKey:        return XK_Pause
+    case NSSysReqFunctionKey:       return XK_Sys_Req
+    case NSBreakFunctionKey:        return XK_Break
+    case NSStopFunctionKey:         return XK_Cancel
+    case NSPrintFunctionKey:        return XK_Print
+    case NSClearLineFunctionKey:    return XK_Num_Lock
+    case NSPrevFunctionKey:         return XK_Prior
+    case NSNextFunctionKey:         return XK_Next
+    case NSSelectFunctionKey:       return XK_Select
+    case NSExecuteFunctionKey:      return XK_Execute
+    case NSUndoFunctionKey:         return XK_Undo
+    case NSRedoFunctionKey:         return XK_Redo
+    case NSFindFunctionKey:         return XK_Find
+    case NSModeSwitchFunctionKey:   return XK_Mode_switch
 
-  return XK_VoidSymbol
+    default:                        return 0
+  }
 }
 
-func parse_macos_modifiers(_ modifier_name: String) -> NSEvent.ModifierFlags {
-  switch(modifier_name) {
-  case "Lock":
-    return .capsLock
-  case "Shift":
-    return .shift
-  case "Control":
-    return .control
-  case "Alt":
-    return .option
-  case "Super":
-    return .command
-  case "Hyper":
-    return .function
-  default:
-    return []
-  }
-}
-
-func parse_rime_modifiers(_ modifier_name: String) -> RimeModifier {
+func rime_modifiers_from_name(_ modifier_name: String) -> RimeModifier {
   switch(modifier_name) {
   case "Shift":
     return .Shift
@@ -102,1589 +210,1324 @@ func parse_rime_modifiers(_ modifier_name: String) -> RimeModifier {
     return .Super
   case "Hyper":
     return .Hyper
+  case "Meta":
+    return .Meta
   default:
     return []
   }
 }
 
-func parse_rime_keycode(_ key_name: String) -> CInt {
-  if let rime_keycode = rime_keyname_to_keycode[key_name] {
-    return rime_keycode
+func rime_keycode_from_name(_ key_name: String) -> CInt {
+  switch (key_name) {
+    // ascii
+    case "space": return 0x000020
+    case "exclam": return 0x000021
+    case "quotedbl": return 0x000022
+    case "numbersign": return 0x000023
+    case "dollar": return 0x000024
+    case "percent": return 0x000025
+    case "ampersand": return 0x000026
+    case "apostrophe": return 0x000027
+    case "quoteright": return 0x000027
+    case "parenleft": return 0x000028
+    case "parenright": return 0x000029
+    case "asterisk": return 0x00002a
+    case "plus": return 0x00002b
+    case "comma": return 0x00002c
+    case "minus": return 0x00002d
+    case "period": return 0x00002e
+    case "slash": return 0x00002f
+    case "0": return 0x000030
+    case "1": return 0x000031
+    case "2": return 0x000032
+    case "3": return 0x000033
+    case "4": return 0x000034
+    case "5": return 0x000035
+    case "6": return 0x000036
+    case "7": return 0x000037
+    case "8": return 0x000038
+    case "9": return 0x000039
+    case "colon": return 0x00003a
+    case "semicolon": return 0x00003b
+    case "less": return 0x00003c
+    case "equal": return 0x00003d
+    case "greater": return 0x00003e
+    case "question": return 0x00003f
+    case "at": return 0x000040
+    case "A": return 0x000041
+    case "B": return 0x000042
+    case "C": return 0x000043
+    case "D": return 0x000044
+    case "E": return 0x000045
+    case "F": return 0x000046
+    case "G": return 0x000047
+    case "H": return 0x000048
+    case "I": return 0x000049
+    case "J": return 0x00004a
+    case "K": return 0x00004b
+    case "L": return 0x00004c
+    case "M": return 0x00004d
+    case "N": return 0x00004e
+    case "O": return 0x00004f
+    case "P": return 0x000050
+    case "Q": return 0x000051
+    case "R": return 0x000052
+    case "S": return 0x000053
+    case "T": return 0x000054
+    case "U": return 0x000055
+    case "V": return 0x000056
+    case "W": return 0x000057
+    case "X": return 0x000058
+    case "Y": return 0x000059
+    case "Z": return 0x00005a
+    case "bracketleft": return 0x00005b
+    case "backslash": return 0x00005c
+    case "bracketright": return 0x00005d
+    case "asciicircum": return 0x00005e
+    case "underscore": return 0x00005f
+    case "grave": return 0x000060
+    case "quoteleft": return 0x000060
+    case "a": return 0x000061
+    case "b": return 0x000062
+    case "c": return 0x000063
+    case "d": return 0x000064
+    case "e": return 0x000065
+    case "f": return 0x000066
+    case "g": return 0x000067
+    case "h": return 0x000068
+    case "i": return 0x000069
+    case "j": return 0x00006a
+    case "k": return 0x00006b
+    case "l": return 0x00006c
+    case "m": return 0x00006d
+    case "n": return 0x00006e
+    case "o": return 0x00006f
+    case "p": return 0x000070
+    case "q": return 0x000071
+    case "r": return 0x000072
+    case "s": return 0x000073
+    case "t": return 0x000074
+    case "u": return 0x000075
+    case "v": return 0x000076
+    case "w": return 0x000077
+    case "x": return 0x000078
+    case "y": return 0x000079
+    case "z": return 0x00007a
+    case "braceleft": return 0x00007b
+    case "bar": return 0x00007c
+    case "braceright": return 0x00007d
+    case "asciitilde": return 0x00007e
+    // latin-1
+    case "nobreakspace": return 0x0000a0
+    case "exclamdown": return 0x0000a1
+    case "cent": return 0x0000a2
+    case "sterling": return 0x0000a3
+    case "currency": return 0x0000a4
+    case "yen": return 0x0000a5
+    case "brokenbar": return 0x0000a6
+    case "section": return 0x0000a7
+    case "diaeresis": return 0x0000a8
+    case "copyright": return 0x0000a9
+    case "ordfeminine": return 0x0000aa
+    case "guillemotleft": return 0x0000ab
+    case "notsign": return 0x0000ac
+    case "hyphen": return 0x0000ad
+    case "registered": return 0x0000ae
+    case "macron": return 0x0000af
+    case "degree": return 0x0000b0
+    case "plusminus": return 0x0000b1
+    case "twosuperior": return 0x0000b2
+    case "threesuperior": return 0x0000b3
+    case "acute": return 0x0000b4
+    case "mu": return 0x0000b5
+    case "paragraph": return 0x0000b6
+    case "periodcentered": return 0x0000b7
+    case "cedilla": return 0x0000b8
+    case "onesuperior": return 0x0000b9
+    case "masculine": return 0x0000ba
+    case "guillemotright": return 0x0000bb
+    case "onequarter": return 0x0000bc
+    case "onehalf": return 0x0000bd
+    case "threequarters": return 0x0000be
+    case "questiondown": return 0x0000bf
+    case "Agrave": return 0x0000c0
+    case "Aacute": return 0x0000c1
+    case "Acircumflex": return 0x0000c2
+    case "Atilde": return 0x0000c3
+    case "Adiaeresis": return 0x0000c4
+    case "Aring": return 0x0000c5
+    case "AE": return 0x0000c6
+    case "Ccedilla": return 0x0000c7
+    case "Egrave": return 0x0000c8
+    case "Eacute": return 0x0000c9
+    case "Ecircumflex": return 0x0000ca
+    case "Ediaeresis": return 0x0000cb
+    case "Igrave": return 0x0000cc
+    case "Iacute": return 0x0000cd
+    case "Icircumflex": return 0x0000ce
+    case "Idiaeresis": return 0x0000cf
+    case "ETH": return 0x0000d0
+    case "Eth": return 0x0000d0
+    case "Ntilde": return 0x0000d1
+    case "Ograve": return 0x0000d2
+    case "Oacute": return 0x0000d3
+    case "Ocircumflex": return 0x0000d4
+    case "Otilde": return 0x0000d5
+    case "Odiaeresis": return 0x0000d6
+    case "multiply": return 0x0000d7
+    case "Ooblique": return 0x0000d8
+    case "Ugrave": return 0x0000d9
+    case "Uacute": return 0x0000da
+    case "Ucircumflex": return 0x0000db
+    case "Udiaeresis": return 0x0000dc
+    case "Yacute": return 0x0000dd
+    case "THORN": return 0x0000de
+    case "Thorn": return 0x0000de
+    case "ssharp": return 0x0000df
+    case "agrave": return 0x0000e0
+    case "aacute": return 0x0000e1
+    case "acircumflex": return 0x0000e2
+    case "atilde": return 0x0000e3
+    case "adiaeresis": return 0x0000e4
+    case "aring": return 0x0000e5
+    case "ae": return 0x0000e6
+    case "ccedilla": return 0x0000e7
+    case "egrave": return 0x0000e8
+    case "eacute": return 0x0000e9
+    case "ecircumflex": return 0x0000ea
+    case "ediaeresis": return 0x0000eb
+    case "igrave": return 0x0000ec
+    case "iacute": return 0x0000ed
+    case "icircumflex": return 0x0000ee
+    case "idiaeresis": return 0x0000ef
+    case "eth": return 0x0000f0
+    case "ntilde": return 0x0000f1
+    case "ograve": return 0x0000f2
+    case "oacute": return 0x0000f3
+    case "ocircumflex": return 0x0000f4
+    case "otilde": return 0x0000f5
+    case "odiaeresis": return 0x0000f6
+    case "division": return 0x0000f7
+    case "oslash": return 0x0000f8
+    case "ugrave": return 0x0000f9
+    case "uacute": return 0x0000fa
+    case "ucircumflex": return 0x0000fb
+    case "udiaeresis": return 0x0000fc
+    case "yacute": return 0x0000fd
+    case "thorn": return 0x0000fe
+    case "ydiaeresis": return 0x0000ff
+    case "Aogonek": return 0x0001a1
+    case "breve": return 0x0001a2
+    case "Lstroke": return 0x0001a3
+    case "Lcaron": return 0x0001a5
+    case "Sacute": return 0x0001a6
+    case "Scaron": return 0x0001a9
+    case "Scedilla": return 0x0001aa
+    case "Tcaron": return 0x0001ab
+    case "Zacute": return 0x0001ac
+    case "Zcaron": return 0x0001ae
+    case "Zabovedot": return 0x0001af
+    case "aogonek": return 0x0001b1
+    case "ogonek": return 0x0001b2
+    case "lstroke": return 0x0001b3
+    case "lcaron": return 0x0001b5
+    case "sacute": return 0x0001b6
+    case "caron": return 0x0001b7
+    case "scaron": return 0x0001b9
+    case "scedilla": return 0x0001ba
+    case "tcaron": return 0x0001bb
+    case "zacute": return 0x0001bc
+    case "doubleacute": return 0x0001bd
+    case "zcaron": return 0x0001be
+    case "zabovedot": return 0x0001bf
+    case "Racute": return 0x0001c0
+    case "Abreve": return 0x0001c3
+    case "Lacute": return 0x0001c5
+    case "Cacute": return 0x0001c6
+    case "Ccaron": return 0x0001c8
+    case "Eogonek": return 0x0001ca
+    case "Ecaron": return 0x0001cc
+    case "Dcaron": return 0x0001cf
+    case "Dstroke": return 0x0001d0
+    case "Nacute": return 0x0001d1
+    case "Ncaron": return 0x0001d2
+    case "Odoubleacute": return 0x0001d5
+    case "Rcaron": return 0x0001d8
+    case "Uring": return 0x0001d9
+    case "Udoubleacute": return 0x0001db
+    case "Tcedilla": return 0x0001de
+    case "racute": return 0x0001e0
+    case "abreve": return 0x0001e3
+    case "lacute": return 0x0001e5
+    case "cacute": return 0x0001e6
+    case "ccaron": return 0x0001e8
+    case "eogonek": return 0x0001ea
+    case "ecaron": return 0x0001ec
+    case "dcaron": return 0x0001ef
+    case "dstroke": return 0x0001f0
+    case "nacute": return 0x0001f1
+    case "ncaron": return 0x0001f2
+    case "odoubleacute": return 0x0001f5
+    case "rcaron": return 0x0001f8
+    case "uring": return 0x0001f9
+    case "udoubleacute": return 0x0001fb
+    case "tcedilla": return 0x0001fe
+    case "abovedot": return 0x0001ff
+    // others
+    case "Hstroke": return 0x0002a1
+    case "Hcircumflex": return 0x0002a6
+    case "Iabovedot": return 0x0002a9
+    case "Gbreve": return 0x0002ab
+    case "Jcircumflex": return 0x0002ac
+    case "hstroke": return 0x0002b1
+    case "hcircumflex": return 0x0002b6
+    case "idotless": return 0x0002b9
+    case "gbreve": return 0x0002bb
+    case "jcircumflex": return 0x0002bc
+    case "Cabovedot": return 0x0002c5
+    case "Ccircumflex": return 0x0002c6
+    case "Gabovedot": return 0x0002d5
+    case "Gcircumflex": return 0x0002d8
+    case "Ubreve": return 0x0002dd
+    case "Scircumflex": return 0x0002de
+    case "cabovedot": return 0x0002e5
+    case "ccircumflex": return 0x0002e6
+    case "gabovedot": return 0x0002f5
+    case "gcircumflex": return 0x0002f8
+    case "ubreve": return 0x0002fd
+    case "scircumflex": return 0x0002fe
+    case "kappa": return 0x0003a2
+    case "kra": return 0x0003a2
+    case "Rcedilla": return 0x0003a3
+    case "Itilde": return 0x0003a5
+    case "Lcedilla": return 0x0003a6
+    case "Emacron": return 0x0003aa
+    case "Gcedilla": return 0x0003ab
+    case "Tslash": return 0x0003ac
+    case "rcedilla": return 0x0003b3
+    case "itilde": return 0x0003b5
+    case "lcedilla": return 0x0003b6
+    case "emacron": return 0x0003ba
+    case "gcedilla": return 0x0003bb
+    case "tslash": return 0x0003bc
+    case "ENG": return 0x0003bd
+    case "eng": return 0x0003bf
+    case "Amacron": return 0x0003c0
+    case "Iogonek": return 0x0003c7
+    case "Eabovedot": return 0x0003cc
+    case "Imacron": return 0x0003cf
+    case "Ncedilla": return 0x0003d1
+    case "Omacron": return 0x0003d2
+    case "Kcedilla": return 0x0003d3
+    case "Uogonek": return 0x0003d9
+    case "Utilde": return 0x0003dd
+    case "Umacron": return 0x0003de
+    case "amacron": return 0x0003e0
+    case "iogonek": return 0x0003e7
+    case "eabovedot": return 0x0003ec
+    case "imacron": return 0x0003ef
+    case "ncedilla": return 0x0003f1
+    case "omacron": return 0x0003f2
+    case "kcedilla": return 0x0003f3
+    case "uogonek": return 0x0003f9
+    case "utilde": return 0x0003fd
+    case "umacron": return 0x0003fe
+    case "overline": return 0x00047e
+    case "kana_fullstop": return 0x0004a1
+    case "kana_openingbracket": return 0x0004a2
+    case "kana_closingbracket": return 0x0004a3
+    case "kana_comma": return 0x0004a4
+    case "kana_conjunctive": return 0x0004a5
+    case "kana_middledot": return 0x0004a5
+    case "kana_WO": return 0x0004a6
+    case "kana_a": return 0x0004a7
+    case "kana_i": return 0x0004a8
+    case "kana_u": return 0x0004a9
+    case "kana_e": return 0x0004aa
+    case "kana_o": return 0x0004ab
+    case "kana_ya": return 0x0004ac
+    case "kana_yu": return 0x0004ad
+    case "kana_yo": return 0x0004ae
+    case "kana_tsu": return 0x0004af
+    case "kana_tu": return 0x0004af
+    case "prolongedsound": return 0x0004b0
+    case "kana_A": return 0x0004b1
+    case "kana_I": return 0x0004b2
+    case "kana_U": return 0x0004b3
+    case "kana_E": return 0x0004b4
+    case "kana_O": return 0x0004b5
+    case "kana_KA": return 0x0004b6
+    case "kana_KI": return 0x0004b7
+    case "kana_KU": return 0x0004b8
+    case "kana_KE": return 0x0004b9
+    case "kana_KO": return 0x0004ba
+    case "kana_SA": return 0x0004bb
+    case "kana_SHI": return 0x0004bc
+    case "kana_SU": return 0x0004bd
+    case "kana_SE": return 0x0004be
+    case "kana_SO": return 0x0004bf
+    case "kana_TA": return 0x0004c0
+    case "kana_CHI": return 0x0004c1
+    case "kana_TI": return 0x0004c1
+    case "kana_TSU": return 0x0004c2
+    case "kana_TU": return 0x0004c2
+    case "kana_TE": return 0x0004c3
+    case "kana_TO": return 0x0004c4
+    case "kana_NA": return 0x0004c5
+    case "kana_NI": return 0x0004c6
+    case "kana_NU": return 0x0004c7
+    case "kana_NE": return 0x0004c8
+    case "kana_NO": return 0x0004c9
+    case "kana_HA": return 0x0004ca
+    case "kana_HI": return 0x0004cb
+    case "kana_FU": return 0x0004cc
+    case "kana_HU": return 0x0004cc
+    case "kana_HE": return 0x0004cd
+    case "kana_HO": return 0x0004ce
+    case "kana_MA": return 0x0004cf
+    case "kana_MI": return 0x0004d0
+    case "kana_MU": return 0x0004d1
+    case "kana_ME": return 0x0004d2
+    case "kana_MO": return 0x0004d3
+    case "kana_YA": return 0x0004d4
+    case "kana_YU": return 0x0004d5
+    case "kana_YO": return 0x0004d6
+    case "kana_RA": return 0x0004d7
+    case "kana_RI": return 0x0004d8
+    case "kana_RU": return 0x0004d9
+    case "kana_RE": return 0x0004da
+    case "kana_RO": return 0x0004db
+    case "kana_WA": return 0x0004dc
+    case "kana_N": return 0x0004dd
+    case "voicedsound": return 0x0004de
+    case "semivoicedsound": return 0x0004df
+    case "Arabic_comma": return 0x0005ac
+    case "Arabic_semicolon": return 0x0005bb
+    case "Arabic_question_mark": return 0x0005bf
+    case "Arabic_hamza": return 0x0005c1
+    case "Arabic_maddaonalef": return 0x0005c2
+    case "Arabic_hamzaonalef": return 0x0005c3
+    case "Arabic_hamzaonwaw": return 0x0005c4
+    case "Arabic_hamzaunderalef": return 0x0005c5
+    case "Arabic_hamzaonyeh": return 0x0005c6
+    case "Arabic_alef": return 0x0005c7
+    case "Arabic_beh": return 0x0005c8
+    case "Arabic_tehmarbuta": return 0x0005c9
+    case "Arabic_teh": return 0x0005ca
+    case "Arabic_theh": return 0x0005cb
+    case "Arabic_jeem": return 0x0005cc
+    case "Arabic_hah": return 0x0005cd
+    case "Arabic_khah": return 0x0005ce
+    case "Arabic_dal": return 0x0005cf
+    case "Arabic_thal": return 0x0005d0
+    case "Arabic_ra": return 0x0005d1
+    case "Arabic_zain": return 0x0005d2
+    case "Arabic_seen": return 0x0005d3
+    case "Arabic_sheen": return 0x0005d4
+    case "Arabic_sad": return 0x0005d5
+    case "Arabic_dad": return 0x0005d6
+    case "Arabic_tah": return 0x0005d7
+    case "Arabic_zah": return 0x0005d8
+    case "Arabic_ain": return 0x0005d9
+    case "Arabic_ghain": return 0x0005da
+    case "Arabic_tatweel": return 0x0005e0
+    case "Arabic_feh": return 0x0005e1
+    case "Arabic_qaf": return 0x0005e2
+    case "Arabic_kaf": return 0x0005e3
+    case "Arabic_lam": return 0x0005e4
+    case "Arabic_meem": return 0x0005e5
+    case "Arabic_noon": return 0x0005e6
+    case "Arabic_ha": return 0x0005e7
+    case "Arabic_heh": return 0x0005e7
+    case "Arabic_waw": return 0x0005e8
+    case "Arabic_alefmaksura": return 0x0005e9
+    case "Arabic_yeh": return 0x0005ea
+    case "Arabic_fathatan": return 0x0005eb
+    case "Arabic_dammatan": return 0x0005ec
+    case "Arabic_kasratan": return 0x0005ed
+    case "Arabic_fatha": return 0x0005ee
+    case "Arabic_damma": return 0x0005ef
+    case "Arabic_kasra": return 0x0005f0
+    case "Arabic_shadda": return 0x0005f1
+    case "Arabic_sukun": return 0x0005f2
+    case "Serbian_dje": return 0x0006a1
+    case "Macedonia_gje": return 0x0006a2
+    case "Cyrillic_io": return 0x0006a3
+    case "Ukrainian_ie": return 0x0006a4
+    case "Ukranian_je": return 0x0006a4
+    case "Macedonia_dse": return 0x0006a5
+    case "Ukrainian_i": return 0x0006a6
+    case "Ukranian_i": return 0x0006a6
+    case "Ukrainian_yi": return 0x0006a7
+    case "Ukranian_yi": return 0x0006a7
+    case "Cyrillic_je": return 0x0006a8
+    case "Serbian_je": return 0x0006a8
+    case "Cyrillic_lje": return 0x0006a9
+    case "Serbian_lje": return 0x0006a9
+    case "Cyrillic_nje": return 0x0006aa
+    case "Serbian_nje": return 0x0006aa
+    case "Serbian_tshe": return 0x0006ab
+    case "Macedonia_kje": return 0x0006ac
+    case "Byelorussian_shortu": return 0x0006ae
+    case "Cyrillic_dzhe": return 0x0006af
+    case "Serbian_dze": return 0x0006af
+    case "numerosign": return 0x0006b0
+    case "Serbian_DJE": return 0x0006b1
+    case "Macedonia_GJE": return 0x0006b2
+    case "Cyrillic_IO": return 0x0006b3
+    case "Ukrainian_IE": return 0x0006b4
+    case "Ukranian_JE": return 0x0006b4
+    case "Macedonia_DSE": return 0x0006b5
+    case "Ukrainian_I": return 0x0006b6
+    case "Ukranian_I": return 0x0006b6
+    case "Ukrainian_YI": return 0x0006b7
+    case "Ukranian_YI": return 0x0006b7
+    case "Cyrillic_JE": return 0x0006b8
+    case "Serbian_JE": return 0x0006b8
+    case "Cyrillic_LJE": return 0x0006b9
+    case "Serbian_LJE": return 0x0006b9
+    case "Cyrillic_NJE": return 0x0006ba
+    case "Serbian_NJE": return 0x0006ba
+    case "Serbian_TSHE": return 0x0006bb
+    case "Macedonia_KJE": return 0x0006bc
+    case "Byelorussian_SHORTU": return 0x0006be
+    case "Cyrillic_DZHE": return 0x0006bf
+    case "Serbian_DZE": return 0x0006bf
+    case "Cyrillic_yu": return 0x0006c0
+    case "Cyrillic_a": return 0x0006c1
+    case "Cyrillic_be": return 0x0006c2
+    case "Cyrillic_tse": return 0x0006c3
+    case "Cyrillic_de": return 0x0006c4
+    case "Cyrillic_ie": return 0x0006c5
+    case "Cyrillic_ef": return 0x0006c6
+    case "Cyrillic_ghe": return 0x0006c7
+    case "Cyrillic_ha": return 0x0006c8
+    case "Cyrillic_i": return 0x0006c9
+    case "Cyrillic_shorti": return 0x0006ca
+    case "Cyrillic_ka": return 0x0006cb
+    case "Cyrillic_el": return 0x0006cc
+    case "Cyrillic_em": return 0x0006cd
+    case "Cyrillic_en": return 0x0006ce
+    case "Cyrillic_o": return 0x0006cf
+    case "Cyrillic_pe": return 0x0006d0
+    case "Cyrillic_ya": return 0x0006d1
+    case "Cyrillic_er": return 0x0006d2
+    case "Cyrillic_es": return 0x0006d3
+    case "Cyrillic_te": return 0x0006d4
+    case "Cyrillic_u": return 0x0006d5
+    case "Cyrillic_zhe": return 0x0006d6
+    case "Cyrillic_ve": return 0x0006d7
+    case "Cyrillic_softsign": return 0x0006d8
+    case "Cyrillic_yeru": return 0x0006d9
+    case "Cyrillic_ze": return 0x0006da
+    case "Cyrillic_sha": return 0x0006db
+    case "Cyrillic_e": return 0x0006dc
+    case "Cyrillic_shcha": return 0x0006dd
+    case "Cyrillic_che": return 0x0006de
+    case "Cyrillic_hardsign": return 0x0006df
+    case "Cyrillic_YU": return 0x0006e0
+    case "Cyrillic_A": return 0x0006e1
+    case "Cyrillic_BE": return 0x0006e2
+    case "Cyrillic_TSE": return 0x0006e3
+    case "Cyrillic_DE": return 0x0006e4
+    case "Cyrillic_IE": return 0x0006e5
+    case "Cyrillic_EF": return 0x0006e6
+    case "Cyrillic_GHE": return 0x0006e7
+    case "Cyrillic_HA": return 0x0006e8
+    case "Cyrillic_I": return 0x0006e9
+    case "Cyrillic_SHORTI": return 0x0006ea
+    case "Cyrillic_KA": return 0x0006eb
+    case "Cyrillic_EL": return 0x0006ec
+    case "Cyrillic_EM": return 0x0006ed
+    case "Cyrillic_EN": return 0x0006ee
+    case "Cyrillic_O": return 0x0006ef
+    case "Cyrillic_PE": return 0x0006f0
+    case "Cyrillic_YA": return 0x0006f1
+    case "Cyrillic_ER": return 0x0006f2
+    case "Cyrillic_ES": return 0x0006f3
+    case "Cyrillic_TE": return 0x0006f4
+    case "Cyrillic_U": return 0x0006f5
+    case "Cyrillic_ZHE": return 0x0006f6
+    case "Cyrillic_VE": return 0x0006f7
+    case "Cyrillic_SOFTSIGN": return 0x0006f8
+    case "Cyrillic_YERU": return 0x0006f9
+    case "Cyrillic_ZE": return 0x0006fa
+    case "Cyrillic_SHA": return 0x0006fb
+    case "Cyrillic_E": return 0x0006fc
+    case "Cyrillic_SHCHA": return 0x0006fd
+    case "Cyrillic_CHE": return 0x0006fe
+    case "Cyrillic_HARDSIGN": return 0x0006ff
+    case "Greek_ALPHAaccent": return 0x0007a1
+    case "Greek_EPSILONaccent": return 0x0007a2
+    case "Greek_ETAaccent": return 0x0007a3
+    case "Greek_IOTAaccent": return 0x0007a4
+    case "Greek_IOTAdieresis": return 0x0007a5
+    case "Greek_IOTAdiaeresis": return 0x0007a5
+    case "Greek_OMICRONaccent": return 0x0007a7
+    case "Greek_UPSILONaccent": return 0x0007a8
+    case "Greek_UPSILONdieresis": return 0x0007a9
+    case "Greek_OMEGAaccent": return 0x0007ab
+    case "Greek_accentdieresis": return 0x0007ae
+    case "Greek_horizbar": return 0x0007af
+    case "Greek_alphaaccent": return 0x0007b1
+    case "Greek_epsilonaccent": return 0x0007b2
+    case "Greek_etaaccent": return 0x0007b3
+    case "Greek_iotaaccent": return 0x0007b4
+    case "Greek_iotadieresis": return 0x0007b5
+    case "Greek_iotaaccentdieresis": return 0x0007b6
+    case "Greek_omicronaccent": return 0x0007b7
+    case "Greek_upsilonaccent": return 0x0007b8
+    case "Greek_upsilondieresis": return 0x0007b9
+    case "Greek_upsilonaccentdieresis": return 0x0007ba
+    case "Greek_omegaaccent": return 0x0007bb
+    case "Greek_ALPHA": return 0x0007c1
+    case "Greek_BETA": return 0x0007c2
+    case "Greek_GAMMA": return 0x0007c3
+    case "Greek_DELTA": return 0x0007c4
+    case "Greek_EPSILON": return 0x0007c5
+    case "Greek_ZETA": return 0x0007c6
+    case "Greek_ETA": return 0x0007c7
+    case "Greek_THETA": return 0x0007c8
+    case "Greek_IOTA": return 0x0007c9
+    case "Greek_KAPPA": return 0x0007ca
+    case "Greek_LAMBDA": return 0x0007cb
+    case "Greek_LAMDA": return 0x0007cb
+    case "Greek_MU": return 0x0007cc
+    case "Greek_NU": return 0x0007cd
+    case "Greek_XI": return 0x0007ce
+    case "Greek_OMICRON": return 0x0007cf
+    case "Greek_PI": return 0x0007d0
+    case "Greek_RHO": return 0x0007d1
+    case "Greek_SIGMA": return 0x0007d2
+    case "Greek_TAU": return 0x0007d4
+    case "Greek_UPSILON": return 0x0007d5
+    case "Greek_PHI": return 0x0007d6
+    case "Greek_CHI": return 0x0007d7
+    case "Greek_PSI": return 0x0007d8
+    case "Greek_OMEGA": return 0x0007d9
+    case "Greek_alpha": return 0x0007e1
+    case "Greek_beta": return 0x0007e2
+    case "Greek_gamma": return 0x0007e3
+    case "Greek_delta": return 0x0007e4
+    case "Greek_epsilon": return 0x0007e5
+    case "Greek_zeta": return 0x0007e6
+    case "Greek_eta": return 0x0007e7
+    case "Greek_theta": return 0x0007e8
+    case "Greek_iota": return 0x0007e9
+    case "Greek_kappa": return 0x0007ea
+    case "Greek_lambda": return 0x0007eb
+    case "Greek_lamda": return 0x0007eb
+    case "Greek_mu": return 0x0007ec
+    case "Greek_nu": return 0x0007ed
+    case "Greek_xi": return 0x0007ee
+    case "Greek_omicron": return 0x0007ef
+    case "Greek_pi": return 0x0007f0
+    case "Greek_rho": return 0x0007f1
+    case "Greek_sigma": return 0x0007f2
+    case "Greek_finalsmallsigma": return 0x0007f3
+    case "Greek_tau": return 0x0007f4
+    case "Greek_upsilon": return 0x0007f5
+    case "Greek_phi": return 0x0007f6
+    case "Greek_chi": return 0x0007f7
+    case "Greek_psi": return 0x0007f8
+    case "Greek_omega": return 0x0007f9
+    case "leftradical": return 0x0008a1
+    case "topleftradical": return 0x0008a2
+    case "horizconnector": return 0x0008a3
+    case "topintegral": return 0x0008a4
+    case "botintegral": return 0x0008a5
+    case "vertconnector": return 0x0008a6
+    case "topleftsqbracket": return 0x0008a7
+    case "botleftsqbracket": return 0x0008a8
+    case "toprightsqbracket": return 0x0008a9
+    case "botrightsqbracket": return 0x0008aa
+    case "topleftparens": return 0x0008ab
+    case "botleftparens": return 0x0008ac
+    case "toprightparens": return 0x0008ad
+    case "botrightparens": return 0x0008ae
+    case "leftmiddlecurlybrace": return 0x0008af
+    case "rightmiddlecurlybrace": return 0x0008b0
+    case "topleftsummation": return 0x0008b1
+    case "botleftsummation": return 0x0008b2
+    case "topvertsummationconnector": return 0x0008b3
+    case "botvertsummationconnector": return 0x0008b4
+    case "toprightsummation": return 0x0008b5
+    case "botrightsummation": return 0x0008b6
+    case "rightmiddlesummation": return 0x0008b7
+    case "lessthanequal": return 0x0008bc
+    case "notequal": return 0x0008bd
+    case "greaterthanequal": return 0x0008be
+    case "integral": return 0x0008bf
+    case "therefore": return 0x0008c0
+    case "variation": return 0x0008c1
+    case "infinity": return 0x0008c2
+    case "nabla": return 0x0008c5
+    case "approximate": return 0x0008c8
+    case "similarequal": return 0x0008c9
+    case "ifonlyif": return 0x0008cd
+    case "implies": return 0x0008ce
+    case "identical": return 0x0008cf
+    case "radical": return 0x0008d6
+    case "includedin": return 0x0008da
+    case "includes": return 0x0008db
+    case "intersection": return 0x0008dc
+    case "union": return 0x0008dd
+    case "logicaland": return 0x0008de
+    case "logicalor": return 0x0008df
+    case "partialderivative": return 0x0008ef
+    case "function": return 0x0008f6
+    case "leftarrow": return 0x0008fb
+    case "uparrow": return 0x0008fc
+    case "rightarrow": return 0x0008fd
+    case "downarrow": return 0x0008fe
+    case "blank": return 0x0009df
+    case "soliddiamond": return 0x0009e0
+    case "checkerboard": return 0x0009e1
+    case "ht": return 0x0009e2
+    case "ff": return 0x0009e3
+    case "cr": return 0x0009e4
+    case "lf": return 0x0009e5
+    case "nl": return 0x0009e8
+    case "vt": return 0x0009e9
+    case "lowrightcorner": return 0x0009ea
+    case "uprightcorner": return 0x0009eb
+    case "upleftcorner": return 0x0009ec
+    case "lowleftcorner": return 0x0009ed
+    case "crossinglines": return 0x0009ee
+    case "horizlinescan1": return 0x0009ef
+    case "horizlinescan3": return 0x0009f0
+    case "horizlinescan5": return 0x0009f1
+    case "horizlinescan7": return 0x0009f2
+    case "horizlinescan9": return 0x0009f3
+    case "leftt": return 0x0009f4
+    case "rightt": return 0x0009f5
+    case "bott": return 0x0009f6
+    case "topt": return 0x0009f7
+    case "vertbar": return 0x0009f8
+    case "emspace": return 0x000aa1
+    case "enspace": return 0x000aa2
+    case "em3space": return 0x000aa3
+    case "em4space": return 0x000aa4
+    case "digitspace": return 0x000aa5
+    case "punctspace": return 0x000aa6
+    case "thinspace": return 0x000aa7
+    case "hairspace": return 0x000aa8
+    case "emdash": return 0x000aa9
+    case "endash": return 0x000aaa
+    case "signifblank": return 0x000aac
+    case "ellipsis": return 0x000aae
+    case "doubbaselinedot": return 0x000aaf
+    case "onethird": return 0x000ab0
+    case "twothirds": return 0x000ab1
+    case "onefifth": return 0x000ab2
+    case "twofifths": return 0x000ab3
+    case "threefifths": return 0x000ab4
+    case "fourfifths": return 0x000ab5
+    case "onesixth": return 0x000ab6
+    case "fivesixths": return 0x000ab7
+    case "careof": return 0x000ab8
+    case "figdash": return 0x000abb
+    case "leftanglebracket": return 0x000abc
+    case "decimalpoint": return 0x000abd
+    case "rightanglebracket": return 0x000abe
+    case "marker": return 0x000abf
+    case "oneeighth": return 0x000ac3
+    case "threeeighths": return 0x000ac4
+    case "fiveeighths": return 0x000ac5
+    case "seveneighths": return 0x000ac6
+    case "trademark": return 0x000ac9
+    case "signaturemark": return 0x000aca
+    case "trademarkincircle": return 0x000acb
+    case "leftopentriangle": return 0x000acc
+    case "rightopentriangle": return 0x000acd
+    case "emopencircle": return 0x000ace
+    case "emopenrectangle": return 0x000acf
+    case "leftsinglequotemark": return 0x000ad0
+    case "rightsinglequotemark": return 0x000ad1
+    case "leftdoublequotemark": return 0x000ad2
+    case "rightdoublequotemark": return 0x000ad3
+    case "prescription": return 0x000ad4
+    case "minutes": return 0x000ad6
+    case "seconds": return 0x000ad7
+    case "latincross": return 0x000ad9
+    case "hexagram": return 0x000ada
+    case "filledrectbullet": return 0x000adb
+    case "filledlefttribullet": return 0x000adc
+    case "filledrighttribullet": return 0x000add
+    case "emfilledcircle": return 0x000ade
+    case "emfilledrect": return 0x000adf
+    case "enopencircbullet": return 0x000ae0
+    case "enopensquarebullet": return 0x000ae1
+    case "openrectbullet": return 0x000ae2
+    case "opentribulletup": return 0x000ae3
+    case "opentribulletdown": return 0x000ae4
+    case "openstar": return 0x000ae5
+    case "enfilledcircbullet": return 0x000ae6
+    case "enfilledsqbullet": return 0x000ae7
+    case "filledtribulletup": return 0x000ae8
+    case "filledtribulletdown": return 0x000ae9
+    case "leftpointer": return 0x000aea
+    case "rightpointer": return 0x000aeb
+    case "club": return 0x000aec
+    case "diamond": return 0x000aed
+    case "heart": return 0x000aee
+    case "maltesecross": return 0x000af0
+    case "dagger": return 0x000af1
+    case "doubledagger": return 0x000af2
+    case "checkmark": return 0x000af3
+    case "ballotcross": return 0x000af4
+    case "musicalsharp": return 0x000af5
+    case "musicalflat": return 0x000af6
+    case "malesymbol": return 0x000af7
+    case "femalesymbol": return 0x000af8
+    case "telephone": return 0x000af9
+    case "telephonerecorder": return 0x000afa
+    case "phonographcopyright": return 0x000afb
+    case "caret": return 0x000afc
+    case "singlelowquotemark": return 0x000afd
+    case "doublelowquotemark": return 0x000afe
+    case "cursor": return 0x000aff
+    case "leftcaret": return 0x000ba3
+    case "rightcaret": return 0x000ba6
+    case "downcaret": return 0x000ba8
+    case "upcaret": return 0x000ba9
+    case "overbar": return 0x000bc0
+    case "downtack": return 0x000bc2
+    case "upshoe": return 0x000bc3
+    case "downstile": return 0x000bc4
+    case "underbar": return 0x000bc6
+    case "jot": return 0x000bca
+    case "quad": return 0x000bcc
+    case "uptack": return 0x000bce
+    case "circle": return 0x000bcf
+    case "upstile": return 0x000bd3
+    case "downshoe": return 0x000bd6
+    case "rightshoe": return 0x000bd8
+    case "leftshoe": return 0x000bda
+    case "lefttack": return 0x000bdc
+    case "righttack": return 0x000bfc
+    case "hebrew_doublelowline": return 0x000cdf
+    case "hebrew_aleph": return 0x000ce0
+    case "hebrew_bet": return 0x000ce1
+    case "hebrew_beth": return 0x000ce1
+    case "hebrew_gimel": return 0x000ce2
+    case "hebrew_gimmel": return 0x000ce2
+    case "hebrew_dalet": return 0x000ce3
+    case "hebrew_daleth": return 0x000ce3
+    case "hebrew_he": return 0x000ce4
+    case "hebrew_waw": return 0x000ce5
+    case "hebrew_zain": return 0x000ce6
+    case "hebrew_zayin": return 0x000ce6
+    case "hebrew_chet": return 0x000ce7
+    case "hebrew_het": return 0x000ce7
+    case "hebrew_tet": return 0x000ce8
+    case "hebrew_teth": return 0x000ce8
+    case "hebrew_yod": return 0x000ce9
+    case "hebrew_finalkaph": return 0x000cea
+    case "hebrew_kaph": return 0x000ceb
+    case "hebrew_lamed": return 0x000cec
+    case "hebrew_finalmem": return 0x000ced
+    case "hebrew_mem": return 0x000cee
+    case "hebrew_finalnun": return 0x000cef
+    case "hebrew_nun": return 0x000cf0
+    case "hebrew_samech": return 0x000cf1
+    case "hebrew_samekh": return 0x000cf1
+    case "hebrew_ayin": return 0x000cf2
+    case "hebrew_finalpe": return 0x000cf3
+    case "hebrew_pe": return 0x000cf4
+    case "hebrew_finalzade": return 0x000cf5
+    case "hebrew_finalzadi": return 0x000cf5
+    case "hebrew_zade": return 0x000cf6
+    case "hebrew_zadi": return 0x000cf6
+    case "hebrew_kuf": return 0x000cf7
+    case "hebrew_qoph": return 0x000cf7
+    case "hebrew_resh": return 0x000cf8
+    case "hebrew_shin": return 0x000cf9
+    case "hebrew_taf": return 0x000cfa
+    case "hebrew_taw": return 0x000cfa
+    case "Thai_kokai": return 0x000da1
+    case "Thai_khokhai": return 0x000da2
+    case "Thai_khokhuat": return 0x000da3
+    case "Thai_khokhwai": return 0x000da4
+    case "Thai_khokhon": return 0x000da5
+    case "Thai_khorakhang": return 0x000da6
+    case "Thai_ngongu": return 0x000da7
+    case "Thai_chochan": return 0x000da8
+    case "Thai_choching": return 0x000da9
+    case "Thai_chochang": return 0x000daa
+    case "Thai_soso": return 0x000dab
+    case "Thai_chochoe": return 0x000dac
+    case "Thai_yoying": return 0x000dad
+    case "Thai_dochada": return 0x000dae
+    case "Thai_topatak": return 0x000daf
+    case "Thai_thothan": return 0x000db0
+    case "Thai_thonangmontho": return 0x000db1
+    case "Thai_thophuthao": return 0x000db2
+    case "Thai_nonen": return 0x000db3
+    case "Thai_dodek": return 0x000db4
+    case "Thai_totao": return 0x000db5
+    case "Thai_thothung": return 0x000db6
+    case "Thai_thothahan": return 0x000db7
+    case "Thai_thothong": return 0x000db8
+    case "Thai_nonu": return 0x000db9
+    case "Thai_bobaimai": return 0x000dba
+    case "Thai_popla": return 0x000dbb
+    case "Thai_phophung": return 0x000dbc
+    case "Thai_fofa": return 0x000dbd
+    case "Thai_phophan": return 0x000dbe
+    case "Thai_fofan": return 0x000dbf
+    case "Thai_phosamphao": return 0x000dc0
+    case "Thai_moma": return 0x000dc1
+    case "Thai_yoyak": return 0x000dc2
+    case "Thai_rorua": return 0x000dc3
+    case "Thai_ru": return 0x000dc4
+    case "Thai_loling": return 0x000dc5
+    case "Thai_lu": return 0x000dc6
+    case "Thai_wowaen": return 0x000dc7
+    case "Thai_sosala": return 0x000dc8
+    case "Thai_sorusi": return 0x000dc9
+    case "Thai_sosua": return 0x000dca
+    case "Thai_hohip": return 0x000dcb
+    case "Thai_lochula": return 0x000dcc
+    case "Thai_oang": return 0x000dcd
+    case "Thai_honokhuk": return 0x000dce
+    case "Thai_paiyannoi": return 0x000dcf
+    case "Thai_saraa": return 0x000dd0
+    case "Thai_maihanakat": return 0x000dd1
+    case "Thai_saraaa": return 0x000dd2
+    case "Thai_saraam": return 0x000dd3
+    case "Thai_sarai": return 0x000dd4
+    case "Thai_saraii": return 0x000dd5
+    case "Thai_saraue": return 0x000dd6
+    case "Thai_sarauee": return 0x000dd7
+    case "Thai_sarau": return 0x000dd8
+    case "Thai_sarauu": return 0x000dd9
+    case "Thai_phinthu": return 0x000dda
+    case "Thai_maihanakat_maitho": return 0x000dde
+    case "Thai_baht": return 0x000ddf
+    case "Thai_sarae": return 0x000de0
+    case "Thai_saraae": return 0x000de1
+    case "Thai_sarao": return 0x000de2
+    case "Thai_saraaimaimuan": return 0x000de3
+    case "Thai_saraaimaimalai": return 0x000de4
+    case "Thai_lakkhangyao": return 0x000de5
+    case "Thai_maiyamok": return 0x000de6
+    case "Thai_maitaikhu": return 0x000de7
+    case "Thai_maiek": return 0x000de8
+    case "Thai_maitho": return 0x000de9
+    case "Thai_maitri": return 0x000dea
+    case "Thai_maichattawa": return 0x000deb
+    case "Thai_thanthakhat": return 0x000dec
+    case "Thai_nikhahit": return 0x000ded
+    case "Thai_leksun": return 0x000df0
+    case "Thai_leknung": return 0x000df1
+    case "Thai_leksong": return 0x000df2
+    case "Thai_leksam": return 0x000df3
+    case "Thai_leksi": return 0x000df4
+    case "Thai_lekha": return 0x000df5
+    case "Thai_lekhok": return 0x000df6
+    case "Thai_lekchet": return 0x000df7
+    case "Thai_lekpaet": return 0x000df8
+    case "Thai_lekkao": return 0x000df9
+    case "Hangul_Kiyeog": return 0x000ea1
+    case "Hangul_SsangKiyeog": return 0x000ea2
+    case "Hangul_KiyeogSios": return 0x000ea3
+    case "Hangul_Nieun": return 0x000ea4
+    case "Hangul_NieunJieuj": return 0x000ea5
+    case "Hangul_NieunHieuh": return 0x000ea6
+    case "Hangul_Dikeud": return 0x000ea7
+    case "Hangul_SsangDikeud": return 0x000ea8
+    case "Hangul_Rieul": return 0x000ea9
+    case "Hangul_RieulKiyeog": return 0x000eaa
+    case "Hangul_RieulMieum": return 0x000eab
+    case "Hangul_RieulPieub": return 0x000eac
+    case "Hangul_RieulSios": return 0x000ead
+    case "Hangul_RieulTieut": return 0x000eae
+    case "Hangul_RieulPhieuf": return 0x000eaf
+    case "Hangul_RieulHieuh": return 0x000eb0
+    case "Hangul_Mieum": return 0x000eb1
+    case "Hangul_Pieub": return 0x000eb2
+    case "Hangul_SsangPieub": return 0x000eb3
+    case "Hangul_PieubSios": return 0x000eb4
+    case "Hangul_Sios": return 0x000eb5
+    case "Hangul_SsangSios": return 0x000eb6
+    case "Hangul_Ieung": return 0x000eb7
+    case "Hangul_Jieuj": return 0x000eb8
+    case "Hangul_SsangJieuj": return 0x000eb9
+    case "Hangul_Cieuc": return 0x000eba
+    case "Hangul_Khieuq": return 0x000ebb
+    case "Hangul_Tieut": return 0x000ebc
+    case "Hangul_Phieuf": return 0x000ebd
+    case "Hangul_Hieuh": return 0x000ebe
+    case "Hangul_A": return 0x000ebf
+    case "Hangul_AE": return 0x000ec0
+    case "Hangul_YA": return 0x000ec1
+    case "Hangul_YAE": return 0x000ec2
+    case "Hangul_EO": return 0x000ec3
+    case "Hangul_E": return 0x000ec4
+    case "Hangul_YEO": return 0x000ec5
+    case "Hangul_YE": return 0x000ec6
+    case "Hangul_O": return 0x000ec7
+    case "Hangul_WA": return 0x000ec8
+    case "Hangul_WAE": return 0x000ec9
+    case "Hangul_OE": return 0x000eca
+    case "Hangul_YO": return 0x000ecb
+    case "Hangul_U": return 0x000ecc
+    case "Hangul_WEO": return 0x000ecd
+    case "Hangul_WE": return 0x000ece
+    case "Hangul_WI": return 0x000ecf
+    case "Hangul_YU": return 0x000ed0
+    case "Hangul_EU": return 0x000ed1
+    case "Hangul_YI": return 0x000ed2
+    case "Hangul_I": return 0x000ed3
+    case "Hangul_J_Kiyeog": return 0x000ed4
+    case "Hangul_J_SsangKiyeog": return 0x000ed5
+    case "Hangul_J_KiyeogSios": return 0x000ed6
+    case "Hangul_J_Nieun": return 0x000ed7
+    case "Hangul_J_NieunJieuj": return 0x000ed8
+    case "Hangul_J_NieunHieuh": return 0x000ed9
+    case "Hangul_J_Dikeud": return 0x000eda
+    case "Hangul_J_Rieul": return 0x000edb
+    case "Hangul_J_RieulKiyeog": return 0x000edc
+    case "Hangul_J_RieulMieum": return 0x000edd
+    case "Hangul_J_RieulPieub": return 0x000ede
+    case "Hangul_J_RieulSios": return 0x000edf
+    case "Hangul_J_RieulTieut": return 0x000ee0
+    case "Hangul_J_RieulPhieuf": return 0x000ee1
+    case "Hangul_J_RieulHieuh": return 0x000ee2
+    case "Hangul_J_Mieum": return 0x000ee3
+    case "Hangul_J_Pieub": return 0x000ee4
+    case "Hangul_J_PieubSios": return 0x000ee5
+    case "Hangul_J_Sios": return 0x000ee6
+    case "Hangul_J_SsangSios": return 0x000ee7
+    case "Hangul_J_Ieung": return 0x000ee8
+    case "Hangul_J_Jieuj": return 0x000ee9
+    case "Hangul_J_Cieuc": return 0x000eea
+    case "Hangul_J_Khieuq": return 0x000eeb
+    case "Hangul_J_Tieut": return 0x000eec
+    case "Hangul_J_Phieuf": return 0x000eed
+    case "Hangul_J_Hieuh": return 0x000eee
+    case "Hangul_RieulYeorinHieuh": return 0x000eef
+    case "Hangul_SunkyeongeumMieum": return 0x000ef0
+    case "Hangul_SunkyeongeumPieub": return 0x000ef1
+    case "Hangul_PanSios": return 0x000ef2
+    case "Hangul_KkogjiDalrinIeung": return 0x000ef3
+    case "Hangul_SunkyeongeumPhieuf": return 0x000ef4
+    case "Hangul_YeorinHieuh": return 0x000ef5
+    case "Hangul_AraeA": return 0x000ef6
+    case "Hangul_AraeAE": return 0x000ef7
+    case "Hangul_J_PanSios": return 0x000ef8
+    case "Hangul_J_KkogjiDalrinIeung": return 0x000ef9
+    case "Hangul_J_YeorinHieuh": return 0x000efa
+    case "Korean_Won": return 0x000eff
+    case "OE": return 0x0013bc
+    case "oe": return 0x0013bd
+    case "Ydiaeresis": return 0x0013be
+    case "EcuSign": return 0x0020a0
+    case "ColonSign": return 0x0020a1
+    case "CruzeiroSign": return 0x0020a2
+    case "FFrancSign": return 0x0020a3
+    case "LiraSign": return 0x0020a4
+    case "MillSign": return 0x0020a5
+    case "NairaSign": return 0x0020a6
+    case "PesetaSign": return 0x0020a7
+    case "RupeeSign": return 0x0020a8
+    case "WonSign": return 0x0020a9
+    case "NewSheqelSign": return 0x0020aa
+    case "DongSign": return 0x0020ab
+    case "EuroSign": return 0x0020ac
+    case "3270_Duplicate": return 0x00fd01
+    case "3270_FieldMark": return 0x00fd02
+    case "3270_Right2": return 0x00fd03
+    case "3270_Left2": return 0x00fd04
+    case "3270_BackTab": return 0x00fd05
+    case "3270_EraseEOF": return 0x00fd06
+    case "3270_EraseInput": return 0x00fd07
+    case "3270_Reset": return 0x00fd08
+    case "3270_Quit": return 0x00fd09
+    case "3270_PA1": return 0x00fd0a
+    case "3270_PA2": return 0x00fd0b
+    case "3270_PA3": return 0x00fd0c
+    case "3270_Test": return 0x00fd0d
+    case "3270_Attn": return 0x00fd0e
+    case "3270_CursorBlink": return 0x00fd0f
+    case "3270_AltCursor": return 0x00fd10
+    case "3270_KeyClick": return 0x00fd11
+    case "3270_Jump": return 0x00fd12
+    case "3270_Ident": return 0x00fd13
+    case "3270_Rule": return 0x00fd14
+    case "3270_Copy": return 0x00fd15
+    case "3270_Play": return 0x00fd16
+    case "3270_Setup": return 0x00fd17
+    case "3270_Record": return 0x00fd18
+    case "3270_ChangeScreen": return 0x00fd19
+    case "3270_DeleteWord": return 0x00fd1a
+    case "3270_ExSelect": return 0x00fd1b
+    case "3270_CursorSelect": return 0x00fd1c
+    case "3270_PrintScreen": return 0x00fd1d
+    case "3270_Enter": return 0x00fd1e
+    case "ISO_Lock": return 0x00fe01
+    case "ISO_Level2_Latch": return 0x00fe02
+    case "ISO_Level3_Shift": return 0x00fe03
+    case "ISO_Level3_Latch": return 0x00fe04
+    case "ISO_Level3_Lock": return 0x00fe05
+    case "ISO_Group_Latch": return 0x00fe06
+    case "ISO_Group_Lock": return 0x00fe07
+    case "ISO_Next_Group": return 0x00fe08
+    case "ISO_Next_Group_Lock": return 0x00fe09
+    case "ISO_Prev_Group": return 0x00fe0a
+    case "ISO_Prev_Group_Lock": return 0x00fe0b
+    case "ISO_First_Group": return 0x00fe0c
+    case "ISO_First_Group_Lock": return 0x00fe0d
+    case "ISO_Last_Group": return 0x00fe0e
+    case "ISO_Last_Group_Lock": return 0x00fe0f
+    case "ISO_Left_Tab": return 0x00fe20
+    case "ISO_Move_Line_Up": return 0x00fe21
+    case "ISO_Move_Line_Down": return 0x00fe22
+    case "ISO_Partial_Line_Up": return 0x00fe23
+    case "ISO_Partial_Line_Down": return 0x00fe24
+    case "ISO_Partial_Space_Left": return 0x00fe25
+    case "ISO_Partial_Space_Right": return 0x00fe26
+    case "ISO_Set_Margin_Left": return 0x00fe27
+    case "ISO_Set_Margin_Right": return 0x00fe28
+    case "ISO_Release_Margin_Left": return 0x00fe29
+    case "ISO_Release_Margin_Right": return 0x00fe2a
+    case "ISO_Release_Both_Margins": return 0x00fe2b
+    case "ISO_Fast_Cursor_Left": return 0x00fe2c
+    case "ISO_Fast_Cursor_Right": return 0x00fe2d
+    case "ISO_Fast_Cursor_Up": return 0x00fe2e
+    case "ISO_Fast_Cursor_Down": return 0x00fe2f
+    case "ISO_Continuous_Underline": return 0x00fe30
+    case "ISO_Discontinuous_Underline": return 0x00fe31
+    case "ISO_Emphasize": return 0x00fe32
+    case "ISO_Center_Object": return 0x00fe33
+    case "ISO_Enter": return 0x00fe34
+    case "dead_grave": return 0x00fe50
+    case "dead_acute": return 0x00fe51
+    case "dead_circumflex": return 0x00fe52
+    case "dead_tilde": return 0x00fe53
+    case "dead_macron": return 0x00fe54
+    case "dead_breve": return 0x00fe55
+    case "dead_abovedot": return 0x00fe56
+    case "dead_diaeresis": return 0x00fe57
+    case "dead_abovering": return 0x00fe58
+    case "dead_doubleacute": return 0x00fe59
+    case "dead_caron": return 0x00fe5a
+    case "dead_cedilla": return 0x00fe5b
+    case "dead_ogonek": return 0x00fe5c
+    case "dead_iota": return 0x00fe5d
+    case "dead_voiced_sound": return 0x00fe5e
+    case "dead_semivoiced_sound": return 0x00fe5f
+    case "dead_belowdot": return 0x00fe60
+    case "dead_hook": return 0x00fe61
+    case "dead_horn": return 0x00fe62
+    // auxialiary
+    case "AccessX_Enable": return 0x00fe70
+    case "AccessX_Feedback_Enable": return 0x00fe71
+    case "RepeatKeys_Enable": return 0x00fe72
+    case "SlowKeys_Enable": return 0x00fe73
+    case "BounceKeys_Enable": return 0x00fe74
+    case "StickyKeys_Enable": return 0x00fe75
+    case "MouseKeys_Enable": return 0x00fe76
+    case "MouseKeys_Accel_Enable": return 0x00fe77
+    case "Overlay1_Enable": return 0x00fe78
+    case "Overlay2_Enable": return 0x00fe79
+    case "AudibleBell_Enable": return 0x00fe7a
+    case "First_Virtual_Screen": return 0x00fed0
+    case "Prev_Virtual_Screen": return 0x00fed1
+    case "Next_Virtual_Screen": return 0x00fed2
+    case "Last_Virtual_Screen": return 0x00fed4
+    case "Terminate_Server": return 0x00fed5
+    case "Pointer_Left": return 0x00fee0
+    case "Pointer_Right": return 0x00fee1
+    case "Pointer_Up": return 0x00fee2
+    case "Pointer_Down": return 0x00fee3
+    case "Pointer_UpLeft": return 0x00fee4
+    case "Pointer_UpRight": return 0x00fee5
+    case "Pointer_DownLeft": return 0x00fee6
+    case "Pointer_DownRight": return 0x00fee7
+    case "Pointer_Button_Dflt": return 0x00fee8
+    case "Pointer_Button1": return 0x00fee9
+    case "Pointer_Button2": return 0x00feea
+    case "Pointer_Button3": return 0x00feeb
+    case "Pointer_Button4": return 0x00feec
+    case "Pointer_Button5": return 0x00feed
+    case "Pointer_DblClick_Dflt": return 0x00feee
+    case "Pointer_DblClick1": return 0x00feef
+    case "Pointer_DblClick2": return 0x00fef0
+    case "Pointer_DblClick3": return 0x00fef1
+    case "Pointer_DblClick4": return 0x00fef2
+    case "Pointer_DblClick5": return 0x00fef3
+    case "Pointer_Drag_Dflt": return 0x00fef4
+    case "Pointer_Drag1": return 0x00fef5
+    case "Pointer_Drag2": return 0x00fef6
+    case "Pointer_Drag3": return 0x00fef7
+    case "Pointer_Drag4": return 0x00fef8
+    case "Pointer_EnableKeys": return 0x00fef9
+    case "Pointer_Accelerate": return 0x00fefa
+    case "Pointer_DfltBtnNext": return 0x00fefb
+    case "Pointer_DfltBtnPrev": return 0x00fefc
+    case "Pointer_Drag5": return 0x00fefd
+    case "BackSpace": return 0x00ff08
+    case "Tab": return 0x00ff09
+    case "Linefeed": return 0x00ff0a
+    case "Clear": return 0x00ff0b
+    case "Return": return 0x00ff0d
+    case "Pause": return 0x00ff13
+    case "Scroll_Lock": return 0x00ff14
+    case "Sys_Req": return 0x00ff15
+    case "Escape": return 0x00ff1b
+    case "Multi_key": return 0x00ff20
+    case "Kanji": return 0x00ff21
+    case "Muhenkan": return 0x00ff22
+    case "Henkan": return 0x00ff23
+    case "Henkan_Mode": return 0x00ff23
+    case "Romaji": return 0x00ff24
+    case "Hiragana": return 0x00ff25
+    case "Katakana": return 0x00ff26
+    case "Hiragana_Katakana": return 0x00ff27
+    case "Zenkaku": return 0x00ff28
+    case "Hankaku": return 0x00ff29
+    case "Zenkaku_Hankaku": return 0x00ff2a
+    case "Touroku": return 0x00ff2b
+    case "Massyo": return 0x00ff2c
+    case "Kana_Lock": return 0x00ff2d
+    case "Kana_Shift": return 0x00ff2e
+    case "Eisu_Shift": return 0x00ff2f
+    case "Eisu_toggle": return 0x00ff30
+    case "Hangul": return 0x00ff31
+    case "Hangul_Start": return 0x00ff32
+    case "Hangul_End": return 0x00ff33
+    case "Hangul_Hanja": return 0x00ff34
+    case "Hangul_Jamo": return 0x00ff35
+    case "Hangul_Romaja": return 0x00ff36
+    case "Codeinput": return 0x00ff37
+    case "Hangul_Jeonja": return 0x00ff38
+    case "Hangul_Banja": return 0x00ff39
+    case "Hangul_PreHanja": return 0x00ff3a
+    case "Hangul_PostHanja": return 0x00ff3b
+    case "SingleCandidate": return 0x00ff3c
+    case "MultipleCandidate": return 0x00ff3d
+    case "PreviousCandidate": return 0x00ff3e
+    case "Hangul_Special": return 0x00ff3f
+    case "Home": return 0x00ff50
+    case "Left": return 0x00ff51
+    case "Up": return 0x00ff52
+    case "Right": return 0x00ff53
+    case "Down": return 0x00ff54
+    case "Page_Up": return 0x00ff55
+    case "Prior": return 0x00ff55
+    case "Page_Down": return 0x00ff56
+    case "Next": return 0x00ff56
+    case "End": return 0x00ff57
+    case "Begin": return 0x00ff58
+    case "Select": return 0x00ff60
+    case "Print": return 0x00ff61
+    case "Execute": return 0x00ff62
+    case "Insert": return 0x00ff63
+    case "Undo": return 0x00ff65
+    case "Redo": return 0x00ff66
+    case "Menu": return 0x00ff67
+    case "Find": return 0x00ff68
+    case "Cancel": return 0x00ff69
+    case "Help": return 0x00ff6a
+    case "Break": return 0x00ff6b
+    case "Arabic_switch": return 0x00ff7e
+    case "Greek_switch": return 0x00ff7e
+    case "Hangul_switch": return 0x00ff7e
+    case "Hebrew_switch": return 0x00ff7e
+    case "ISO_Group_Shift": return 0x00ff7e
+    case "Mode_switch": return 0x00ff7e
+    case "kana_switch": return 0x00ff7e
+    case "script_switch": return 0x00ff7e
+    case "Num_Lock": return 0x00ff7f
+    case "KP_Space": return 0x00ff80
+    case "KP_Tab": return 0x00ff89
+    case "KP_Enter": return 0x00ff8d
+    case "KP_F1": return 0x00ff91
+    case "KP_F2": return 0x00ff92
+    case "KP_F3": return 0x00ff93
+    case "KP_F4": return 0x00ff94
+    case "KP_Home": return 0x00ff95
+    case "KP_Left": return 0x00ff96
+    case "KP_Up": return 0x00ff97
+    case "KP_Right": return 0x00ff98
+    case "KP_Down": return 0x00ff99
+    case "KP_Page_Up": return 0x00ff9a
+    case "KP_Prior": return 0x00ff9a
+    case "KP_Page_Down": return 0x00ff9b
+    case "KP_Next": return 0x00ff9b
+    case "KP_End": return 0x00ff9c
+    case "KP_Begin": return 0x00ff9d
+    case "KP_Insert": return 0x00ff9e
+    case "KP_Delete": return 0x00ff9f
+    case "KP_Multiply": return 0x00ffaa
+    case "KP_Add": return 0x00ffab
+    case "KP_Separator": return 0x00ffac
+    case "KP_Subtract": return 0x00ffad
+    case "KP_Decimal": return 0x00ffae
+    case "KP_Divide": return 0x00ffaf
+    case "KP_0": return 0x00ffb0
+    case "KP_1": return 0x00ffb1
+    case "KP_2": return 0x00ffb2
+    case "KP_3": return 0x00ffb3
+    case "KP_4": return 0x00ffb4
+    case "KP_5": return 0x00ffb5
+    case "KP_6": return 0x00ffb6
+    case "KP_7": return 0x00ffb7
+    case "KP_8": return 0x00ffb8
+    case "KP_9": return 0x00ffb9
+    case "KP_Equal": return 0x00ffbd
+    case "F1": return 0x00ffbe
+    case "F2": return 0x00ffbf
+    case "F3": return 0x00ffc0
+    case "F4": return 0x00ffc1
+    case "F5": return 0x00ffc2
+    case "F6": return 0x00ffc3
+    case "F7": return 0x00ffc4
+    case "F8": return 0x00ffc5
+    case "F9": return 0x00ffc6
+    case "F10": return 0x00ffc7
+    case "F11": return 0x00ffc8
+    case "F12": return 0x00ffc9
+    case "F13": return 0x00ffca
+    case "F14": return 0x00ffcb
+    case "F15": return 0x00ffcc
+    case "F16": return 0x00ffcd
+    case "F17": return 0x00ffce
+    case "F18": return 0x00ffcf
+    case "F19": return 0x00ffd0
+    case "F20": return 0x00ffd1
+    case "F21": return 0x00ffd2
+    case "F22": return 0x00ffd3
+    case "F23": return 0x00ffd4
+    case "F24": return 0x00ffd5
+    case "F25": return 0x00ffd6
+    case "F26": return 0x00ffd7
+    case "F27": return 0x00ffd8
+    case "F28": return 0x00ffd9
+    case "F29": return 0x00ffda
+    case "F30": return 0x00ffdb
+    case "F31": return 0x00ffdc
+    case "F32": return 0x00ffdd
+    case "F33": return 0x00ffde
+    case "F34": return 0x00ffdf
+    case "F35": return 0x00ffe0
+    case "Shift_L": return 0x00ffe1
+    case "Shift_R": return 0x00ffe2
+    case "Control_L": return 0x00ffe3
+    case "Control_R": return 0x00ffe4
+    case "Caps_Lock": return 0x00ffe5
+    case "Shift_Lock": return 0x00ffe6
+    case "Meta_L": return 0x00ffe7
+    case "Meta_R": return 0x00ffe8
+    case "Alt_L": return 0x00ffe9
+    case "Alt_R": return 0x00ffea
+    case "Super_L": return 0x00ffeb
+    case "Super_R": return 0x00ffec
+    case "Hyper_L": return 0x00ffed
+    case "Hyper_R": return 0x00ffee
+    case "Delete": return 0x00ffff
+    default: return 0
   }
-  // not found or `VoidSymbol`
-  return 0xffffff
 }
-
-func parse_macos_keychar(_ key_name: String) -> UInt16 {
-  if let rime_keycode = rime_keyname_to_keycode[key_name] {
-    if (rime_keycode >= 0xff00 && rime_keycode <= 0xffff) {
-      if let mac_keycode = keychar_rime_to_mac[rime_keycode] {
-        return UInt16(mac_keycode)
-      }
-    } else if (rime_keycode < 0xff00) {
-      return UInt16(rime_keycode)
-    }
-  }
-  return 0
-}
-
-
-// pc keyboard
-var kVK_PC_Application: Int = 0x6e
-var kVK_PC_BS: Int = 0x33
-var kVK_PC_Del: Int = 0x75
-var kVK_PC_Insert: Int = 0x72
-var kVK_PC_KeypadNumLock: Int = 0x47
-var kVK_PC_Pause: Int = 0x71
-var kVK_PC_Power: Int = 0x7f
-var kVK_PC_PrintScreen: Int = 0x69
-var kVK_PC_ScrollLock: Int = 0x6b
-
-fileprivate let keycode_mac_to_rime: [Int: CInt] = [
-  // modifiers
-  kVK_CapsLock: XK_Caps_Lock,
-  kVK_Command: XK_Super_L,  // XK_Meta_L?
-  kVK_RightCommand: XK_Super_R,  // XK_Meta_R?
-  kVK_Control: XK_Control_L,
-  kVK_RightControl: XK_Control_R,
-  kVK_Function: XK_Hyper_L,
-  kVK_Option: XK_Alt_L,
-  kVK_RightOption: XK_Alt_R,
-  kVK_Shift: XK_Shift_L,
-  kVK_RightShift: XK_Shift_R,
-  // special,
-  kVK_Delete: XK_BackSpace,
-  // OSX_VK_ENTER_POWERBOOK -> ?,
-  kVK_Escape:XK_Escape,
-  kVK_ForwardDelete: XK_Delete,
-// the same keycode as kVK_PC_INSERT,
-  //kVK_Help： XK_Help,
-  kVK_Return: XK_Return,
-  kVK_Space: XK_space,
-  kVK_Tab: XK_Tab,
-    // function,
-  kVK_F1: XK_F1,
-  kVK_F2: XK_F2,
-  kVK_F3: XK_F3,
-  kVK_F4: XK_F4,
-  kVK_F5: XK_F5,
-  kVK_F6: XK_F6,
-  kVK_F7: XK_F7,
-  kVK_F8: XK_F8,
-  kVK_F9: XK_F9,
-  kVK_F10: XK_F10,
-  kVK_F11: XK_F11,
-  kVK_F12: XK_F12,
-  kVK_F13: XK_F13,
-  kVK_F14: XK_F14,
-  kVK_F15: XK_F15,
-  kVK_F16: XK_F16,
-  kVK_F17: XK_F17,
-  kVK_F18: XK_F18,
-  kVK_F19: XK_F19,
-  kVK_F20: XK_F20,
-  // cursor,
-  kVK_UpArrow: XK_Up,
-  kVK_DownArrow: XK_Down,
-  kVK_LeftArrow: XK_Left,
-  kVK_RightArrow: XK_Right,
-  kVK_PageUp: XK_Page_Up,
-  kVK_PageDown: XK_Page_Down,
-  kVK_Home: XK_Home,
-  kVK_End: XK_End,
-  // keypad,
-  kVK_ANSI_Keypad0: XK_KP_0,
-  kVK_ANSI_Keypad1: XK_KP_1,
-  kVK_ANSI_Keypad2: XK_KP_2,
-  kVK_ANSI_Keypad3: XK_KP_3,
-  kVK_ANSI_Keypad4: XK_KP_4,
-  kVK_ANSI_Keypad5: XK_KP_5,
-  kVK_ANSI_Keypad6: XK_KP_6,
-  kVK_ANSI_Keypad7: XK_KP_7,
-  kVK_ANSI_Keypad8: XK_KP_8,
-  kVK_ANSI_Keypad9: XK_KP_9,
-  kVK_ANSI_KeypadEnter: XK_KP_Enter,
-  kVK_ANSI_KeypadClear: XK_Clear,
-  kVK_ANSI_KeypadDecimal: XK_KP_Decimal,
-  kVK_ANSI_KeypadEquals: XK_KP_Equal,
-  kVK_ANSI_KeypadMinus: XK_KP_Subtract,
-  kVK_ANSI_KeypadMultiply: XK_KP_Multiply,
-  kVK_ANSI_KeypadPlus: XK_KP_Add,
-  kVK_ANSI_KeypadDivide: XK_KP_Divide,
-  // pc keyboard,
-  kVK_PC_Application: XK_Menu,
-  kVK_PC_Insert: XK_Insert,
-//the same keycode as kVK_ANSI_KeypadClear
-//  kVK_PC_Keypad_NumLock: XK_Num_Lock,
-//the same keycode as kVK_F15
-//  kVK_PC_Pause: XK_Pause,
-  //OSX_VK_PC_Power -> ?,
-//the same keycode as kVK_F13
-//  kVK_PC_PrintScreen: XK_Print,
-//the same keycode as kVK_F14
-//  kVK_PC_ScrollLock: XK_Scroll_Lock,
-  // JIS keyboard,
-  kVK_JIS_KeypadComma: XK_KP_Separator,
-  kVK_JIS_Eisu: XK_Eisu_toggle,
-  kVK_JIS_Kana: XK_Kana_Shift
-]
-
-fileprivate let keychar_mac_to_rime: [Int: CInt] = [
-  // ASCII control characters
-  NSEnterCharacter: XK_KP_Enter,
-  NSBackspaceCharacter: XK_BackSpace,
-  NSTabCharacter: XK_Tab,
-  NSNewlineCharacter: XK_Linefeed,
-  NSCarriageReturnCharacter: XK_Return,
-  NSBackTabCharacter: XK_ISO_Left_Tab,
-  NSDeleteCharacter: XK_Delete,
-  // Nagivator key characters
-  NSUpArrowFunctionKey: XK_Up,
-  NSDownArrowFunctionKey: XK_Down,
-  NSLeftArrowFunctionKey: XK_Left,
-  NSRightArrowFunctionKey: XK_Right,
-  // Function key characters
-  NSF1FunctionKey: XK_F1,
-  NSF2FunctionKey: XK_F2,
-  NSF3FunctionKey: XK_F3,
-  NSF4FunctionKey: XK_F4,
-  NSF5FunctionKey: XK_F5,
-  NSF6FunctionKey: XK_F6,
-  NSF7FunctionKey: XK_F7,
-  NSF8FunctionKey: XK_F8,
-  NSF9FunctionKey: XK_F9,
-  NSF10FunctionKey: XK_F10,
-  NSF11FunctionKey: XK_F11,
-  NSF12FunctionKey: XK_F12,
-  NSF13FunctionKey: XK_F13,
-  NSF14FunctionKey: XK_F14,
-  NSF15FunctionKey: XK_F15,
-  NSF16FunctionKey: XK_F16,
-  NSF17FunctionKey: XK_F17,
-  NSF18FunctionKey: XK_F18,
-  NSF19FunctionKey: XK_F19,
-  NSF20FunctionKey: XK_F20,
-  NSF21FunctionKey: XK_F21,
-  NSF22FunctionKey: XK_F22,
-  NSF23FunctionKey: XK_F23,
-  NSF24FunctionKey: XK_F24,
-  NSF25FunctionKey: XK_F25,
-  NSF26FunctionKey: XK_F26,
-  NSF27FunctionKey: XK_F27,
-  NSF28FunctionKey: XK_F28,
-  NSF29FunctionKey: XK_F29,
-  NSF30FunctionKey: XK_F30,
-  NSF31FunctionKey: XK_F31,
-  NSF32FunctionKey: XK_F32,
-  NSF33FunctionKey: XK_F33,
-  NSF34FunctionKey: XK_F34,
-  NSF35FunctionKey: XK_F35,
-  // Misc functional key characters
-  NSInsertFunctionKey: XK_Insert,
-  NSHomeFunctionKey: XK_Home,
-  NSBeginFunctionKey: XK_Begin,
-  NSEndFunctionKey: XK_End,
-  NSPageUpFunctionKey: XK_Page_Up,
-  NSPageDownFunctionKey: XK_Page_Down,
-  NSScrollLockFunctionKey: XK_Scroll_Lock,
-  NSPauseFunctionKey: XK_Pause,
-  NSSysReqFunctionKey: XK_Sys_Req,
-  NSBreakFunctionKey: XK_Break,
-  NSStopFunctionKey: XK_Cancel,
-  NSMenuFunctionKey: XK_Menu,
-  NSPrintFunctionKey: XK_Print,
-  NSClearLineFunctionKey: XK_Clear,
-  NSClearDisplayFunctionKey: XK_Num_Lock,
-  NSSelectFunctionKey: XK_Select,
-  NSExecuteFunctionKey: XK_Execute,
-  NSUndoFunctionKey: XK_Undo,
-  NSRedoFunctionKey: XK_Redo,
-  NSFindFunctionKey: XK_Find,
-  NSHelpFunctionKey: XK_Help,
-  NSModeSwitchFunctionKey: XK_Mode_switch
-]
-
-fileprivate let rime_keyname_to_keycode: [String: CInt] = [
-  // ascii
-  "space": 0x000020,
-  "exclam": 0x000021,
-  "quotedbl": 0x000022,
-  "numbersign": 0x000023,
-  "dollar": 0x000024,
-  "percent": 0x000025,
-  "ampersand": 0x000026,
-  "apostrophe": 0x000027,
-  "quoteright": 0x000027,
-  "parenleft": 0x000028,
-  "parenright": 0x000029,
-  "asterisk": 0x00002a,
-  "plus": 0x00002b,
-  "comma": 0x00002c,
-  "minus": 0x00002d,
-  "period": 0x00002e,
-  "slash": 0x00002f,
-  "0": 0x000030,
-  "1": 0x000031,
-  "2": 0x000032,
-  "3": 0x000033,
-  "4": 0x000034,
-  "5": 0x000035,
-  "6": 0x000036,
-  "7": 0x000037,
-  "8": 0x000038,
-  "9": 0x000039,
-  "colon": 0x00003a,
-  "semicolon": 0x00003b,
-  "less": 0x00003c,
-  "equal": 0x00003d,
-  "greater": 0x00003e,
-  "question": 0x00003f,
-  "at": 0x000040,
-  "A": 0x000041,
-  "B": 0x000042,
-  "C": 0x000043,
-  "D": 0x000044,
-  "E": 0x000045,
-  "F": 0x000046,
-  "G": 0x000047,
-  "H": 0x000048,
-  "I": 0x000049,
-  "J": 0x00004a,
-  "K": 0x00004b,
-  "L": 0x00004c,
-  "M": 0x00004d,
-  "N": 0x00004e,
-  "O": 0x00004f,
-  "P": 0x000050,
-  "Q": 0x000051,
-  "R": 0x000052,
-  "S": 0x000053,
-  "T": 0x000054,
-  "U": 0x000055,
-  "V": 0x000056,
-  "W": 0x000057,
-  "X": 0x000058,
-  "Y": 0x000059,
-  "Z": 0x00005a,
-  "bracketleft": 0x00005b,
-  "backslash": 0x00005c,
-  "bracketright": 0x00005d,
-  "asciicircum": 0x00005e,
-  "underscore": 0x00005f,
-  "grave": 0x000060,
-  "quoteleft": 0x000060,
-  "a": 0x000061,
-  "b": 0x000062,
-  "c": 0x000063,
-  "d": 0x000064,
-  "e": 0x000065,
-  "f": 0x000066,
-  "g": 0x000067,
-  "h": 0x000068,
-  "i": 0x000069,
-  "j": 0x00006a,
-  "k": 0x00006b,
-  "l": 0x00006c,
-  "m": 0x00006d,
-  "n": 0x00006e,
-  "o": 0x00006f,
-  "p": 0x000070,
-  "q": 0x000071,
-  "r": 0x000072,
-  "s": 0x000073,
-  "t": 0x000074,
-  "u": 0x000075,
-  "v": 0x000076,
-  "w": 0x000077,
-  "x": 0x000078,
-  "y": 0x000079,
-  "z": 0x00007a,
-  "braceleft": 0x00007b,
-  "bar": 0x00007c,
-  "braceright": 0x00007d,
-  "asciitilde": 0x00007e,
-  // latin-1
-  "nobreakspace": 0x0000a0,
-  "exclamdown": 0x0000a1,
-  "cent": 0x0000a2,
-  "sterling": 0x0000a3,
-  "currency": 0x0000a4,
-  "yen": 0x0000a5,
-  "brokenbar": 0x0000a6,
-  "section": 0x0000a7,
-  "diaeresis": 0x0000a8,
-  "copyright": 0x0000a9,
-  "ordfeminine": 0x0000aa,
-  "guillemotleft": 0x0000ab,
-  "notsign": 0x0000ac,
-  "hyphen": 0x0000ad,
-  "registered": 0x0000ae,
-  "macron": 0x0000af,
-  "degree": 0x0000b0,
-  "plusminus": 0x0000b1,
-  "twosuperior": 0x0000b2,
-  "threesuperior": 0x0000b3,
-  "acute": 0x0000b4,
-  "mu": 0x0000b5,
-  "paragraph": 0x0000b6,
-  "periodcentered": 0x0000b7,
-  "cedilla": 0x0000b8,
-  "onesuperior": 0x0000b9,
-  "masculine": 0x0000ba,
-  "guillemotright": 0x0000bb,
-  "onequarter": 0x0000bc,
-  "onehalf": 0x0000bd,
-  "threequarters": 0x0000be,
-  "questiondown": 0x0000bf,
-  "Agrave": 0x0000c0,
-  "Aacute": 0x0000c1,
-  "Acircumflex": 0x0000c2,
-  "Atilde": 0x0000c3,
-  "Adiaeresis": 0x0000c4,
-  "Aring": 0x0000c5,
-  "AE": 0x0000c6,
-  "Ccedilla": 0x0000c7,
-  "Egrave": 0x0000c8,
-  "Eacute": 0x0000c9,
-  "Ecircumflex": 0x0000ca,
-  "Ediaeresis": 0x0000cb,
-  "Igrave": 0x0000cc,
-  "Iacute": 0x0000cd,
-  "Icircumflex": 0x0000ce,
-  "Idiaeresis": 0x0000cf,
-  "ETH": 0x0000d0,
-  "Eth": 0x0000d0,
-  "Ntilde": 0x0000d1,
-  "Ograve": 0x0000d2,
-  "Oacute": 0x0000d3,
-  "Ocircumflex": 0x0000d4,
-  "Otilde": 0x0000d5,
-  "Odiaeresis": 0x0000d6,
-  "multiply": 0x0000d7,
-  "Ooblique": 0x0000d8,
-  "Ugrave": 0x0000d9,
-  "Uacute": 0x0000da,
-  "Ucircumflex": 0x0000db,
-  "Udiaeresis": 0x0000dc,
-  "Yacute": 0x0000dd,
-  "THORN": 0x0000de,
-  "Thorn": 0x0000de,
-  "ssharp": 0x0000df,
-  "agrave": 0x0000e0,
-  "aacute": 0x0000e1,
-  "acircumflex": 0x0000e2,
-  "atilde": 0x0000e3,
-  "adiaeresis": 0x0000e4,
-  "aring": 0x0000e5,
-  "ae": 0x0000e6,
-  "ccedilla": 0x0000e7,
-  "egrave": 0x0000e8,
-  "eacute": 0x0000e9,
-  "ecircumflex": 0x0000ea,
-  "ediaeresis": 0x0000eb,
-  "igrave": 0x0000ec,
-  "iacute": 0x0000ed,
-  "icircumflex": 0x0000ee,
-  "idiaeresis": 0x0000ef,
-  "eth": 0x0000f0,
-  "ntilde": 0x0000f1,
-  "ograve": 0x0000f2,
-  "oacute": 0x0000f3,
-  "ocircumflex": 0x0000f4,
-  "otilde": 0x0000f5,
-  "odiaeresis": 0x0000f6,
-  "division": 0x0000f7,
-  "oslash": 0x0000f8,
-  "ugrave": 0x0000f9,
-  "uacute": 0x0000fa,
-  "ucircumflex": 0x0000fb,
-  "udiaeresis": 0x0000fc,
-  "yacute": 0x0000fd,
-  "thorn": 0x0000fe,
-  "ydiaeresis": 0x0000ff,
-  "Aogonek": 0x0001a1,
-  "breve": 0x0001a2,
-  "Lstroke": 0x0001a3,
-  "Lcaron": 0x0001a5,
-  "Sacute": 0x0001a6,
-  "Scaron": 0x0001a9,
-  "Scedilla": 0x0001aa,
-  "Tcaron": 0x0001ab,
-  "Zacute": 0x0001ac,
-  "Zcaron": 0x0001ae,
-  "Zabovedot": 0x0001af,
-  "aogonek": 0x0001b1,
-  "ogonek": 0x0001b2,
-  "lstroke": 0x0001b3,
-  "lcaron": 0x0001b5,
-  "sacute": 0x0001b6,
-  "caron": 0x0001b7,
-  "scaron": 0x0001b9,
-  "scedilla": 0x0001ba,
-  "tcaron": 0x0001bb,
-  "zacute": 0x0001bc,
-  "doubleacute": 0x0001bd,
-  "zcaron": 0x0001be,
-  "zabovedot": 0x0001bf,
-  "Racute": 0x0001c0,
-  "Abreve": 0x0001c3,
-  "Lacute": 0x0001c5,
-  "Cacute": 0x0001c6,
-  "Ccaron": 0x0001c8,
-  "Eogonek": 0x0001ca,
-  "Ecaron": 0x0001cc,
-  "Dcaron": 0x0001cf,
-  "Dstroke": 0x0001d0,
-  "Nacute": 0x0001d1,
-  "Ncaron": 0x0001d2,
-  "Odoubleacute": 0x0001d5,
-  "Rcaron": 0x0001d8,
-  "Uring": 0x0001d9,
-  "Udoubleacute": 0x0001db,
-  "Tcedilla": 0x0001de,
-  "racute": 0x0001e0,
-  "abreve": 0x0001e3,
-  "lacute": 0x0001e5,
-  "cacute": 0x0001e6,
-  "ccaron": 0x0001e8,
-  "eogonek": 0x0001ea,
-  "ecaron": 0x0001ec,
-  "dcaron": 0x0001ef,
-  "dstroke": 0x0001f0,
-  "nacute": 0x0001f1,
-  "ncaron": 0x0001f2,
-  "odoubleacute": 0x0001f5,
-  "rcaron": 0x0001f8,
-  "uring": 0x0001f9,
-  "udoubleacute": 0x0001fb,
-  "tcedilla": 0x0001fe,
-  "abovedot": 0x0001ff,
-  "Hstroke": 0x0002a1,
-  "Hcircumflex": 0x0002a6,
-  "Iabovedot": 0x0002a9,
-  "Gbreve": 0x0002ab,
-  "Jcircumflex": 0x0002ac,
-  "hstroke": 0x0002b1,
-  "hcircumflex": 0x0002b6,
-  "idotless": 0x0002b9,
-  "gbreve": 0x0002bb,
-  "jcircumflex": 0x0002bc,
-  "Cabovedot": 0x0002c5,
-  "Ccircumflex": 0x0002c6,
-  "Gabovedot": 0x0002d5,
-  "Gcircumflex": 0x0002d8,
-  "Ubreve": 0x0002dd,
-  "Scircumflex": 0x0002de,
-  "cabovedot": 0x0002e5,
-  "ccircumflex": 0x0002e6,
-  "gabovedot": 0x0002f5,
-  "gcircumflex": 0x0002f8,
-  "ubreve": 0x0002fd,
-  "scircumflex": 0x0002fe,
-  "kappa": 0x0003a2,
-  "kra": 0x0003a2,
-  "Rcedilla": 0x0003a3,
-  "Itilde": 0x0003a5,
-  "Lcedilla": 0x0003a6,
-  "Emacron": 0x0003aa,
-  "Gcedilla": 0x0003ab,
-  "Tslash": 0x0003ac,
-  "rcedilla": 0x0003b3,
-  "itilde": 0x0003b5,
-  "lcedilla": 0x0003b6,
-  "emacron": 0x0003ba,
-  "gcedilla": 0x0003bb,
-  "tslash": 0x0003bc,
-  "ENG": 0x0003bd,
-  "eng": 0x0003bf,
-  "Amacron": 0x0003c0,
-  "Iogonek": 0x0003c7,
-  "Eabovedot": 0x0003cc,
-  "Imacron": 0x0003cf,
-  "Ncedilla": 0x0003d1,
-  "Omacron": 0x0003d2,
-  "Kcedilla": 0x0003d3,
-  "Uogonek": 0x0003d9,
-  "Utilde": 0x0003dd,
-  "Umacron": 0x0003de,
-  "amacron": 0x0003e0,
-  "iogonek": 0x0003e7,
-  "eabovedot": 0x0003ec,
-  "imacron": 0x0003ef,
-  "ncedilla": 0x0003f1,
-  "omacron": 0x0003f2,
-  "kcedilla": 0x0003f3,
-  "uogonek": 0x0003f9,
-  "utilde": 0x0003fd,
-  "umacron": 0x0003fe,
-  "overline": 0x00047e,
-  "kana_fullstop": 0x0004a1,
-  "kana_openingbracket": 0x0004a2,
-  "kana_closingbracket": 0x0004a3,
-  "kana_comma": 0x0004a4,
-  "kana_conjunctive": 0x0004a5,
-  "kana_middledot": 0x0004a5,
-  "kana_WO": 0x0004a6,
-  "kana_a": 0x0004a7,
-  "kana_i": 0x0004a8,
-  "kana_u": 0x0004a9,
-  "kana_e": 0x0004aa,
-  "kana_o": 0x0004ab,
-  "kana_ya": 0x0004ac,
-  "kana_yu": 0x0004ad,
-  "kana_yo": 0x0004ae,
-  "kana_tsu": 0x0004af,
-  "kana_tu": 0x0004af,
-  "prolongedsound": 0x0004b0,
-  "kana_A": 0x0004b1,
-  "kana_I": 0x0004b2,
-  "kana_U": 0x0004b3,
-  "kana_E": 0x0004b4,
-  "kana_O": 0x0004b5,
-  "kana_KA": 0x0004b6,
-  "kana_KI": 0x0004b7,
-  "kana_KU": 0x0004b8,
-  "kana_KE": 0x0004b9,
-  "kana_KO": 0x0004ba,
-  "kana_SA": 0x0004bb,
-  "kana_SHI": 0x0004bc,
-  "kana_SU": 0x0004bd,
-  "kana_SE": 0x0004be,
-  "kana_SO": 0x0004bf,
-  "kana_TA": 0x0004c0,
-  "kana_CHI": 0x0004c1,
-  "kana_TI": 0x0004c1,
-  "kana_TSU": 0x0004c2,
-  "kana_TU": 0x0004c2,
-  "kana_TE": 0x0004c3,
-  "kana_TO": 0x0004c4,
-  "kana_NA": 0x0004c5,
-  "kana_NI": 0x0004c6,
-  "kana_NU": 0x0004c7,
-  "kana_NE": 0x0004c8,
-  "kana_NO": 0x0004c9,
-  "kana_HA": 0x0004ca,
-  "kana_HI": 0x0004cb,
-  "kana_FU": 0x0004cc,
-  "kana_HU": 0x0004cc,
-  "kana_HE": 0x0004cd,
-  "kana_HO": 0x0004ce,
-  "kana_MA": 0x0004cf,
-  "kana_MI": 0x0004d0,
-  "kana_MU": 0x0004d1,
-  "kana_ME": 0x0004d2,
-  "kana_MO": 0x0004d3,
-  "kana_YA": 0x0004d4,
-  "kana_YU": 0x0004d5,
-  "kana_YO": 0x0004d6,
-  "kana_RA": 0x0004d7,
-  "kana_RI": 0x0004d8,
-  "kana_RU": 0x0004d9,
-  "kana_RE": 0x0004da,
-  "kana_RO": 0x0004db,
-  "kana_WA": 0x0004dc,
-  "kana_N": 0x0004dd,
-  "voicedsound": 0x0004de,
-  "semivoicedsound": 0x0004df,
-  "Arabic_comma": 0x0005ac,
-  "Arabic_semicolon": 0x0005bb,
-  "Arabic_question_mark": 0x0005bf,
-  "Arabic_hamza": 0x0005c1,
-  "Arabic_maddaonalef": 0x0005c2,
-  "Arabic_hamzaonalef": 0x0005c3,
-  "Arabic_hamzaonwaw": 0x0005c4,
-  "Arabic_hamzaunderalef": 0x0005c5,
-  "Arabic_hamzaonyeh": 0x0005c6,
-  "Arabic_alef": 0x0005c7,
-  "Arabic_beh": 0x0005c8,
-  "Arabic_tehmarbuta": 0x0005c9,
-  "Arabic_teh": 0x0005ca,
-  "Arabic_theh": 0x0005cb,
-  "Arabic_jeem": 0x0005cc,
-  "Arabic_hah": 0x0005cd,
-  "Arabic_khah": 0x0005ce,
-  "Arabic_dal": 0x0005cf,
-  "Arabic_thal": 0x0005d0,
-  "Arabic_ra": 0x0005d1,
-  "Arabic_zain": 0x0005d2,
-  "Arabic_seen": 0x0005d3,
-  "Arabic_sheen": 0x0005d4,
-  "Arabic_sad": 0x0005d5,
-  "Arabic_dad": 0x0005d6,
-  "Arabic_tah": 0x0005d7,
-  "Arabic_zah": 0x0005d8,
-  "Arabic_ain": 0x0005d9,
-  "Arabic_ghain": 0x0005da,
-  "Arabic_tatweel": 0x0005e0,
-  "Arabic_feh": 0x0005e1,
-  "Arabic_qaf": 0x0005e2,
-  "Arabic_kaf": 0x0005e3,
-  "Arabic_lam": 0x0005e4,
-  "Arabic_meem": 0x0005e5,
-  "Arabic_noon": 0x0005e6,
-  "Arabic_ha": 0x0005e7,
-  "Arabic_heh": 0x0005e7,
-  "Arabic_waw": 0x0005e8,
-  "Arabic_alefmaksura": 0x0005e9,
-  "Arabic_yeh": 0x0005ea,
-  "Arabic_fathatan": 0x0005eb,
-  "Arabic_dammatan": 0x0005ec,
-  "Arabic_kasratan": 0x0005ed,
-  "Arabic_fatha": 0x0005ee,
-  "Arabic_damma": 0x0005ef,
-  "Arabic_kasra": 0x0005f0,
-  "Arabic_shadda": 0x0005f1,
-  "Arabic_sukun": 0x0005f2,
-  "Serbian_dje": 0x0006a1,
-  "Macedonia_gje": 0x0006a2,
-  "Cyrillic_io": 0x0006a3,
-  "Ukrainian_ie": 0x0006a4,
-  "Ukranian_je": 0x0006a4,
-  "Macedonia_dse": 0x0006a5,
-  "Ukrainian_i": 0x0006a6,
-  "Ukranian_i": 0x0006a6,
-  "Ukrainian_yi": 0x0006a7,
-  "Ukranian_yi": 0x0006a7,
-  "Cyrillic_je": 0x0006a8,
-  "Serbian_je": 0x0006a8,
-  "Cyrillic_lje": 0x0006a9,
-  "Serbian_lje": 0x0006a9,
-  "Cyrillic_nje": 0x0006aa,
-  "Serbian_nje": 0x0006aa,
-  "Serbian_tshe": 0x0006ab,
-  "Macedonia_kje": 0x0006ac,
-  "Byelorussian_shortu": 0x0006ae,
-  "Cyrillic_dzhe": 0x0006af,
-  "Serbian_dze": 0x0006af,
-  "numerosign": 0x0006b0,
-  "Serbian_DJE": 0x0006b1,
-  "Macedonia_GJE": 0x0006b2,
-  "Cyrillic_IO": 0x0006b3,
-  "Ukrainian_IE": 0x0006b4,
-  "Ukranian_JE": 0x0006b4,
-  "Macedonia_DSE": 0x0006b5,
-  "Ukrainian_I": 0x0006b6,
-  "Ukranian_I": 0x0006b6,
-  "Ukrainian_YI": 0x0006b7,
-  "Ukranian_YI": 0x0006b7,
-  "Cyrillic_JE": 0x0006b8,
-  "Serbian_JE": 0x0006b8,
-  "Cyrillic_LJE": 0x0006b9,
-  "Serbian_LJE": 0x0006b9,
-  "Cyrillic_NJE": 0x0006ba,
-  "Serbian_NJE": 0x0006ba,
-  "Serbian_TSHE": 0x0006bb,
-  "Macedonia_KJE": 0x0006bc,
-  "Byelorussian_SHORTU": 0x0006be,
-  "Cyrillic_DZHE": 0x0006bf,
-  "Serbian_DZE": 0x0006bf,
-  "Cyrillic_yu": 0x0006c0,
-  "Cyrillic_a": 0x0006c1,
-  "Cyrillic_be": 0x0006c2,
-  "Cyrillic_tse": 0x0006c3,
-  "Cyrillic_de": 0x0006c4,
-  "Cyrillic_ie": 0x0006c5,
-  "Cyrillic_ef": 0x0006c6,
-  "Cyrillic_ghe": 0x0006c7,
-  "Cyrillic_ha": 0x0006c8,
-  "Cyrillic_i": 0x0006c9,
-  "Cyrillic_shorti": 0x0006ca,
-  "Cyrillic_ka": 0x0006cb,
-  "Cyrillic_el": 0x0006cc,
-  "Cyrillic_em": 0x0006cd,
-  "Cyrillic_en": 0x0006ce,
-  "Cyrillic_o": 0x0006cf,
-  "Cyrillic_pe": 0x0006d0,
-  "Cyrillic_ya": 0x0006d1,
-  "Cyrillic_er": 0x0006d2,
-  "Cyrillic_es": 0x0006d3,
-  "Cyrillic_te": 0x0006d4,
-  "Cyrillic_u": 0x0006d5,
-  "Cyrillic_zhe": 0x0006d6,
-  "Cyrillic_ve": 0x0006d7,
-  "Cyrillic_softsign": 0x0006d8,
-  "Cyrillic_yeru": 0x0006d9,
-  "Cyrillic_ze": 0x0006da,
-  "Cyrillic_sha": 0x0006db,
-  "Cyrillic_e": 0x0006dc,
-  "Cyrillic_shcha": 0x0006dd,
-  "Cyrillic_che": 0x0006de,
-  "Cyrillic_hardsign": 0x0006df,
-  "Cyrillic_YU": 0x0006e0,
-  "Cyrillic_A": 0x0006e1,
-  "Cyrillic_BE": 0x0006e2,
-  "Cyrillic_TSE": 0x0006e3,
-  "Cyrillic_DE": 0x0006e4,
-  "Cyrillic_IE": 0x0006e5,
-  "Cyrillic_EF": 0x0006e6,
-  "Cyrillic_GHE": 0x0006e7,
-  "Cyrillic_HA": 0x0006e8,
-  "Cyrillic_I": 0x0006e9,
-  "Cyrillic_SHORTI": 0x0006ea,
-  "Cyrillic_KA": 0x0006eb,
-  "Cyrillic_EL": 0x0006ec,
-  "Cyrillic_EM": 0x0006ed,
-  "Cyrillic_EN": 0x0006ee,
-  "Cyrillic_O": 0x0006ef,
-  "Cyrillic_PE": 0x0006f0,
-  "Cyrillic_YA": 0x0006f1,
-  "Cyrillic_ER": 0x0006f2,
-  "Cyrillic_ES": 0x0006f3,
-  "Cyrillic_TE": 0x0006f4,
-  "Cyrillic_U": 0x0006f5,
-  "Cyrillic_ZHE": 0x0006f6,
-  "Cyrillic_VE": 0x0006f7,
-  "Cyrillic_SOFTSIGN": 0x0006f8,
-  "Cyrillic_YERU": 0x0006f9,
-  "Cyrillic_ZE": 0x0006fa,
-  "Cyrillic_SHA": 0x0006fb,
-  "Cyrillic_E": 0x0006fc,
-  "Cyrillic_SHCHA": 0x0006fd,
-  "Cyrillic_CHE": 0x0006fe,
-  "Cyrillic_HARDSIGN": 0x0006ff,
-  "Greek_ALPHAaccent": 0x0007a1,
-  "Greek_EPSILONaccent": 0x0007a2,
-  "Greek_ETAaccent": 0x0007a3,
-  "Greek_IOTAaccent": 0x0007a4,
-  "Greek_IOTAdieresis": 0x0007a5,
-  "Greek_IOTAdiaeresis": 0x0007a5,
-  "Greek_OMICRONaccent": 0x0007a7,
-  "Greek_UPSILONaccent": 0x0007a8,
-  "Greek_UPSILONdieresis": 0x0007a9,
-  "Greek_OMEGAaccent": 0x0007ab,
-  "Greek_accentdieresis": 0x0007ae,
-  "Greek_horizbar": 0x0007af,
-  "Greek_alphaaccent": 0x0007b1,
-  "Greek_epsilonaccent": 0x0007b2,
-  "Greek_etaaccent": 0x0007b3,
-  "Greek_iotaaccent": 0x0007b4,
-  "Greek_iotadieresis": 0x0007b5,
-  "Greek_iotaaccentdieresis": 0x0007b6,
-  "Greek_omicronaccent": 0x0007b7,
-  "Greek_upsilonaccent": 0x0007b8,
-  "Greek_upsilondieresis": 0x0007b9,
-  "Greek_upsilonaccentdieresis": 0x0007ba,
-  "Greek_omegaaccent": 0x0007bb,
-  "Greek_ALPHA": 0x0007c1,
-  "Greek_BETA": 0x0007c2,
-  "Greek_GAMMA": 0x0007c3,
-  "Greek_DELTA": 0x0007c4,
-  "Greek_EPSILON": 0x0007c5,
-  "Greek_ZETA": 0x0007c6,
-  "Greek_ETA": 0x0007c7,
-  "Greek_THETA": 0x0007c8,
-  "Greek_IOTA": 0x0007c9,
-  "Greek_KAPPA": 0x0007ca,
-  "Greek_LAMBDA": 0x0007cb,
-  "Greek_LAMDA": 0x0007cb,
-  "Greek_MU": 0x0007cc,
-  "Greek_NU": 0x0007cd,
-  "Greek_XI": 0x0007ce,
-  "Greek_OMICRON": 0x0007cf,
-  "Greek_PI": 0x0007d0,
-  "Greek_RHO": 0x0007d1,
-  "Greek_SIGMA": 0x0007d2,
-  "Greek_TAU": 0x0007d4,
-  "Greek_UPSILON": 0x0007d5,
-  "Greek_PHI": 0x0007d6,
-  "Greek_CHI": 0x0007d7,
-  "Greek_PSI": 0x0007d8,
-  "Greek_OMEGA": 0x0007d9,
-  "Greek_alpha": 0x0007e1,
-  "Greek_beta": 0x0007e2,
-  "Greek_gamma": 0x0007e3,
-  "Greek_delta": 0x0007e4,
-  "Greek_epsilon": 0x0007e5,
-  "Greek_zeta": 0x0007e6,
-  "Greek_eta": 0x0007e7,
-  "Greek_theta": 0x0007e8,
-  "Greek_iota": 0x0007e9,
-  "Greek_kappa": 0x0007ea,
-  "Greek_lambda": 0x0007eb,
-  "Greek_lamda": 0x0007eb,
-  "Greek_mu": 0x0007ec,
-  "Greek_nu": 0x0007ed,
-  "Greek_xi": 0x0007ee,
-  "Greek_omicron": 0x0007ef,
-  "Greek_pi": 0x0007f0,
-  "Greek_rho": 0x0007f1,
-  "Greek_sigma": 0x0007f2,
-  "Greek_finalsmallsigma": 0x0007f3,
-  "Greek_tau": 0x0007f4,
-  "Greek_upsilon": 0x0007f5,
-  "Greek_phi": 0x0007f6,
-  "Greek_chi": 0x0007f7,
-  "Greek_psi": 0x0007f8,
-  "Greek_omega": 0x0007f9,
-  "leftradical": 0x0008a1,
-  "topleftradical": 0x0008a2,
-  "horizconnector": 0x0008a3,
-  "topintegral": 0x0008a4,
-  "botintegral": 0x0008a5,
-  "vertconnector": 0x0008a6,
-  "topleftsqbracket": 0x0008a7,
-  "botleftsqbracket": 0x0008a8,
-  "toprightsqbracket": 0x0008a9,
-  "botrightsqbracket": 0x0008aa,
-  "topleftparens": 0x0008ab,
-  "botleftparens": 0x0008ac,
-  "toprightparens": 0x0008ad,
-  "botrightparens": 0x0008ae,
-  "leftmiddlecurlybrace": 0x0008af,
-  "rightmiddlecurlybrace": 0x0008b0,
-  "topleftsummation": 0x0008b1,
-  "botleftsummation": 0x0008b2,
-  "topvertsummationconnector": 0x0008b3,
-  "botvertsummationconnector": 0x0008b4,
-  "toprightsummation": 0x0008b5,
-  "botrightsummation": 0x0008b6,
-  "rightmiddlesummation": 0x0008b7,
-  "lessthanequal": 0x0008bc,
-  "notequal": 0x0008bd,
-  "greaterthanequal": 0x0008be,
-  "integral": 0x0008bf,
-  "therefore": 0x0008c0,
-  "variation": 0x0008c1,
-  "infinity": 0x0008c2,
-  "nabla": 0x0008c5,
-  "approximate": 0x0008c8,
-  "similarequal": 0x0008c9,
-  "ifonlyif": 0x0008cd,
-  "implies": 0x0008ce,
-  "identical": 0x0008cf,
-  "radical": 0x0008d6,
-  "includedin": 0x0008da,
-  "includes": 0x0008db,
-  "intersection": 0x0008dc,
-  "union": 0x0008dd,
-  "logicaland": 0x0008de,
-  "logicalor": 0x0008df,
-  "partialderivative": 0x0008ef,
-  "function": 0x0008f6,
-  "leftarrow": 0x0008fb,
-  "uparrow": 0x0008fc,
-  "rightarrow": 0x0008fd,
-  "downarrow": 0x0008fe,
-  "blank": 0x0009df,
-  "soliddiamond": 0x0009e0,
-  "checkerboard": 0x0009e1,
-  "ht": 0x0009e2,
-  "ff": 0x0009e3,
-  "cr": 0x0009e4,
-  "lf": 0x0009e5,
-  "nl": 0x0009e8,
-  "vt": 0x0009e9,
-  "lowrightcorner": 0x0009ea,
-  "uprightcorner": 0x0009eb,
-  "upleftcorner": 0x0009ec,
-  "lowleftcorner": 0x0009ed,
-  "crossinglines": 0x0009ee,
-  "horizlinescan1": 0x0009ef,
-  "horizlinescan3": 0x0009f0,
-  "horizlinescan5": 0x0009f1,
-  "horizlinescan7": 0x0009f2,
-  "horizlinescan9": 0x0009f3,
-  "leftt": 0x0009f4,
-  "rightt": 0x0009f5,
-  "bott": 0x0009f6,
-  "topt": 0x0009f7,
-  "vertbar": 0x0009f8,
-  "emspace": 0x000aa1,
-  "enspace": 0x000aa2,
-  "em3space": 0x000aa3,
-  "em4space": 0x000aa4,
-  "digitspace": 0x000aa5,
-  "punctspace": 0x000aa6,
-  "thinspace": 0x000aa7,
-  "hairspace": 0x000aa8,
-  "emdash": 0x000aa9,
-  "endash": 0x000aaa,
-  "signifblank": 0x000aac,
-  "ellipsis": 0x000aae,
-  "doubbaselinedot": 0x000aaf,
-  "onethird": 0x000ab0,
-  "twothirds": 0x000ab1,
-  "onefifth": 0x000ab2,
-  "twofifths": 0x000ab3,
-  "threefifths": 0x000ab4,
-  "fourfifths": 0x000ab5,
-  "onesixth": 0x000ab6,
-  "fivesixths": 0x000ab7,
-  "careof": 0x000ab8,
-  "figdash": 0x000abb,
-  "leftanglebracket": 0x000abc,
-  "decimalpoint": 0x000abd,
-  "rightanglebracket": 0x000abe,
-  "marker": 0x000abf,
-  "oneeighth": 0x000ac3,
-  "threeeighths": 0x000ac4,
-  "fiveeighths": 0x000ac5,
-  "seveneighths": 0x000ac6,
-  "trademark": 0x000ac9,
-  "signaturemark": 0x000aca,
-  "trademarkincircle": 0x000acb,
-  "leftopentriangle": 0x000acc,
-  "rightopentriangle": 0x000acd,
-  "emopencircle": 0x000ace,
-  "emopenrectangle": 0x000acf,
-  "leftsinglequotemark": 0x000ad0,
-  "rightsinglequotemark": 0x000ad1,
-  "leftdoublequotemark": 0x000ad2,
-  "rightdoublequotemark": 0x000ad3,
-  "prescription": 0x000ad4,
-  "minutes": 0x000ad6,
-  "seconds": 0x000ad7,
-  "latincross": 0x000ad9,
-  "hexagram": 0x000ada,
-  "filledrectbullet": 0x000adb,
-  "filledlefttribullet": 0x000adc,
-  "filledrighttribullet": 0x000add,
-  "emfilledcircle": 0x000ade,
-  "emfilledrect": 0x000adf,
-  "enopencircbullet": 0x000ae0,
-  "enopensquarebullet": 0x000ae1,
-  "openrectbullet": 0x000ae2,
-  "opentribulletup": 0x000ae3,
-  "opentribulletdown": 0x000ae4,
-  "openstar": 0x000ae5,
-  "enfilledcircbullet": 0x000ae6,
-  "enfilledsqbullet": 0x000ae7,
-  "filledtribulletup": 0x000ae8,
-  "filledtribulletdown": 0x000ae9,
-  "leftpointer": 0x000aea,
-  "rightpointer": 0x000aeb,
-  "club": 0x000aec,
-  "diamond": 0x000aed,
-  "heart": 0x000aee,
-  "maltesecross": 0x000af0,
-  "dagger": 0x000af1,
-  "doubledagger": 0x000af2,
-  "checkmark": 0x000af3,
-  "ballotcross": 0x000af4,
-  "musicalsharp": 0x000af5,
-  "musicalflat": 0x000af6,
-  "malesymbol": 0x000af7,
-  "femalesymbol": 0x000af8,
-  "telephone": 0x000af9,
-  "telephonerecorder": 0x000afa,
-  "phonographcopyright": 0x000afb,
-  "caret": 0x000afc,
-  "singlelowquotemark": 0x000afd,
-  "doublelowquotemark": 0x000afe,
-  "cursor": 0x000aff,
-  "leftcaret": 0x000ba3,
-  "rightcaret": 0x000ba6,
-  "downcaret": 0x000ba8,
-  "upcaret": 0x000ba9,
-  "overbar": 0x000bc0,
-  "downtack": 0x000bc2,
-  "upshoe": 0x000bc3,
-  "downstile": 0x000bc4,
-  "underbar": 0x000bc6,
-  "jot": 0x000bca,
-  "quad": 0x000bcc,
-  "uptack": 0x000bce,
-  "circle": 0x000bcf,
-  "upstile": 0x000bd3,
-  "downshoe": 0x000bd6,
-  "rightshoe": 0x000bd8,
-  "leftshoe": 0x000bda,
-  "lefttack": 0x000bdc,
-  "righttack": 0x000bfc,
-  "hebrew_doublelowline": 0x000cdf,
-  "hebrew_aleph": 0x000ce0,
-  "hebrew_bet": 0x000ce1,
-  "hebrew_beth": 0x000ce1,
-  "hebrew_gimel": 0x000ce2,
-  "hebrew_gimmel": 0x000ce2,
-  "hebrew_dalet": 0x000ce3,
-  "hebrew_daleth": 0x000ce3,
-  "hebrew_he": 0x000ce4,
-  "hebrew_waw": 0x000ce5,
-  "hebrew_zain": 0x000ce6,
-  "hebrew_zayin": 0x000ce6,
-  "hebrew_chet": 0x000ce7,
-  "hebrew_het": 0x000ce7,
-  "hebrew_tet": 0x000ce8,
-  "hebrew_teth": 0x000ce8,
-  "hebrew_yod": 0x000ce9,
-  "hebrew_finalkaph": 0x000cea,
-  "hebrew_kaph": 0x000ceb,
-  "hebrew_lamed": 0x000cec,
-  "hebrew_finalmem": 0x000ced,
-  "hebrew_mem": 0x000cee,
-  "hebrew_finalnun": 0x000cef,
-  "hebrew_nun": 0x000cf0,
-  "hebrew_samech": 0x000cf1,
-  "hebrew_samekh": 0x000cf1,
-  "hebrew_ayin": 0x000cf2,
-  "hebrew_finalpe": 0x000cf3,
-  "hebrew_pe": 0x000cf4,
-  "hebrew_finalzade": 0x000cf5,
-  "hebrew_finalzadi": 0x000cf5,
-  "hebrew_zade": 0x000cf6,
-  "hebrew_zadi": 0x000cf6,
-  "hebrew_kuf": 0x000cf7,
-  "hebrew_qoph": 0x000cf7,
-  "hebrew_resh": 0x000cf8,
-  "hebrew_shin": 0x000cf9,
-  "hebrew_taf": 0x000cfa,
-  "hebrew_taw": 0x000cfa,
-  "Thai_kokai": 0x000da1,
-  "Thai_khokhai": 0x000da2,
-  "Thai_khokhuat": 0x000da3,
-  "Thai_khokhwai": 0x000da4,
-  "Thai_khokhon": 0x000da5,
-  "Thai_khorakhang": 0x000da6,
-  "Thai_ngongu": 0x000da7,
-  "Thai_chochan": 0x000da8,
-  "Thai_choching": 0x000da9,
-  "Thai_chochang": 0x000daa,
-  "Thai_soso": 0x000dab,
-  "Thai_chochoe": 0x000dac,
-  "Thai_yoying": 0x000dad,
-  "Thai_dochada": 0x000dae,
-  "Thai_topatak": 0x000daf,
-  "Thai_thothan": 0x000db0,
-  "Thai_thonangmontho": 0x000db1,
-  "Thai_thophuthao": 0x000db2,
-  "Thai_nonen": 0x000db3,
-  "Thai_dodek": 0x000db4,
-  "Thai_totao": 0x000db5,
-  "Thai_thothung": 0x000db6,
-  "Thai_thothahan": 0x000db7,
-  "Thai_thothong": 0x000db8,
-  "Thai_nonu": 0x000db9,
-  "Thai_bobaimai": 0x000dba,
-  "Thai_popla": 0x000dbb,
-  "Thai_phophung": 0x000dbc,
-  "Thai_fofa": 0x000dbd,
-  "Thai_phophan": 0x000dbe,
-  "Thai_fofan": 0x000dbf,
-  "Thai_phosamphao": 0x000dc0,
-  "Thai_moma": 0x000dc1,
-  "Thai_yoyak": 0x000dc2,
-  "Thai_rorua": 0x000dc3,
-  "Thai_ru": 0x000dc4,
-  "Thai_loling": 0x000dc5,
-  "Thai_lu": 0x000dc6,
-  "Thai_wowaen": 0x000dc7,
-  "Thai_sosala": 0x000dc8,
-  "Thai_sorusi": 0x000dc9,
-  "Thai_sosua": 0x000dca,
-  "Thai_hohip": 0x000dcb,
-  "Thai_lochula": 0x000dcc,
-  "Thai_oang": 0x000dcd,
-  "Thai_honokhuk": 0x000dce,
-  "Thai_paiyannoi": 0x000dcf,
-  "Thai_saraa": 0x000dd0,
-  "Thai_maihanakat": 0x000dd1,
-  "Thai_saraaa": 0x000dd2,
-  "Thai_saraam": 0x000dd3,
-  "Thai_sarai": 0x000dd4,
-  "Thai_saraii": 0x000dd5,
-  "Thai_saraue": 0x000dd6,
-  "Thai_sarauee": 0x000dd7,
-  "Thai_sarau": 0x000dd8,
-  "Thai_sarauu": 0x000dd9,
-  "Thai_phinthu": 0x000dda,
-  "Thai_maihanakat_maitho": 0x000dde,
-  "Thai_baht": 0x000ddf,
-  "Thai_sarae": 0x000de0,
-  "Thai_saraae": 0x000de1,
-  "Thai_sarao": 0x000de2,
-  "Thai_saraaimaimuan": 0x000de3,
-  "Thai_saraaimaimalai": 0x000de4,
-  "Thai_lakkhangyao": 0x000de5,
-  "Thai_maiyamok": 0x000de6,
-  "Thai_maitaikhu": 0x000de7,
-  "Thai_maiek": 0x000de8,
-  "Thai_maitho": 0x000de9,
-  "Thai_maitri": 0x000dea,
-  "Thai_maichattawa": 0x000deb,
-  "Thai_thanthakhat": 0x000dec,
-  "Thai_nikhahit": 0x000ded,
-  "Thai_leksun": 0x000df0,
-  "Thai_leknung": 0x000df1,
-  "Thai_leksong": 0x000df2,
-  "Thai_leksam": 0x000df3,
-  "Thai_leksi": 0x000df4,
-  "Thai_lekha": 0x000df5,
-  "Thai_lekhok": 0x000df6,
-  "Thai_lekchet": 0x000df7,
-  "Thai_lekpaet": 0x000df8,
-  "Thai_lekkao": 0x000df9,
-  "Hangul_Kiyeog": 0x000ea1,
-  "Hangul_SsangKiyeog": 0x000ea2,
-  "Hangul_KiyeogSios": 0x000ea3,
-  "Hangul_Nieun": 0x000ea4,
-  "Hangul_NieunJieuj": 0x000ea5,
-  "Hangul_NieunHieuh": 0x000ea6,
-  "Hangul_Dikeud": 0x000ea7,
-  "Hangul_SsangDikeud": 0x000ea8,
-  "Hangul_Rieul": 0x000ea9,
-  "Hangul_RieulKiyeog": 0x000eaa,
-  "Hangul_RieulMieum": 0x000eab,
-  "Hangul_RieulPieub": 0x000eac,
-  "Hangul_RieulSios": 0x000ead,
-  "Hangul_RieulTieut": 0x000eae,
-  "Hangul_RieulPhieuf": 0x000eaf,
-  "Hangul_RieulHieuh": 0x000eb0,
-  "Hangul_Mieum": 0x000eb1,
-  "Hangul_Pieub": 0x000eb2,
-  "Hangul_SsangPieub": 0x000eb3,
-  "Hangul_PieubSios": 0x000eb4,
-  "Hangul_Sios": 0x000eb5,
-  "Hangul_SsangSios": 0x000eb6,
-  "Hangul_Ieung": 0x000eb7,
-  "Hangul_Jieuj": 0x000eb8,
-  "Hangul_SsangJieuj": 0x000eb9,
-  "Hangul_Cieuc": 0x000eba,
-  "Hangul_Khieuq": 0x000ebb,
-  "Hangul_Tieut": 0x000ebc,
-  "Hangul_Phieuf": 0x000ebd,
-  "Hangul_Hieuh": 0x000ebe,
-  "Hangul_A": 0x000ebf,
-  "Hangul_AE": 0x000ec0,
-  "Hangul_YA": 0x000ec1,
-  "Hangul_YAE": 0x000ec2,
-  "Hangul_EO": 0x000ec3,
-  "Hangul_E": 0x000ec4,
-  "Hangul_YEO": 0x000ec5,
-  "Hangul_YE": 0x000ec6,
-  "Hangul_O": 0x000ec7,
-  "Hangul_WA": 0x000ec8,
-  "Hangul_WAE": 0x000ec9,
-  "Hangul_OE": 0x000eca,
-  "Hangul_YO": 0x000ecb,
-  "Hangul_U": 0x000ecc,
-  "Hangul_WEO": 0x000ecd,
-  "Hangul_WE": 0x000ece,
-  "Hangul_WI": 0x000ecf,
-  "Hangul_YU": 0x000ed0,
-  "Hangul_EU": 0x000ed1,
-  "Hangul_YI": 0x000ed2,
-  "Hangul_I": 0x000ed3,
-  "Hangul_J_Kiyeog": 0x000ed4,
-  "Hangul_J_SsangKiyeog": 0x000ed5,
-  "Hangul_J_KiyeogSios": 0x000ed6,
-  "Hangul_J_Nieun": 0x000ed7,
-  "Hangul_J_NieunJieuj": 0x000ed8,
-  "Hangul_J_NieunHieuh": 0x000ed9,
-  "Hangul_J_Dikeud": 0x000eda,
-  "Hangul_J_Rieul": 0x000edb,
-  "Hangul_J_RieulKiyeog": 0x000edc,
-  "Hangul_J_RieulMieum": 0x000edd,
-  "Hangul_J_RieulPieub": 0x000ede,
-  "Hangul_J_RieulSios": 0x000edf,
-  "Hangul_J_RieulTieut": 0x000ee0,
-  "Hangul_J_RieulPhieuf": 0x000ee1,
-  "Hangul_J_RieulHieuh": 0x000ee2,
-  "Hangul_J_Mieum": 0x000ee3,
-  "Hangul_J_Pieub": 0x000ee4,
-  "Hangul_J_PieubSios": 0x000ee5,
-  "Hangul_J_Sios": 0x000ee6,
-  "Hangul_J_SsangSios": 0x000ee7,
-  "Hangul_J_Ieung": 0x000ee8,
-  "Hangul_J_Jieuj": 0x000ee9,
-  "Hangul_J_Cieuc": 0x000eea,
-  "Hangul_J_Khieuq": 0x000eeb,
-  "Hangul_J_Tieut": 0x000eec,
-  "Hangul_J_Phieuf": 0x000eed,
-  "Hangul_J_Hieuh": 0x000eee,
-  "Hangul_RieulYeorinHieuh": 0x000eef,
-  "Hangul_SunkyeongeumMieum": 0x000ef0,
-  "Hangul_SunkyeongeumPieub": 0x000ef1,
-  "Hangul_PanSios": 0x000ef2,
-  "Hangul_KkogjiDalrinIeung": 0x000ef3,
-  "Hangul_SunkyeongeumPhieuf": 0x000ef4,
-  "Hangul_YeorinHieuh": 0x000ef5,
-  "Hangul_AraeA": 0x000ef6,
-  "Hangul_AraeAE": 0x000ef7,
-  "Hangul_J_PanSios": 0x000ef8,
-  "Hangul_J_KkogjiDalrinIeung": 0x000ef9,
-  "Hangul_J_YeorinHieuh": 0x000efa,
-  "Korean_Won": 0x000eff,
-  "OE": 0x0013bc,
-  "oe": 0x0013bd,
-  "Ydiaeresis": 0x0013be,
-  "EcuSign": 0x0020a0,
-  "ColonSign": 0x0020a1,
-  "CruzeiroSign": 0x0020a2,
-  "FFrancSign": 0x0020a3,
-  "LiraSign": 0x0020a4,
-  "MillSign": 0x0020a5,
-  "NairaSign": 0x0020a6,
-  "PesetaSign": 0x0020a7,
-  "RupeeSign": 0x0020a8,
-  "WonSign": 0x0020a9,
-  "NewSheqelSign": 0x0020aa,
-  "DongSign": 0x0020ab,
-  "EuroSign": 0x0020ac,
-  "3270_Duplicate": 0x00fd01,
-  "3270_FieldMark": 0x00fd02,
-  "3270_Right2": 0x00fd03,
-  "3270_Left2": 0x00fd04,
-  "3270_BackTab": 0x00fd05,
-  "3270_EraseEOF": 0x00fd06,
-  "3270_EraseInput": 0x00fd07,
-  "3270_Reset": 0x00fd08,
-  "3270_Quit": 0x00fd09,
-  "3270_PA1": 0x00fd0a,
-  "3270_PA2": 0x00fd0b,
-  "3270_PA3": 0x00fd0c,
-  "3270_Test": 0x00fd0d,
-  "3270_Attn": 0x00fd0e,
-  "3270_CursorBlink": 0x00fd0f,
-  "3270_AltCursor": 0x00fd10,
-  "3270_KeyClick": 0x00fd11,
-  "3270_Jump": 0x00fd12,
-  "3270_Ident": 0x00fd13,
-  "3270_Rule": 0x00fd14,
-  "3270_Copy": 0x00fd15,
-  "3270_Play": 0x00fd16,
-  "3270_Setup": 0x00fd17,
-  "3270_Record": 0x00fd18,
-  "3270_ChangeScreen": 0x00fd19,
-  "3270_DeleteWord": 0x00fd1a,
-  "3270_ExSelect": 0x00fd1b,
-  "3270_CursorSelect": 0x00fd1c,
-  "3270_PrintScreen": 0x00fd1d,
-  "3270_Enter": 0x00fd1e,
-  "ISO_Lock": 0x00fe01,
-  "ISO_Level2_Latch": 0x00fe02,
-  "ISO_Level3_Shift": 0x00fe03,
-  "ISO_Level3_Latch": 0x00fe04,
-  "ISO_Level3_Lock": 0x00fe05,
-  "ISO_Group_Latch": 0x00fe06,
-  "ISO_Group_Lock": 0x00fe07,
-  "ISO_Next_Group": 0x00fe08,
-  "ISO_Next_Group_Lock": 0x00fe09,
-  "ISO_Prev_Group": 0x00fe0a,
-  "ISO_Prev_Group_Lock": 0x00fe0b,
-  "ISO_First_Group": 0x00fe0c,
-  "ISO_First_Group_Lock": 0x00fe0d,
-  "ISO_Last_Group": 0x00fe0e,
-  "ISO_Last_Group_Lock": 0x00fe0f,
-  "ISO_Left_Tab": 0x00fe20,
-  "ISO_Move_Line_Up": 0x00fe21,
-  "ISO_Move_Line_Down": 0x00fe22,
-  "ISO_Partial_Line_Up": 0x00fe23,
-  "ISO_Partial_Line_Down": 0x00fe24,
-  "ISO_Partial_Space_Left": 0x00fe25,
-  "ISO_Partial_Space_Right": 0x00fe26,
-  "ISO_Set_Margin_Left": 0x00fe27,
-  "ISO_Set_Margin_Right": 0x00fe28,
-  "ISO_Release_Margin_Left": 0x00fe29,
-  "ISO_Release_Margin_Right": 0x00fe2a,
-  "ISO_Release_Both_Margins": 0x00fe2b,
-  "ISO_Fast_Cursor_Left": 0x00fe2c,
-  "ISO_Fast_Cursor_Right": 0x00fe2d,
-  "ISO_Fast_Cursor_Up": 0x00fe2e,
-  "ISO_Fast_Cursor_Down": 0x00fe2f,
-  "ISO_Continuous_Underline": 0x00fe30,
-  "ISO_Discontinuous_Underline": 0x00fe31,
-  "ISO_Emphasize": 0x00fe32,
-  "ISO_Center_Object": 0x00fe33,
-  "ISO_Enter": 0x00fe34,
-  "dead_grave": 0x00fe50,
-  "dead_acute": 0x00fe51,
-  "dead_circumflex": 0x00fe52,
-  "dead_tilde": 0x00fe53,
-  "dead_macron": 0x00fe54,
-  "dead_breve": 0x00fe55,
-  "dead_abovedot": 0x00fe56,
-  "dead_diaeresis": 0x00fe57,
-  "dead_abovering": 0x00fe58,
-  "dead_doubleacute": 0x00fe59,
-  "dead_caron": 0x00fe5a,
-  "dead_cedilla": 0x00fe5b,
-  "dead_ogonek": 0x00fe5c,
-  "dead_iota": 0x00fe5d,
-  "dead_voiced_sound": 0x00fe5e,
-  "dead_semivoiced_sound": 0x00fe5f,
-  "dead_belowdot": 0x00fe60,
-  "dead_hook": 0x00fe61,
-  "dead_horn": 0x00fe62,
-  "AccessX_Enable": 0x00fe70,
-  "AccessX_Feedback_Enable": 0x00fe71,
-  "RepeatKeys_Enable": 0x00fe72,
-  "SlowKeys_Enable": 0x00fe73,
-  "BounceKeys_Enable": 0x00fe74,
-  "StickyKeys_Enable": 0x00fe75,
-  "MouseKeys_Enable": 0x00fe76,
-  "MouseKeys_Accel_Enable": 0x00fe77,
-  "Overlay1_Enable": 0x00fe78,
-  "Overlay2_Enable": 0x00fe79,
-  "AudibleBell_Enable": 0x00fe7a,
-  "First_Virtual_Screen": 0x00fed0,
-  "Prev_Virtual_Screen": 0x00fed1,
-  "Next_Virtual_Screen": 0x00fed2,
-  "Last_Virtual_Screen": 0x00fed4,
-  "Terminate_Server": 0x00fed5,
-  "Pointer_Left": 0x00fee0,
-  "Pointer_Right": 0x00fee1,
-  "Pointer_Up": 0x00fee2,
-  "Pointer_Down": 0x00fee3,
-  "Pointer_UpLeft": 0x00fee4,
-  "Pointer_UpRight": 0x00fee5,
-  "Pointer_DownLeft": 0x00fee6,
-  "Pointer_DownRight": 0x00fee7,
-  "Pointer_Button_Dflt": 0x00fee8,
-  "Pointer_Button1": 0x00fee9,
-  "Pointer_Button2": 0x00feea,
-  "Pointer_Button3": 0x00feeb,
-  "Pointer_Button4": 0x00feec,
-  "Pointer_Button5": 0x00feed,
-  "Pointer_DblClick_Dflt": 0x00feee,
-  "Pointer_DblClick1": 0x00feef,
-  "Pointer_DblClick2": 0x00fef0,
-  "Pointer_DblClick3": 0x00fef1,
-  "Pointer_DblClick4": 0x00fef2,
-  "Pointer_DblClick5": 0x00fef3,
-  "Pointer_Drag_Dflt": 0x00fef4,
-  "Pointer_Drag1": 0x00fef5,
-  "Pointer_Drag2": 0x00fef6,
-  "Pointer_Drag3": 0x00fef7,
-  "Pointer_Drag4": 0x00fef8,
-  "Pointer_EnableKeys": 0x00fef9,
-  "Pointer_Accelerate": 0x00fefa,
-  "Pointer_DfltBtnNext": 0x00fefb,
-  "Pointer_DfltBtnPrev": 0x00fefc,
-  "Pointer_Drag5": 0x00fefd,
-  "BackSpace": 0x00ff08,
-  "Tab": 0x00ff09,
-  "Linefeed": 0x00ff0a,
-  "Clear": 0x00ff0b,
-  "Return": 0x00ff0d,
-  "Pause": 0x00ff13,
-  "Scroll_Lock": 0x00ff14,
-  "Sys_Req": 0x00ff15,
-  "Escape": 0x00ff1b,
-  "Multi_key": 0x00ff20,
-  "Kanji": 0x00ff21,
-  "Muhenkan": 0x00ff22,
-  "Henkan": 0x00ff23,
-  "Henkan_Mode": 0x00ff23,
-  "Romaji": 0x00ff24,
-  "Hiragana": 0x00ff25,
-  "Katakana": 0x00ff26,
-  "Hiragana_Katakana": 0x00ff27,
-  "Zenkaku": 0x00ff28,
-  "Hankaku": 0x00ff29,
-  "Zenkaku_Hankaku": 0x00ff2a,
-  "Touroku": 0x00ff2b,
-  "Massyo": 0x00ff2c,
-  "Kana_Lock": 0x00ff2d,
-  "Kana_Shift": 0x00ff2e,
-  "Eisu_Shift": 0x00ff2f,
-  "Eisu_toggle": 0x00ff30,
-  "Hangul": 0x00ff31,
-  "Hangul_Start": 0x00ff32,
-  "Hangul_End": 0x00ff33,
-  "Hangul_Hanja": 0x00ff34,
-  "Hangul_Jamo": 0x00ff35,
-  "Hangul_Romaja": 0x00ff36,
-  "Codeinput": 0x00ff37,
-  "Hangul_Jeonja": 0x00ff38,
-  "Hangul_Banja": 0x00ff39,
-  "Hangul_PreHanja": 0x00ff3a,
-  "Hangul_PostHanja": 0x00ff3b,
-  "SingleCandidate": 0x00ff3c,
-  "MultipleCandidate": 0x00ff3d,
-  "PreviousCandidate": 0x00ff3e,
-  "Hangul_Special": 0x00ff3f,
-  "Home": 0x00ff50,
-  "Left": 0x00ff51,
-  "Up": 0x00ff52,
-  "Right": 0x00ff53,
-  "Down": 0x00ff54,
-  "Page_Up": 0x00ff55,
-  "Prior": 0x00ff55,
-  "Page_Down": 0x00ff56,
-  "Next": 0x00ff56,
-  "End": 0x00ff57,
-  "Begin": 0x00ff58,
-  "Select": 0x00ff60,
-  "Print": 0x00ff61,
-  "Execute": 0x00ff62,
-  "Insert": 0x00ff63,
-  "Undo": 0x00ff65,
-  "Redo": 0x00ff66,
-  "Menu": 0x00ff67,
-  "Find": 0x00ff68,
-  "Cancel": 0x00ff69,
-  "Help": 0x00ff6a,
-  "Break": 0x00ff6b,
-  "Arabic_switch": 0x00ff7e,
-  "Greek_switch": 0x00ff7e,
-  "Hangul_switch": 0x00ff7e,
-  "Hebrew_switch": 0x00ff7e,
-  "ISO_Group_Shift": 0x00ff7e,
-  "Mode_switch": 0x00ff7e,
-  "kana_switch": 0x00ff7e,
-  "script_switch": 0x00ff7e,
-  "Num_Lock": 0x00ff7f,
-  "KP_Space": 0x00ff80,
-  "KP_Tab": 0x00ff89,
-  "KP_Enter": 0x00ff8d,
-  "KP_F1": 0x00ff91,
-  "KP_F2": 0x00ff92,
-  "KP_F3": 0x00ff93,
-  "KP_F4": 0x00ff94,
-  "KP_Home": 0x00ff95,
-  "KP_Left": 0x00ff96,
-  "KP_Up": 0x00ff97,
-  "KP_Right": 0x00ff98,
-  "KP_Down": 0x00ff99,
-  "KP_Page_Up": 0x00ff9a,
-  "KP_Prior": 0x00ff9a,
-  "KP_Page_Down": 0x00ff9b,
-  "KP_Next": 0x00ff9b,
-  "KP_End": 0x00ff9c,
-  "KP_Begin": 0x00ff9d,
-  "KP_Insert": 0x00ff9e,
-  "KP_Delete": 0x00ff9f,
-  "KP_Multiply": 0x00ffaa,
-  "KP_Add": 0x00ffab,
-  "KP_Separator": 0x00ffac,
-  "KP_Subtract": 0x00ffad,
-  "KP_Decimal": 0x00ffae,
-  "KP_Divide": 0x00ffaf,
-  "KP_0": 0x00ffb0,
-  "KP_1": 0x00ffb1,
-  "KP_2": 0x00ffb2,
-  "KP_3": 0x00ffb3,
-  "KP_4": 0x00ffb4,
-  "KP_5": 0x00ffb5,
-  "KP_6": 0x00ffb6,
-  "KP_7": 0x00ffb7,
-  "KP_8": 0x00ffb8,
-  "KP_9": 0x00ffb9,
-  "KP_Equal": 0x00ffbd,
-  "F1": 0x00ffbe,
-  "F2": 0x00ffbf,
-  "F3": 0x00ffc0,
-  "F4": 0x00ffc1,
-  "F5": 0x00ffc2,
-  "F6": 0x00ffc3,
-  "F7": 0x00ffc4,
-  "F8": 0x00ffc5,
-  "F9": 0x00ffc6,
-  "F10": 0x00ffc7,
-  "F11": 0x00ffc8,
-  "F12": 0x00ffc9,
-  "F13": 0x00ffca,
-  "F14": 0x00ffcb,
-  "F15": 0x00ffcc,
-  "F16": 0x00ffcd,
-  "F17": 0x00ffce,
-  "F18": 0x00ffcf,
-  "F19": 0x00ffd0,
-  "F20": 0x00ffd1,
-  "F21": 0x00ffd2,
-  "F22": 0x00ffd3,
-  "F23": 0x00ffd4,
-  "F24": 0x00ffd5,
-  "F25": 0x00ffd6,
-  "F26": 0x00ffd7,
-  "F27": 0x00ffd8,
-  "F28": 0x00ffd9,
-  "F29": 0x00ffda,
-  "F30": 0x00ffdb,
-  "F31": 0x00ffdc,
-  "F32": 0x00ffdd,
-  "F33": 0x00ffde,
-  "F34": 0x00ffdf,
-  "F35": 0x00ffe0,
-  "Shift_L": 0x00ffe1,
-  "Shift_R": 0x00ffe2,
-  "Control_L": 0x00ffe3,
-  "Control_R": 0x00ffe4,
-  "Caps_Lock": 0x00ffe5,
-  "Shift_Lock": 0x00ffe6,
-  "Meta_L": 0x00ffe7,
-  "Meta_R": 0x00ffe8,
-  "Alt_L": 0x00ffe9,
-  "Alt_R": 0x00ffea,
-  "Super_L": 0x00ffeb,
-  "Super_R": 0x00ffec,
-  "Hyper_L": 0x00ffed,
-  "Hyper_R": 0x00ffee,
-  "Delete": 0x00ffff,
-]
-
-fileprivate let keychar_rime_to_mac: [CInt: Int] = [
-  // ASCII control characters
-  XK_KP_Enter: NSEnterCharacter,
-  XK_BackSpace: NSBackspaceCharacter,
-  XK_Tab: NSTabCharacter,
-  XK_Linefeed: NSNewlineCharacter,
-  XK_Return: NSCarriageReturnCharacter,
-  XK_ISO_Left_Tab: NSBackTabCharacter,
-  XK_Delete: NSDeleteCharacter,
-  // Nagivator key characters
-  XK_Up: NSUpArrowFunctionKey,
-  XK_Down: NSDownArrowFunctionKey,
-  XK_Left: NSLeftArrowFunctionKey,
-  XK_Right: NSRightArrowFunctionKey,
-  // Function key characters
-  XK_F1: NSF1FunctionKey,
-  XK_F2: NSF2FunctionKey,
-  XK_F3: NSF3FunctionKey,
-  XK_F4: NSF4FunctionKey,
-  XK_F5: NSF5FunctionKey,
-  XK_F6: NSF6FunctionKey,
-  XK_F7: NSF7FunctionKey,
-  XK_F8: NSF8FunctionKey,
-  XK_F9: NSF9FunctionKey,
-  XK_F10: NSF10FunctionKey,
-  XK_F11: NSF11FunctionKey,
-  XK_F12: NSF12FunctionKey,
-  XK_F13: NSF13FunctionKey,
-  XK_F14: NSF14FunctionKey,
-  XK_F15: NSF15FunctionKey,
-  XK_F16: NSF16FunctionKey,
-  XK_F17: NSF17FunctionKey,
-  XK_F18: NSF18FunctionKey,
-  XK_F19: NSF19FunctionKey,
-  XK_F20: NSF20FunctionKey,
-  XK_F21: NSF21FunctionKey,
-  XK_F22: NSF22FunctionKey,
-  XK_F23: NSF23FunctionKey,
-  XK_F24: NSF24FunctionKey,
-  XK_F25: NSF25FunctionKey,
-  XK_F26: NSF26FunctionKey,
-  XK_F27: NSF27FunctionKey,
-  XK_F28: NSF28FunctionKey,
-  XK_F29: NSF29FunctionKey,
-  XK_F30: NSF30FunctionKey,
-  XK_F31: NSF31FunctionKey,
-  XK_F32: NSF32FunctionKey,
-  XK_F33: NSF33FunctionKey,
-  XK_F34: NSF34FunctionKey,
-  XK_F35: NSF35FunctionKey,
-  // Misc functional key characters
-  XK_Insert: NSInsertFunctionKey,
-  XK_Home: NSHomeFunctionKey,
-  XK_Begin: NSBeginFunctionKey,
-  XK_End: NSEndFunctionKey,
-  XK_Page_Up: NSPageUpFunctionKey,
-  XK_Page_Down: NSPageDownFunctionKey,
-  XK_Scroll_Lock: NSScrollLockFunctionKey,
-  XK_Pause: NSPauseFunctionKey,
-  XK_Sys_Req: NSSysReqFunctionKey,
-  XK_Break: NSBreakFunctionKey,
-  XK_Cancel: NSStopFunctionKey,
-  XK_Menu: NSMenuFunctionKey,
-  XK_Print: NSPrintFunctionKey,
-  XK_Clear: NSClearLineFunctionKey,
-  XK_Num_Lock: NSClearDisplayFunctionKey,
-  XK_Select: NSSelectFunctionKey,
-  XK_Execute: NSExecuteFunctionKey,
-  XK_Undo: NSUndoFunctionKey,
-  XK_Redo: NSRedoFunctionKey,
-  XK_Find: NSFindFunctionKey,
-  XK_Help: NSHelpFunctionKey,
-  XK_Mode_switch: NSModeSwitchFunctionKey
-]

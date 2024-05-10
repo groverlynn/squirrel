@@ -1,5 +1,3 @@
-import AppKit
-import Carbon
 import InputMethodKit
 import IOKit
 
@@ -12,27 +10,29 @@ enum SquirrelAction {
 enum SquirrelIndex: Int {
   // 0, 1, 2 ... are ordinal digits, used as (int) indices
   // 0xFFXX are rime keycodes (as function keys), for paging etc.
-  case kBackSpaceKey = 0xff08   // XK_BackSpace
-  case kEscapeKey = 0xff1b      // XK_Escape
-  case kCodeInputArea = 0xff37  // XK_Codeinput
-  case kHomeKey = 0xff50        // XK_Home
-  case kLeftKey = 0xff51        // XK_Left
-  case kUpKey = 0xff52          // XK_Up
-  case kRightKey = 0xff53       // XK_Right
-  case kDownKey = 0xff54        // XK_Down
-  case kPageUpKey = 0xff55      // XK_Page_Up
-  case kPageDownKey = 0xff56    // XK_Page_Down
-  case kEndKey = 0xff57         // XK_End
-  case kExpandButton = 0xff04
-  case kCompressButton = 0xff05
-  case kLockButton = 0xff06
-  case kVoidSymbol = 0xffffff   // XK_VoidSymbol
+  case BackSpaceKey = 0xff08   // XK_BackSpace
+  case EscapeKey = 0xff1b      // XK_Escape
+  case CodeInputArea = 0xff37  // XK_Codeinput
+  case HomeKey = 0xff50        // XK_Home
+  case LeftKey = 0xff51        // XK_Left
+  case UpKey = 0xff52          // XK_Up
+  case RightKey = 0xff53       // XK_Right
+  case DownKey = 0xff54        // XK_Down
+  case PageUpKey = 0xff55      // XK_Page_Up
+  case PageDownKey = 0xff56    // XK_Page_Down
+  case EndKey = 0xff57         // XK_End
+  case ExpandButton = 0xff04
+  case CompressButton = 0xff05
+  case LockButton = 0xff06
+  case VoidSymbol = 0xffffff   // XK_VoidSymbol
 }
 
-fileprivate func set_CapsLock_LED_state(target_state: CBool) {
-  let ioService: io_service_t = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching(kIOHIDSystemClass))
+func set_CapsLock_LED_state(target_state: CBool) {
+  let ioService: io_service_t = IOServiceGetMatchingService(
+    kIOMasterPortDefault, IOServiceMatching(kIOHIDSystemClass))
   var ioConnect: io_connect_t = 0
-  IOServiceOpen(ioService, mach_task_self_, CUnsignedInt(kIOHIDParamConnectType), &ioConnect)
+  IOServiceOpen(ioService, mach_task_self_,
+                CUnsignedInt(kIOHIDParamConnectType), &ioConnect)
   var current_state: CBool = false
   IOHIDGetModifierLockState(ioConnect, CInt(kIOHIDCapsLockState), &current_state)
   if (current_state != target_state) {
@@ -41,37 +41,40 @@ fileprivate func set_CapsLock_LED_state(target_state: CBool) {
   IOServiceClose(ioConnect)
 }
 
-fileprivate func getOptionLabel(session: RimeSessionId,
-                                option: UnsafePointer<CChar>,
-                                state: Bool) -> String? {
-  let short_label: RimeStringSlice = rime_get_api().pointee.get_state_label_abbreviated(session, option, state, True)
+func getOptionLabel(session: RimeSessionId,
+                    option: UnsafePointer<CChar>,
+                    state: RimeBool) -> String? {
+  let short_label: RimeStringSlice = rime_get_api().pointee
+    .get_state_label_abbreviated(session, option, state, True)
   if ((short_label.str != nil) && short_label.length >= strlen(short_label.str)) {
     return String(cString: short_label.str)
   } else {
     let long_label: RimeStringSlice =
     rime_get_api().pointee.get_state_label_abbreviated(session, option, state, False)
     let label: String? = long_label.str != nil ? String(cString: long_label.str!) : nil
-    return label != nil ? String(label![label!.rangeOfComposedCharacterSequence(at: label!.startIndex)]) : nil
+    return label != nil ? String(label![label!.rangeOfComposedCharacterSequence(
+                                 at: label!.startIndex)]) : nil
   }
 }
 
-fileprivate func UTF8LengthToUTF16Length(str: String, length: Int) -> Int {
-  return str.utf8.index(str.utf8.startIndex, offsetBy: length).utf16Offset(in: str)
+func UTF8LengthToUTF16Length(str: String, length: Int) -> Int {
+  return str.utf8.index(str.utf8.startIndex,
+                        offsetBy: length).utf16Offset(in: str)
 }
 
-class SquirrelInputController: IMKInputController {
+@objc class SquirrelInputController: IMKInputController {
   // class variables
   static var currentController: SquirrelInputController?
   private static var currentApp: String = ""
-  private static var asciiMode: Bool = -1
+  private static var asciiMode: RimeBool = -1
   // private
-  private var _preeditString: NSMutableAttributedString?
+  private var _inlineString: NSMutableAttributedString?
   private var _originalString: String?
   private var _composedString: String?
   private var _schemaId: String?
-  private var _selRange: NSRange = NSMakeRange(0, 0)
+  private var _selRange = NSMakeRange(0, 0)
   private var _candidateIndices: Range<Int> = 0..<0
-  private var _inlineSelRange: NSRange = NSMakeRange(0, 0)
+  private var _inlineSelRange = NSMakeRange(0, 0)
   private var _inlineCaretPos: Int = 0
   private var _converted: Int = 0
   private var _currentIndex: Int = 0
@@ -83,6 +86,7 @@ class SquirrelInputController: IMKInputController {
   private var _goodOldCapsLock: Boolean = false
   private var _showingSwitcherMenu: Boolean = false
   // app-specific bug fix
+  private var _appOptions = SquirrelAppOptions()
   private var _inlinePlaceholder: Boolean = false
   private var _panellessCommitFix: Boolean = false
   private var _inlineOffset: Int = 0
@@ -90,7 +94,7 @@ class SquirrelInputController: IMKInputController {
   private var _chordTimer: Timer?
   private var _chordDuration: TimeInterval = 0
   private var _chordKeyCodes: [CInt] = []
-  private var _chordModifiers: [CInt] = []
+  private var _chordModifiers: [RimeModifier] = []
   private var _chordKeyCount: Int = 0
   // public
   @objc dynamic var viewEffectiveAppearance: NSAppearance {
@@ -107,7 +111,7 @@ class SquirrelInputController: IMKInputController {
 
   class func setCurrentController(_ controller: SquirrelInputController) {
     currentController = controller
-    NSApp.squirrelAppDelegate.panel?.IbeamRect = NSZeroRect
+    NSApp.squirrelApp.panel?.IbeamRect = NSZeroRect
   }
 
   override class func keyPathsForValuesAffectingValue(forKey key: String) -> Set<String> {
@@ -119,14 +123,14 @@ class SquirrelInputController: IMKInputController {
   }
 
   override func activateServer(_ sender: Any!) {
-    //NSLog(@"activateServer:")
+    // NSLog(@"activateServer:")
     SquirrelInputController.setCurrentController(self)
-    addObserver(NSApp.squirrelAppDelegate.panel!,
+    addObserver(NSApp.squirrelApp.panel!,
                 forKeyPath: "viewEffectiveAppearance",
                 options: [.new, .initial],
                 context: nil)
 
-    if let keyboardLayout: String = NSApp.squirrelAppDelegate.config?.getStringForOption("keyboard_layout") {
+    if let keyboardLayout: String = NSApp.squirrelApp.config?.getStringForOption("keyboard_layout") {
       if (keyboardLayout.caseInsensitiveCompare("last") == .orderedSame || keyboardLayout.isEmpty) {
         // do nothing
       } else if (keyboardLayout.caseInsensitiveCompare("default") == .orderedSame) {
@@ -142,21 +146,30 @@ class SquirrelInputController: IMKInputController {
       _goodOldCapsLock = defaultConfig.getBoolForOption("ascii_composer/good_old_caps_lock")
     }
     defaultConfig.close()
+    if (!NSApp.squirrelApp.isCurrentInputMethod) {
+      NSApp.squirrelApp.isCurrentInputMethod = true
+      if (NSApp.squirrelApp.showNotifications == .always) {
+        showInitialStatus()
+      }
+    }
+    _lastModifiers = []
+    _lastEventCount = 0
+    NSApp.squirrelApp.panel?.IbeamRect = NSZeroRect
     super.activateServer(sender)
   }
 
   override init!(server: IMKServer!, delegate: Any!, client inputClient: Any!) {
-  //NSLog(@"initWithServer:delegate:client:")
+    // NSLog(@"initWithServer:delegate:client:")
     super.init(server: server, delegate: delegate, client: inputClient)
     createSession()
   }
 
   override func deactivateServer(_ sender: Any!) {
-    //NSLog(@"deactivateServer:")
-    commitComposition(sender)
-    removeObserver(NSApp.squirrelAppDelegate.panel!,
-                   forKeyPath: "viewEffectiveAppearance")
+    // NSLog(@"deactivateServer:")
     SquirrelInputController.asciiMode = rime_get_api().pointee.get_option(_session, "ascii_mode")
+    commitComposition(sender)
+    removeObserver(NSApp.squirrelApp.panel!,
+                   forKeyPath: "viewEffectiveAppearance")
     super.deactivateServer(sender)
   }
 
@@ -166,21 +179,21 @@ class SquirrelInputController: IMKInputController {
    @discussion This method receives key events from the client application.
    */
   override func handle(_ event: NSEvent!, client sender: Any!) -> Boolean {
-  // Return YES to indicate the the key input was received and dealt with.
-  // Key processing will not continue in that case.  In other words the
-  // system will not deliver a key down event to the application.
-  // Returning NO means the original key down will be passed on to the client.
-    return autoreleasepool {
-      if (_session != 0 || !rime_get_api().pointee.find_session(_session).Bool) {
+    // Return YES to indicate the the key input was received and dealt with.
+    // Key processing will not continue in that case.  In other words the
+    // system will not deliver a key down event to the application.
+    // Returning NO means the original key down will be passed on to the client.
+    autoreleasepool {
+      if (_session == 0 || !rime_get_api().pointee.find_session(_session).Bool) {
         createSession()
-        if (_session != 0) {
+        if (_session == 0) {
           return false
         }
       }
       var handled: Boolean = false
       let modifiers: NSEvent.ModifierFlags = event.modifierFlags
-      var rime_modifiers: RimeModifier = get_rime_modifiers(modifiers)
-      let keyCode: Int = Int(event.cgEvent?.getIntegerValueField(.keyboardEventKeycode) ?? 0)
+      var rime_modifiers: RimeModifier = rime_modifiers_from_mac_modifiers(modifiers)
+      let keyCode = Int(event.cgEvent!.getIntegerValueField(.keyboardEventKeycode))
 
       switch (event.type) {
       case .flagsChanged:
@@ -188,12 +201,12 @@ class SquirrelInputController: IMKInputController {
           return true
         }
         //NSLog(@"FLAGSCHANGED client: %@, modifiers: 0x%lx", sender, modifiers)
-        let rime_keycode: CInt = get_rime_keycode(keycode: keyCode, keychar: 0, shift: false, caps: false)
-        let eventCount: CUnsignedInt = CGEventSource.counterForEventType(.combinedSessionState, eventType: .flagsChanged) +
-                                       CGEventSource.counterForEventType(.combinedSessionState, eventType: .keyDown) +
-                                       CGEventSource.counterForEventType(.combinedSessionState, eventType: .leftMouseDown) +
-                                       CGEventSource.counterForEventType(.combinedSessionState, eventType: .rightMouseDown) +
-                                       CGEventSource.counterForEventType(.combinedSessionState, eventType: .otherMouseDown)
+        let rime_keycode: CInt = rime_keycode_from_mac_keycode(keyCode)
+        let eventCount = CGEventSource.counterForEventType(.combinedSessionState, eventType: .flagsChanged) +
+                         CGEventSource.counterForEventType(.combinedSessionState, eventType: .keyDown) +
+                         CGEventSource.counterForEventType(.combinedSessionState, eventType: .leftMouseDown) +
+                         CGEventSource.counterForEventType(.combinedSessionState, eventType: .rightMouseDown) +
+                         CGEventSource.counterForEventType(.combinedSessionState, eventType: .otherMouseDown)
         _lastModifiers = modifiers
         switch (keyCode) {
         case kVK_CapsLock:
@@ -202,69 +215,73 @@ class SquirrelInputController: IMKInputController {
             if (rime_get_api().pointee.get_option(_session, "ascii_mode").Bool) {
               rime_modifiers.insert(.Lock)
             } else {
-              rime_modifiers.remove(.Lock)
+              rime_modifiers.subtract(.Lock)
             }
           } else {
             rime_modifiers.formSymmetricDifference(.Lock)
           }
-          handled = processKey(rime_keycode, modifiers: rime_modifiers.rawValue)
+          handled = processKey(rime_keycode, modifiers: rime_modifiers)
           break
         case kVK_Shift, kVK_RightShift:
           if (!modifiers.contains(.shift)) { rime_modifiers.insert(.Release) }
           if (eventCount - _lastEventCount != 1) { rime_modifiers.insert(.Ignored) }
-          handled = processKey(rime_keycode, modifiers: rime_modifiers.rawValue)
+          handled = processKey(rime_keycode, modifiers: rime_modifiers)
           break
         case kVK_Control, kVK_RightControl:
           if (!modifiers.contains(.control)) { rime_modifiers.insert(.Release) }
           if (eventCount - _lastEventCount != 1) { rime_modifiers.insert(.Ignored) }
-          handled = processKey(rime_keycode, modifiers: rime_modifiers.rawValue)
+          handled = processKey(rime_keycode, modifiers: rime_modifiers)
           break
         case kVK_Option, kVK_RightOption:
           if (!modifiers.contains(.option)) { rime_modifiers.insert(.Release) }
           if (eventCount - _lastEventCount != 1) { rime_modifiers.insert(.Ignored) }
-          handled = processKey(rime_keycode, modifiers: rime_modifiers.rawValue)
+          handled = processKey(rime_keycode, modifiers: rime_modifiers)
           break
         case kVK_Function:
           if (!modifiers.contains(.function)) { rime_modifiers.insert(.Release) }
           if (eventCount - _lastEventCount != 1) { rime_modifiers.insert(.Ignored) }
-          handled = processKey(rime_keycode, modifiers: rime_modifiers.rawValue)
+          handled = processKey(rime_keycode, modifiers: rime_modifiers)
           break
         case kVK_Command, kVK_RightCommand:
           if (!modifiers.contains(.command)) { rime_modifiers.insert(.Release) }
           if (eventCount - _lastEventCount != 1) { rime_modifiers.insert(.Ignored) }
-          handled = processKey(rime_keycode, modifiers: rime_modifiers.rawValue)
+          handled = processKey(rime_keycode, modifiers: rime_modifiers)
           break
         default:
           break
         }
-        if (NSApp.squirrelAppDelegate.panel?.statusMessage != nil || handled) {
+        if (NSApp.squirrelApp.panel?.statusMessage != nil || handled) {
           rimeUpdate()
           handled = true
         }
         _lastEventCount = eventCount
         break
       case .keyDown:
-        let keyChars: String = modifiers.contains(.shift) && !modifiers.contains(.control) && !modifiers.contains(.option) ? event.characters! : event.charactersIgnoringModifiers!
         //NSLog(@"KEYDOWN client: %@, modifiers: 0x%lx, keyCode: %d, keyChars: [%@]",
         //      sender, modifiers, keyCode, keyChars)
 
         // translate osx keyevents to rime keyevents
-        let rime_keycode: CInt = get_rime_keycode(keycode: keyCode, keychar: Int(keyChars.utf16.first!),
-                                                  shift: modifiers.contains(.shift), caps: modifiers.contains(.capsLock))
-        if (rime_keycode != XK_VoidSymbol) {
+        var rime_keycode: CInt = rime_keycode_from_mac_keycode(keyCode)
+        if (rime_keycode == 0) {
+          let keyChars: String = (modifiers.contains(.shift) && modifiers.isDisjoint(with: [.control, .option])
+          ? event.characters! : event.charactersIgnoringModifiers!).precomposedStringWithCanonicalMapping
+          rime_keycode = rime_keycode_from_keychar(keychar: keyChars.utf16[keyChars.utf16.startIndex],
+                                                   shift: modifiers.contains(.shift),
+                                                   caps: modifiers.contains(.capsLock))
+        } else if ((keyCode <= 0xff && keyCode >= 0x60) || keyCode == 0x50 ||
+                   keyCode == 0x4f || keyCode == 0x47 || keyCode == 0x40) {
           // revert non-modifier function keys' FunctionKeyMask (FwdDel, Navigations, F1..F19)
-          if ((keyCode <= 0xff && keyCode >= 0x60) || keyCode == 0x50 ||
-              keyCode == 0x4f || keyCode == 0x47 || keyCode == 0x40) {
-            rime_modifiers.formSymmetricDifference(.Hyper)
-          }
-          handled = processKey(rime_keycode, modifiers: rime_modifiers.rawValue)
+            rime_modifiers.subtract(.Hyper)
+        }
+        if (rime_keycode != 0) {
+          handled = processKey(rime_keycode, modifiers: rime_modifiers)
           if (handled) {
             rimeUpdate()
           } else if (_panellessCommitFix && client().markedRange().length > 0) {
             if (rime_keycode == XK_Delete || (rime_keycode >= XK_Home && rime_keycode <= XK_KP_Delete) ||
                 (rime_keycode >= XK_BackSpace && rime_keycode <= XK_Escape)) {
               showPlaceholder("")
-            } else if (!modifiers.contains(.control) && !modifiers.contains(.command) && event.characters?.count ?? 0 > 0) {
+            } else if (modifiers.isDisjoint(with: [.control, .command]) && !event.characters!.isEmpty) {
               showPlaceholder(nil)
               client().insertText(event.characters, replacementRange: NSMakeRange(NSNotFound, NSNotFound))
               return true
@@ -285,48 +302,50 @@ class SquirrelInputController: IMKInputController {
                           continueTracking keepTracking: UnsafeMutablePointer<ObjCBool>!,
                           client sender: Any!) -> Boolean {
     keepTracking.pointee = false
-    if ((!_inlinePreedit && !_inlineCandidate) ||
-        _composedString?.count == 0 || _inlineCaretPos == index ||
-        (flags & Int(NSEvent.ModifierFlags.deviceIndependentFlagsMask.rawValue)) != 0) {
+    if ((!_inlinePreedit && !_inlineCandidate) || _composedString?.count == 0 || _inlineCaretPos == index ||
+        !NSEvent.ModifierFlags(rawValue: UInt(flags)).intersection(.deviceIndependentFlagsMask).isEmpty) {
       return false
     }
     let markedRange: NSRange = client().markedRange()
-    let head: NSPoint = client().attributes(forCharacterIndex: 0, lineHeightRectangle: nil)["IMKBaseline"] as! NSPoint
-    let tail: NSPoint = client().attributes(forCharacterIndex: markedRange.length - 1, lineHeightRectangle: nil)["IMKBaseline"] as! NSPoint
+    let head: NSPoint = client().attributes(forCharacterIndex: 0,
+                                            lineHeightRectangle: nil)["IMKBaseline"] as! NSPoint
+    let tail: NSPoint = client().attributes(forCharacterIndex: markedRange.length - 1,
+                                            lineHeightRectangle: nil)["IMKBaseline"] as! NSPoint
     if (point.x > tail.x || index >= markedRange.length) {
       if (_inlineCandidate && !_inlinePreedit) {
         return false
       }
-      perform(action: .PROCESS, onIndex: .kEndKey)
+      perform(action: .PROCESS, onIndex: .EndKey)
     } else if (point.x < head.x || index <= 0) {
-      perform(action: .PROCESS, onIndex: .kHomeKey)
+      perform(action: .PROCESS, onIndex: .HomeKey)
     } else {
-      moveCursor(_inlineCaretPos, to: index, inlinePreedit: _inlinePreedit, inlineCandidate: _inlineCandidate)
+      moveCursor(_inlineCaretPos, to: index,
+                 inlinePreedit: _inlinePreedit, inlineCandidate: _inlineCandidate)
     }
     return true
   }
 
-  private func processKey(_ rime_keycode: CInt, modifiers rime_modifiers: CInt) -> Boolean {
-    let panel: SquirrelPanel! = NSApp.squirrelAppDelegate.panel
+  private func processKey(_ keycode: CInt, modifiers: RimeModifier) -> Boolean {
+    let panel: SquirrelPanel! = NSApp.squirrelApp.panel
     // with linear candidate list, arrow keys may behave differently.
-    let is_linear: Bool = panel.linear.Bool
+    let is_linear: RimeBool = panel.linear.Bool
     if (is_linear != rime_get_api().pointee.get_option(_session, "_linear")) {
       rime_get_api().pointee.set_option(_session, "_linear", is_linear)
     }
     // with vertical text, arrow keys may behave differently.
-    let is_vertical: Bool = panel.vertical.Bool
+    let is_vertical: RimeBool = panel.vertical.Bool
     if (is_vertical != rime_get_api().pointee.get_option(_session, "_vertical")) {
       rime_get_api().pointee.set_option(_session, "_vertical", is_vertical)
     }
 
-    if (panel.tabular && rime_modifiers == 0 && panel.isVisible &&
-        (is_vertical.Bool ? rime_keycode == XK_Left || rime_keycode == XK_KP_Left ||
-                            rime_keycode == XK_Right || rime_keycode == XK_KP_Right
-                          : rime_keycode == XK_Up || rime_keycode == XK_KP_Up ||
-                            rime_keycode == XK_Down || rime_keycode == XK_KP_Down)) {
-      var keycode: CInt = rime_keycode
-      if (rime_keycode >= XK_KP_Left && rime_keycode <= XK_KP_Down) {
-        keycode = rime_keycode - XK_KP_Left + XK_Left
+    if (panel.tabular && modifiers.isEmpty && panel.isVisible &&
+        (is_vertical.Bool ? keycode == XK_Left || keycode == XK_KP_Left ||
+                            keycode == XK_Right || keycode == XK_KP_Right
+                          : keycode == XK_Up || keycode == XK_KP_Up ||
+                            keycode == XK_Down || keycode == XK_KP_Down)) {
+      var keycode: CInt = keycode
+      if (keycode >= XK_KP_Left && keycode <= XK_KP_Down) {
+        keycode = keycode - XK_KP_Left + XK_Left
       }
       let newIndex: Int = panel.candidateIndexOnDirection(arrowKey: SquirrelIndex(rawValue: Int(keycode))!)
       if (newIndex != NSNotFound) {
@@ -336,21 +355,21 @@ class SquirrelInputController: IMKInputController {
         _ = rime_get_api().pointee.highlight_candidate(_session, newIndex)
         return true
       } else if (!panel.locked && panel.expanded && panel.sectionNum == 0 &&
-                 rime_keycode == (is_vertical.Bool ? XK_Right : XK_Up)) {
+                 keycode == (is_vertical.Bool ? XK_Right : XK_Up)) {
         panel.expanded = false
         return true
       }
     }
 
-    let handled: Boolean = rime_get_api().pointee.process_key(_session, rime_keycode, rime_modifiers).Bool
+    let handled: Boolean = rime_get_api().pointee.process_key(_session, keycode, modifiers.rawValue).Bool
     //NSLog(@"rime_keycode: 0x%x, rime_modifiers: 0x%x, handled = %d", rime_keycode, rime_modifiers, handled)
 
     // TODO add special key event postprocessing here
 
     if (!handled) {
-      let isVimBackInCommandMode: Boolean = rime_keycode == XK_Escape ||
-      (((rime_modifiers & CInt(kControlMask.rawValue)) != 0) && (rime_keycode == XK_c ||
-          rime_keycode == XK_C || rime_keycode == XK_bracketleft))
+      let isVimBackInCommandMode: Boolean =
+        keycode == XK_Escape || (modifiers.contains(.Control) &&
+        (keycode == XK_c || keycode == XK_C || keycode == XK_bracketleft))
       if (isVimBackInCommandMode && rime_get_api().pointee.get_option(_session, "vim_mode").Bool &&
           !rime_get_api().pointee.get_option(_session, "ascii_mode").Bool) {
         cancelComposition()
@@ -362,13 +381,13 @@ class SquirrelInputController: IMKInputController {
 
     // Simulate key-ups for every interesting key-down for chord-typing.
     if (handled) {
-      let is_chording_key: Boolean = (rime_keycode >= XK_space && rime_keycode <= XK_asciitilde) ||
-                                      rime_keycode == XK_Control_L || rime_keycode == XK_Control_R ||
-                                      rime_keycode == XK_Alt_L || rime_keycode == XK_Alt_R ||
-                                      rime_keycode == XK_Shift_L || rime_keycode == XK_Shift_R
+      let is_chording_key: Boolean = (keycode >= XK_space && keycode <= XK_asciitilde) ||
+                                      keycode == XK_Control_L || keycode == XK_Control_R ||
+                                      keycode == XK_Alt_L || keycode == XK_Alt_R ||
+                                      keycode == XK_Shift_L || keycode == XK_Shift_R
       if (is_chording_key && rime_get_api().pointee.get_option(_session, "_chord_typing").Bool) {
-        updateChord(rime_keycode, modifiers: rime_modifiers)
-      } else if ((rime_modifiers & CInt(kReleaseMask.rawValue)) == 0) {
+        updateChord(keycode, modifiers: modifiers)
+      } else if (modifiers.isDisjoint(with: .Release)) {
         // non-chording key pressed
         clearChord()
       }
@@ -377,38 +396,48 @@ class SquirrelInputController: IMKInputController {
     return handled
   }
 
-  func moveCursor(_ cursorPosition: Int, to targetPosition: Int,
-                  inlinePreedit: Boolean, inlineCandidate: Boolean) {
-    let vertical: Boolean = NSApp.squirrelAppDelegate.panel!.vertical
+  func moveCursor(_ cursorPosition: Int,
+                  to targetPosition: Int,
+                  inlinePreedit inlinePre: Boolean,
+                  inlineCandidate inlineCand: Boolean) {
+    let vertical: Boolean = NSApp.squirrelApp.panel!.vertical
     autoreleasepool {
-      let composition: String = !inlinePreedit && !inlineCandidate ? _composedString! : _preeditString!.string
+      let composition: String = !inlinePre && !inlineCand ? _composedString! : _inlineString!.string
       var ctx: RimeContext = RimeContext()
       if (cursorPosition > targetPosition) {
-        let targetPrefix: String = String(composition[composition.startIndex..<composition.index(composition.startIndex, offsetBy: targetPosition)]).replacingOccurrences(of: " ", with: "")
-        var prefix: String = String(composition[composition.startIndex..<composition.index(composition.startIndex, offsetBy: cursorPosition)]).replacingOccurrences(of: " ", with: "")
+        let targetRange = composition.startIndex..<composition.index(composition.startIndex, offsetBy: targetPosition)
+        let targetPrefix = String(composition[targetRange]).replacingOccurrences(of: " ", with: "")
+        var range = composition.startIndex..<composition.index(composition.startIndex, offsetBy: cursorPosition)
+        var prefix = String(composition[range]).replacingOccurrences(of: " ", with: "")
         while (targetPrefix.count < prefix.count) {
-          _ = rime_get_api().pointee.process_key(_session, vertical ? XK_Up : XK_Left, CInt(kControlMask.rawValue))
+          _ = rime_get_api().pointee.process_key(_session, vertical ? XK_Up : XK_Left, RimeModifier.Control.rawValue)
           _ = rime_get_api().pointee.get_context(_session, &ctx)
-          if (inlineCandidate) {
-            let length: size_t = ctx.composition.cursor_pos < ctx.composition.sel_end ?
-            size_t(ctx.composition.cursor_pos) : strlen(ctx.commit_text_preview) -
-            (inlinePreedit ? 0 : size_t(ctx.composition.cursor_pos - ctx.composition.sel_end))
-            let preview: String = String.init(utf8String: ctx.commit_text_preview)!
-            prefix = String(preview[preview.startIndex..<preview.index(preview.startIndex, offsetBy: length)]).replacingOccurrences(of: " ", with: "")
+          if (inlineCand) {
+            let length = ctx.composition.cursor_pos < ctx.composition.sel_end ?
+              Int(ctx.composition.cursor_pos) : strlen(ctx.commit_text_preview) -
+              Int(inlinePre ? 0 : ctx.composition.cursor_pos - ctx.composition.sel_end)
+            let preview = String(utf8String: ctx.commit_text_preview)!
+            range = preview.startIndex..<preview.index(preview.startIndex, offsetBy: length)
+            prefix = String(preview[range]).replacingOccurrences(of: " ", with: "")
           } else {
-            let preedit: String = String.init(utf8String: ctx.composition.preedit)!
-            prefix = String(preedit[preedit.startIndex..<preedit.index(preedit.startIndex, offsetBy: Int(ctx.composition.cursor_pos))]).replacingOccurrences(of: " ", with: "")
+            let preedit = String(utf8String: ctx.composition.preedit)!
+            range = preedit.startIndex..<preedit.index(preedit.startIndex, offsetBy: Int(ctx.composition.cursor_pos))
+            prefix = String(preedit[range]).replacingOccurrences(of: " ", with: "")
           }
           _ = rime_get_api().pointee.free_context(&ctx)
         }
       } else if (cursorPosition < targetPosition) {
-        let targetSuffix: String = String(composition[composition.index(composition.startIndex, offsetBy: targetPosition)..<composition.endIndex]).replacingOccurrences(of: " ", with: "")
-        var suffix: String = String(composition[composition.index(composition.startIndex, offsetBy: cursorPosition)..<composition.endIndex]).replacingOccurrences(of: " ", with: "")
+        let targetRange = composition.index(composition.startIndex, offsetBy: targetPosition)..<composition.endIndex
+        let targetSuffix = String(composition[targetRange]).replacingOccurrences(of: " ", with: "")
+        var range = composition.index(composition.startIndex, offsetBy: targetPosition)..<composition.endIndex
+        var suffix = String(composition[range]).replacingOccurrences(of: " ", with: "")
         while (targetSuffix.count < suffix.count) {
-          _ = rime_get_api().pointee.process_key(_session, vertical ? XK_Down : XK_Right, CInt(kControlMask.rawValue))
+          _ = rime_get_api().pointee.process_key(_session, vertical ? XK_Down : XK_Right, RimeModifier.Control.rawValue)
           _ = rime_get_api().pointee.get_context(_session, &ctx)
-          let preedit: String = String.init(utf8String: ctx.composition.preedit)!
-          suffix = String(preedit[preedit.index(preedit.startIndex, offsetBy: Int(ctx.composition.cursor_pos + (!inlinePreedit && !inlineCandidate ? 3 : 0)))..<preedit.endIndex]).replacingOccurrences(of: " ", with: "")
+          let preedit = String(utf8String: ctx.composition.preedit)!
+          range = preedit.index(preedit.startIndex, offsetBy: Int(ctx.composition.cursor_pos) +
+                                                                  (!inlinePre && !inlineCand ? 3 : 0))..<preedit.endIndex
+          suffix = String(preedit[range]).replacingOccurrences(of: " ", with: "")
           _ = rime_get_api().pointee.free_context(&ctx)
         }
       }
@@ -417,13 +446,14 @@ class SquirrelInputController: IMKInputController {
   }
 
   func perform(action: SquirrelAction, onIndex index: SquirrelIndex) {
-    //NSLog(@"perform action: %lu on index: %lu", action, index)
+    // NSLog(@"perform action: %lu on index: %lu", action, index)
     var handled: Boolean = false
     switch (action) {
     case .PROCESS:
       if (index.rawValue >= 0xff08 && index.rawValue <= 0xffff) {
         handled = rime_get_api().pointee.process_key(_session, CInt(index.rawValue), 0).Bool
-      } else if (index.rawValue >= CInt(SquirrelIndex.kExpandButton.rawValue) && index.rawValue <= CInt(SquirrelIndex.kLockButton.rawValue)) {
+      } else if (index.rawValue >= SquirrelIndex.ExpandButton.rawValue &&
+                 index.rawValue <= SquirrelIndex.LockButton.rawValue) {
         handled = true
         _currentIndex = NSNotFound
       }
@@ -451,7 +481,7 @@ class SquirrelInputController: IMKInputController {
       // simulate key-ups
       for i in 0..<_chordKeyCount {
         if (rime_get_api().pointee.process_key(_session, _chordKeyCodes[i],
-                                               (_chordModifiers[i] | CInt(kReleaseMask.rawValue))).Bool) {
+            _chordModifiers[i].union(.Release).rawValue).Bool) {
           processed_keys += 1
         }
       }
@@ -462,8 +492,8 @@ class SquirrelInputController: IMKInputController {
     }
   }
 
-  private func updateChord(_ keycode: CInt, modifiers: CInt) {
-  //NSLog(@"update chord: {%s} << %x", _chord, keycode)
+  private func updateChord(_ keycode: CInt, modifiers: RimeModifier) {
+    // NSLog(@"update chord: {%s} << %x", _chord, keycode)
     for i in 0..<_chordKeyCount {
       if (_chordKeyCodes[i] == keycode) {
         return
@@ -476,15 +506,18 @@ class SquirrelInputController: IMKInputController {
     _chordKeyCodes[_chordKeyCount] = keycode
     _chordModifiers[_chordKeyCount] = modifiers
     _chordKeyCount += 1
-  // reset timer
+    // reset timer
     if (_chordTimer?.isValid ?? false) {
       _chordTimer!.invalidate()
     }
 
-    let duration: Double! = NSApp.squirrelAppDelegate.config?.getDoubleForOption("chord_duration")
+    let duration: Double! = NSApp.squirrelApp.config?.getDoubleForOption("chord_duration")
     _chordDuration = duration > 0 ? duration : 0.1
-    _chordTimer = Timer.scheduledTimer(timeInterval: _chordDuration, target: self,
-                                       selector: #selector(onChordTimer(_:)), userInfo: nil, repeats: false)
+    _chordTimer = Timer.scheduledTimer(timeInterval: _chordDuration,
+                                       target: self,
+                                       selector: #selector(onChordTimer(_:)),
+                                       userInfo: nil,
+                                       repeats: false)
   }
 
   private func clearChord() {
@@ -495,7 +528,7 @@ class SquirrelInputController: IMKInputController {
   }
 
   override func recognizedEvents(_ sender: Any!) -> Int {
-    //NSLog(@"recognizedEvents:")
+    // NSLog(@"recognizedEvents:")
     return Int(NSEvent.EventTypeMask([.keyDown, .flagsChanged, .leftMouseDown]).rawValue)
   }
 
@@ -503,38 +536,32 @@ class SquirrelInputController: IMKInputController {
     var status: RimeStatus = RimeStatus()
     if (_session != 0 && rime_get_api().pointee.get_status(_session, &status).Bool) {
       _schemaId = String(cString: status.schema_id)
-      let schemaName: String = status.schema_name != nil ? String(cString: status.schema_name) : String(cString: status.schema_id)
+      let schemaName: String = status.schema_name != nil ? String(cString: status.schema_name)
+                                                         : String(cString: status.schema_id)
       var options: [String] = []
-      let asciiMode: String? = getOptionLabel(session: _session, option: "ascii_mode", state: status.is_ascii_mode)
-      if (asciiMode != nil) {
-        options.append(asciiMode!)
+      if let asciiMode = getOptionLabel(session: _session, option: "ascii_mode",
+                                        state: status.is_ascii_mode) {
+        options.append(asciiMode)
       }
-      let fullShape: String? = getOptionLabel(session: _session, option: "full_shape", state: status.is_full_shape)
-      if (fullShape != nil) {
-        options.append(fullShape!)
+      if let fullShape = getOptionLabel(session: _session, option: "full_shape",
+                                        state: status.is_full_shape) {
+        options.append(fullShape)
       }
-      let asciiPunct: String? = getOptionLabel(session: _session, option: "ascii_punct", state: status.is_ascii_punct)
-      if (asciiPunct != nil) {
-        options.append(asciiPunct!)
+      if let asciiPunct = getOptionLabel(session: _session, option: "ascii_punct",
+                                         state: status.is_ascii_punct) {
+        options.append(asciiPunct)
       }
       _ = rime_get_api().pointee.free_status(&status)
-      let foldedOptions: String = options.count == 0 ? schemaName : String.init(format: "%@｜%@", schemaName, options.joined(separator: " "))
+      let foldedOptions = options.isEmpty ? schemaName :
+        String(format: "%@｜%@", schemaName, options.joined(separator: " "))
 
-      NSApp.squirrelAppDelegate.panel?.updateStatus(long: foldedOptions, short: schemaName)
+      NSApp.squirrelApp.panel?.updateStatus(long: foldedOptions, short: schemaName)
       if #available(macOS 14.0, *) {
         _lastModifiers.insert(.help)
       }
-      showPanel(withPreedit: nil,
-                selRange: NSMakeRange(0, 0),
-                caretPos: NSNotFound,
-                candidateIndices: 0..<0,
-                highlightedIndex: NSNotFound,
-                pageNum: NSNotFound,
-                finalPage: false,
-                didCompose: false)
+      rimeUpdate()
     }
   }
-
 
 
   /*!
@@ -549,7 +576,7 @@ class SquirrelInputController: IMKInputController {
    */
 
   override func commitComposition(_ sender: Any!) {
-    //NSLog(@"commitComposition:")
+    // NSLog(@"commitComposition:")
     commitString(composedString(sender))
     if (_session != 0) {
       rime_get_api().pointee.clear_composition(_session)
@@ -558,8 +585,8 @@ class SquirrelInputController: IMKInputController {
   }
 
   private func clearBuffer() {
-    NSApp.squirrelAppDelegate.panel?.IbeamRect = NSZeroRect
-    _preeditString = nil
+    NSApp.squirrelApp.panel?.IbeamRect = NSZeroRect
+    _inlineString = nil
     _originalString = nil
     _composedString = nil
   }
@@ -569,44 +596,44 @@ class SquirrelInputController: IMKInputController {
   // > action receiver, the IMKInputController will actually receive the event.
   // so here we deliver messages to our responsible SquirrelApplicationDelegate
   @objc private func showSwitcher(_ sender: Any?) {
-    NSApp.squirrelAppDelegate.showSwitcher(_session)
+    NSApp.squirrelApp.showSwitcher(_session)
     rimeUpdate()
   }
 
   @objc private func deploy(_ sender: Any?) {
-    NSApp.squirrelAppDelegate.deploy(sender)
+    NSApp.squirrelApp.deploy(sender)
   }
 
   @objc private func syncUserData(_ sender: Any?) {
-    NSApp.squirrelAppDelegate.syncUserData(sender)
+    NSApp.squirrelApp.syncUserData(sender)
   }
 
   @objc private func configure(_ sender: Any?) {
-    NSApp.squirrelAppDelegate.configure(sender)
+    NSApp.squirrelApp.configure(sender)
   }
 
   @objc private func checkForUpdates(_ sender: Any?) {
-    NSApp.squirrelAppDelegate.updater?.perform(#selector(checkForUpdates(_:)), with: sender)
+    NSApp.squirrelApp.updater?.perform(#selector(checkForUpdates(_:)), with: sender)
   }
 
   @objc private func openWiki(_ sender: Any?) {
-    NSApp.squirrelAppDelegate.openWiki(sender)
+    NSApp.squirrelApp.openWiki(sender)
   }
 
   @objc private func openLogFolder(_ sender: Any?) {
-    NSApp.squirrelAppDelegate.openLogFolder(sender)
+    NSApp.squirrelApp.openLogFolder(sender)
   }
 
   @objc override func menu() -> NSMenu {
-    return NSApp.squirrelAppDelegate.menu!
+    return NSApp.squirrelApp.menu!
   }
 
   override func originalString(_ sender: Any!) -> NSAttributedString! {
-    return _originalString != nil ? NSAttributedString(string: _originalString!) : nil
+    return NSAttributedString(string: _originalString ?? "")
   }
 
   override func composedString(_ sender: Any!) -> Any! {
-    return _composedString?.replacingOccurrences(of: " ", with: "")
+    return _composedString?.replacingOccurrences(of: " ", with: "") ?? ""
   }
 
   override func candidates(_ sender: Any!) -> [Any]! {
@@ -614,12 +641,12 @@ class SquirrelInputController: IMKInputController {
   }
 
   override func hidePalettes() {
-    NSApp.squirrelAppDelegate.panel?.hide()
+    NSApp.squirrelApp.panel?.hide()
     super.hidePalettes()
   }
 
   deinit {
-    //NSLog(@"dealloc")
+    // NSLog(@"dealloc")
     destroySession()
     clearBuffer()
   }
@@ -632,11 +659,9 @@ class SquirrelInputController: IMKInputController {
     return NSMakeRange(NSNotFound, NSNotFound)
   }
 
-  private func commitString(_ string: Any?) {
-    //NSLog(@"commitString:")
-    if (string != nil) {
-      client().insertText(string, replacementRange: NSMakeRange(NSNotFound, NSNotFound))
-    }
+  private func commitString(_ string: Any!) {
+    // NSLog(@"commitString:")
+    client().insertText(string, replacementRange: NSMakeRange(NSNotFound, NSNotFound))
     clearBuffer()
   }
 
@@ -649,41 +674,42 @@ class SquirrelInputController: IMKInputController {
   }
 
   override func updateComposition() {
-    client().setMarkedText(_preeditString, selectionRange: NSMakeRange(_inlineCaretPos, 0),
+    client().setMarkedText(_inlineString, selectionRange: NSMakeRange(_inlineCaretPos, 0),
                            replacementRange: NSMakeRange(NSNotFound, NSNotFound))
   }
 
   private func showPlaceholder(_ placeholder: String?) {
     let attrs = mark(forStyle: kTSMHiliteSelectedRawText,
-                     at: NSMakeRange(0, placeholder != nil ? placeholder!.count : 1)) as! [NSAttributedString.Key : Any]
-    _preeditString = NSMutableAttributedString(string: placeholder ?? "█", attributes: attrs)
+                     at: NSMakeRange(0, placeholder?.count ?? 1)) as! [NSAttributedString.Key : Any]
+    _inlineString = NSMutableAttributedString(string: placeholder ?? "█", attributes: attrs)
     _inlineCaretPos = 0
     updateComposition()
   }
 
-  private func showPreeditString(_ preedit: String,
-                                 selRange: NSRange,
-                                 caretPos: Int) {
-  //NSLog(@"showPreeditString: '%@'", preedit)
-    if (preedit == (_preeditString?.string ?? "") as String &&
-      NSEqualRanges(selRange, _inlineSelRange) && caretPos == _inlineCaretPos) {
+  private func showInlineString(_ inlineString: String,
+                                withSelRange selRange: NSRange,
+                                caretPos: Int) {
+    // NSLog(@"showPreeditString: '%@'", preedit)
+    if (caretPos == _inlineCaretPos && NSEqualRanges(selRange, _inlineSelRange) &&
+        inlineString == _inlineString?.string) {
       return
     }
     _inlineSelRange = selRange
     _inlineCaretPos = caretPos
-  //NSLog(@"selRange.location = %ld, selRange.length = %ld, caretPos = %ld",
-  //      range.location, range.length, pos)
-    let attrs = mark(forStyle: kTSMHiliteRawText, at: NSMakeRange(0, preedit.count)) as! [NSAttributedString.Key : Any]
-    _preeditString = NSMutableAttributedString(string: preedit, attributes: attrs)
+    // NSLog(@"selRange.location = %ld, selRange.length = %ld, caretPos = %ld",
+    //       range.location, range.length, pos)
+    let attrs = mark(forStyle: kTSMHiliteRawText,
+                     at: NSMakeRange(0, inlineString.count)) as! [NSAttributedString.Key : Any]
+    _inlineString = NSMutableAttributedString(string: inlineString, attributes: attrs)
     if (selRange.location > 0) {
-      _preeditString!.addAttributes(mark(forStyle: kTSMHiliteConvertedText,
-                                         at: NSMakeRange(0, selRange.location)) as! [NSAttributedString.Key : Any],
-                                    range: NSMakeRange(0, selRange.location))
+      _inlineString?.addAttributes(mark(forStyle: kTSMHiliteConvertedText,
+                                        at: NSMakeRange(0, selRange.location)) as! [NSAttributedString.Key : Any],
+                                   range: NSMakeRange(0, selRange.location))
     }
     if (selRange.location < caretPos) {
-      _preeditString!.addAttributes(mark(forStyle: kTSMHiliteSelectedRawText,
-                                         at: selRange) as! [NSAttributedString.Key : Any],
-                                    range: selRange)
+      _inlineString?.addAttributes(mark(forStyle: kTSMHiliteSelectedRawText,
+                                        at: selRange) as! [NSAttributedString.Key : Any],
+                                   range: selRange)
     }
     updateComposition()
   }
@@ -691,14 +717,17 @@ class SquirrelInputController: IMKInputController {
   private func getIbeamRect() -> NSRect {
     var IbeamRect: NSRect = NSZeroRect
     client().attributes(forCharacterIndex: 0, lineHeightRectangle: &IbeamRect)
-    if (NSEqualRects(IbeamRect, NSZeroRect) && _preeditString?.length == 0) {
+    if (NSEqualRects(IbeamRect, NSZeroRect) && _inlineString?.length == 0) {
       if (client().selectedRange().length == 0) {
         // activate inline session, in e.g. table cells, by fake inputs
-        client().setMarkedText(" ", selectionRange: NSMakeRange(0, 0), replacementRange: NSMakeRange(NSNotFound, NSNotFound))
+        client().setMarkedText(" ", selectionRange: NSMakeRange(0, 0),
+                               replacementRange: NSMakeRange(NSNotFound, NSNotFound))
         client().attributes(forCharacterIndex: 0, lineHeightRectangle: &IbeamRect)
-        client().setMarkedText("", selectionRange: NSMakeRange(0, 0), replacementRange: NSMakeRange(NSNotFound, NSNotFound))
+        client().setMarkedText("", selectionRange: NSMakeRange(0, 0),
+                               replacementRange: NSMakeRange(NSNotFound, NSNotFound))
       } else {
-        client().attributes(forCharacterIndex: client().selectedRange().location, lineHeightRectangle: &IbeamRect)
+        client().attributes(forCharacterIndex: client().selectedRange().location,
+                            lineHeightRectangle: &IbeamRect)
       }
     }
     if (NSIsEmptyRect(IbeamRect)) {
@@ -712,7 +741,7 @@ class SquirrelInputController: IMKInputController {
     if #available(macOS 14.0, *) {  // avoid overlapping with cursor effects view
       if ((_goodOldCapsLock && _lastModifiers.contains(.capsLock)) ||
           _lastModifiers.contains(.help)) {
-        _lastModifiers.remove(.help)
+        _lastModifiers.subtract(.help)
         var screenRect: NSRect = NSScreen.main?.frame ?? NSZeroRect
         if (NSIntersectsRect(IbeamRect, screenRect)) {
           screenRect = NSScreen.main?.visibleFrame ?? NSZeroRect
@@ -747,12 +776,12 @@ class SquirrelInputController: IMKInputController {
                          selRange: NSRange,
                          caretPos: Int,
                          candidateIndices: Range<Int>,
-                         highlightedIndex: Int,
+                         highlightedCandidate: Int,
                          pageNum: Int,
                          finalPage: Boolean,
                          didCompose: Boolean) {
-  //NSLog(@"showPanelWithPreedit:...:")
-    let panel: SquirrelPanel! = NSApp.squirrelAppDelegate.panel
+    // NSLog(@"showPanelWithPreedit:...:")
+    let panel: SquirrelPanel! = NSApp.squirrelApp.panel
     panel.IbeamRect = getIbeamRect()
     if (NSIsEmptyRect(panel.IbeamRect) && panel.statusMessage?.count ?? 0 > 0) {
       panel.updateStatus(long:nil, short:nil)
@@ -761,7 +790,7 @@ class SquirrelInputController: IMKInputController {
                         selRange: selRange,
                         caretPos: caretPos,
                         candidateIndices: candidateIndices,
-                        highlightedIndex: highlightedIndex,
+                        highlightedCandidate: highlightedCandidate,
                         pageNum: pageNum,
                         finalPage: finalPage,
                         didCompose: didCompose)
@@ -772,35 +801,27 @@ class SquirrelInputController: IMKInputController {
 
   private func createSession() {
     let app: String = client().bundleIdentifier()
-    //NSLog(@"createSession: %@", app)
+    // NSLog(@"createSession: %@", app)
     _session = rime_get_api().pointee.create_session()
     _schemaId = nil
     if (_session != 0) {
-      let appOptions: SquirrelAppOptions = NSApp.squirrelAppDelegate.config!.getAppOptions(app)
-      for (key, value) in appOptions {
-        if (value is Boolean.Type) {
-          let boolValue: Bool = (value as! Boolean).Bool
-          //NSLog(@"set app option: %@ = %d", key, value)
-          rime_get_api().pointee.set_option(_session, key.cString(using: String.Encoding.utf8), boolValue)
-        }
-      }
-      _panellessCommitFix = appOptions["panelless_commit_fix"] as? Boolean ?? false
-      _inlinePlaceholder = appOptions["inline_placeholder"] as? Boolean ?? false
-      _inlineOffset = appOptions["inline_offset"] as? Int ?? 0
-      if (app == SquirrelInputController.currentApp && SquirrelInputController.asciiMode >= 0) {
-        rime_get_api().pointee.set_option(_session, "ascii_mode", SquirrelInputController.asciiMode)
+      _appOptions = NSApp.squirrelApp.config!.getAppOptions(app)
+      _panellessCommitFix = _appOptions.boolValue(forKey: "panelless_commit_fix")
+      _inlinePlaceholder = _appOptions.boolValue(forKey: "inline_placeholder")
+      _inlineOffset = _appOptions.intValue(forKey: "inline_offset")
+      if (app == SquirrelInputController.currentApp &&
+          SquirrelInputController.asciiMode >= 0) {
+        rime_get_api().pointee.set_option(_session, "ascii_mode",
+                                          SquirrelInputController.asciiMode)
       }
       SquirrelInputController.currentApp = app
       SquirrelInputController.asciiMode = -1
-      _lastModifiers = []
-      _lastEventCount = 0
-      NSApp.squirrelAppDelegate.panel?.IbeamRect = NSZeroRect
       rimeUpdate()
     }
   }
 
   private func destroySession() {
-    //NSLog(@"destroySession:")
+    // NSLog(@"destroySession:")
     if (_session != 0) {
       _ = rime_get_api().pointee.destroy_session(_session)
       _session = 0
@@ -827,28 +848,29 @@ class SquirrelInputController: IMKInputController {
   }
 
   private func rimeUpdate() {
-    //NSLog(@"rimeUpdate")
+    // NSLog(@"rimeUpdate")
     let didCommit: Boolean = rimeConsumeCommittedText()
     var didCompose: Boolean = didCommit
 
-    let panel: SquirrelPanel! = NSApp.squirrelAppDelegate.panel
+    let panel: SquirrelPanel! = NSApp.squirrelApp.panel
     var status: RimeStatus = RimeStatus()
     if (rime_get_api().pointee.get_status(_session, &status).Bool) {
       // enable schema specific ui style
-      if (_schemaId == nil || strcmp((_schemaId! as NSString).utf8String, status.schema_id) != 0) {
+      if (_schemaId == nil || strcmp(_schemaId!, status.schema_id) != 0) {
         _schemaId = String(cString: status.schema_id)
         _showingSwitcherMenu = rime_get_api().pointee.get_option(_session, "dumb").Bool
         if (!_showingSwitcherMenu) {
-          NSApp.squirrelAppDelegate.loadSchemaSpecificLabels(schemaId: _schemaId!)
-          NSApp.squirrelAppDelegate.loadSchemaSpecificSettings(schemaId: _schemaId!, withRimeSession: _session)
+          NSApp.squirrelApp.loadSchemaSpecificLabels(schemaId: _schemaId!)
+          NSApp.squirrelApp.loadSchemaSpecificSettings(schemaId: _schemaId!,
+                                                       withRimeSession: _session)
           // inline preedit
-          _inlinePreedit = (panel.inlinePreedit && !rime_get_api().pointee.get_option(_session, "no_inline").Bool) ||
-          rime_get_api().pointee.get_option(_session, "inline").Bool
-          _inlineCandidate = panel.inlineCandidate && !rime_get_api().pointee.get_option(_session, "no_inline").Bool
+          _inlinePreedit = (panel.inlinePreedit && !_appOptions.boolValue(forKey: "no_inline")) ||
+                           _appOptions.boolValue(forKey: "inline")
+          _inlineCandidate = panel.inlineCandidate && !_appOptions.boolValue(forKey: "no_inline")
           // if not inline, embed soft cursor in preedit string
           rime_get_api().pointee.set_option(_session, "soft_cursor", (!_inlinePreedit).Bool)
         } else {
-          NSApp.squirrelAppDelegate.loadSchemaSpecificLabels(schemaId: "")
+          NSApp.squirrelApp.loadSchemaSpecificLabels(schemaId: "")
         }
         didCompose = true
       }
@@ -860,11 +882,11 @@ class SquirrelInputController: IMKInputController {
       let showingStatus: Boolean = panel.statusMessage?.count ?? 0 > 0
       // update preedit text
       let preedit: UnsafeMutablePointer<CChar>? = ctx.composition.preedit
-      let preeditText: String = preedit != nil ? String(cString: preedit!) : ""
+      let preeditText = preedit == nil ? "" : String(cString: preedit!)
 
       // update raw input
       let raw_input: UnsafePointer<CChar>? = rime_get_api().pointee.get_input(_session)
-      let originalString: String = raw_input != nil ? String(cString: raw_input!) : ""
+      let originalString = raw_input == nil ? "" : String(cString: raw_input!)
       didCompose = didCommit || originalString != _originalString
       _originalString = originalString
 
@@ -872,9 +894,11 @@ class SquirrelInputController: IMKInputController {
       if (preedit == nil || _showingSwitcherMenu) {
         _composedString = ""
       } else if (!_inlinePreedit) { // remove soft cursor
-        let cursorPos: size_t = size_t(ctx.composition.cursor_pos) -
-        (ctx.composition.cursor_pos < ctx.composition.sel_end ? 3 : 0)
-        _composedString = String(preeditText.utf8[preeditText.utf8.startIndex..<preeditText.utf8.index(preeditText.utf8.startIndex, offsetBy: cursorPos + 1)])! + String(preeditText.utf8[preeditText.utf8.index(preeditText.utf8.startIndex, offsetBy: cursorPos + 3)..<preeditText.utf8.endIndex])!
+        let prefixRange = preeditText.utf8.startIndex..<preeditText.utf8.index(
+          preeditText.utf8.startIndex, offsetBy: Int(ctx.composition.cursor_pos))
+        let suffixRange = preeditText.utf8.index(preeditText.utf8.startIndex,
+                                                 offsetBy: Int(ctx.composition.cursor_pos) + 3)..<preeditText.utf8.endIndex
+        _composedString = String(preeditText.utf8[prefixRange])! + String(preeditText.utf8[suffixRange])!
       } else {
         _composedString = String(cString: preedit!)
       }
@@ -886,11 +910,11 @@ class SquirrelInputController: IMKInputController {
       let numCandidates: Int = Int(ctx.menu.num_candidates)
       let pageNum: Int = Int(ctx.menu.page_no)
       let pageSize: Int = Int(ctx.menu.page_size)
-      var highlightedIndex: Int = numCandidates == 0 ? NSNotFound : Int(ctx.menu.highlighted_candidate_index)
+      var highlightedCandidate: Int = numCandidates == 0 ? NSNotFound : Int(ctx.menu.highlighted_candidate_index)
       let finalPage: Boolean = ctx.menu.is_last_page.Bool
 
       let selRange: NSRange = NSMakeRange(start, end - start)
-      didCompose = didCompose || !NSEqualRanges(selRange, _selRange)
+      didCompose = didCompose || (!NSEqualRanges(selRange, _selRange) && highlightedCandidate == 0 && pageNum == 0)
       _selRange = selRange
       // update expander and section status in tabular layout
       // already processed the action if _currentIndex == NSNotFound
@@ -900,7 +924,7 @@ class SquirrelInputController: IMKInputController {
         } else if (_currentIndex != NSNotFound) {
           let currentPageNum: Int = _currentIndex / pageSize
           if (!panel.locked && panel.expanded && panel.firstLine &&
-              pageNum == 0 && highlightedIndex == 0 && _currentIndex == 0) {
+              pageNum == 0 && highlightedCandidate == 0 && _currentIndex == 0) {
             panel.expanded = false
           } else if (!panel.locked && !panel.expanded && pageNum > currentPageNum) {
             panel.expanded = true
@@ -915,12 +939,12 @@ class SquirrelInputController: IMKInputController {
                                    pageNum == 0 ? 0 : 1)
           }
         }
-        highlightedIndex += pageSize * panel.sectionNum
+        highlightedCandidate += pageSize * panel.sectionNum
       }
-      let extraCandidates: Int = panel.expanded && caretPos >= end ? (finalPage ? panel.sectionNum : (panel.vertical ? 2 : 4)) * pageSize : 0
+      let extraCandidates: Int = panel.expanded ? (finalPage ? panel.sectionNum : (panel.vertical ? 2 : 4)) * pageSize : 0
       let indexStart: Int = (pageNum - panel.sectionNum) * pageSize
       _candidateIndices = indexStart..<(indexStart + numCandidates + extraCandidates)
-      _currentIndex = highlightedIndex + indexStart
+      _currentIndex = highlightedCandidate + indexStart
 
       if (showingStatus) {
         clearBuffer()
@@ -936,8 +960,9 @@ class SquirrelInputController: IMKInputController {
             candidatePreviewText += preeditText[preeditText.index(preeditText.startIndex, offsetBy: caretPos)...]
           }
           if (!didCommit || candidatePreviewText.count > 0) {
-            showPreeditString(candidatePreviewText, selRange: NSMakeRange(start, candidatePreviewText.count - (length - end) - start),
-                              caretPos: caretPos < end ? caretPos : candidatePreviewText.count - (length - caretPos))
+            showInlineString(candidatePreviewText,
+                             withSelRange: NSMakeRange(start, candidatePreviewText.count - (length - end) - start),
+                             caretPos: caretPos < end ? caretPos : candidatePreviewText.count - (length - caretPos))
           }
         } else { // preedit includes the soft cursor
           if (end < caretPos && caretPos <= length) {
@@ -946,37 +971,37 @@ class SquirrelInputController: IMKInputController {
             candidatePreviewText = String(candidatePreviewText[..<candidatePreviewText.index(candidatePreviewText.startIndex, offsetBy: candidatePreviewText.count - (length - end))])
           }
           if (!didCommit || candidatePreviewText.count > 0) {
-            showPreeditString(candidatePreviewText,
-                              selRange: NSMakeRange(start, candidatePreviewText.count - start),
-                              caretPos: caretPos < end ? caretPos : candidatePreviewText.count)
+            showInlineString(candidatePreviewText,
+                             withSelRange: NSMakeRange(start, candidatePreviewText.count - start),
+                             caretPos: caretPos < end ? caretPos : candidatePreviewText.count)
           }
         }
       } else {
-        if (_inlinePreedit && !_showingSwitcherMenu) {
+        if (_inlinePreedit) {
           if (_inlinePlaceholder && preeditText.count == 0 && numCandidates > 0) {
             showPlaceholder(kFullWidthSpace)
           } else if (!didCommit || preeditText.count > 0) {
-            showPreeditString(preeditText, selRange: NSMakeRange(start, end - start), caretPos: caretPos)
+            showInlineString(preeditText, withSelRange: NSMakeRange(start, end - start), caretPos: caretPos)
           }
         } else {
           if (_inlinePlaceholder && preedit != nil) {
             showPlaceholder(kFullWidthSpace)
           } else if (!didCommit || preedit != nil) {
-            showPreeditString("", selRange: NSMakeRange(0, 0), caretPos: 0)
+            showInlineString("", withSelRange: NSMakeRange(0, 0), caretPos: 0)
           }
         }
       }
-      // overwrite old cached candidates (index = 0) OR continue cache more candidates
+      // cache candidates
       if (didCompose || numCandidates == 0) {
         _candidateTexts.removeAll()
         _candidateComments.removeAll()
       }
       var index: Int = _candidateTexts.count
+      var endIndex: Int = pageSize * pageNum
       // cache candidates
-      if (index < pageSize * pageNum) {
+      if (index < endIndex) {
         var iterator: RimeCandidateListIterator = RimeCandidateListIterator()
         if (rime_get_api().pointee.candidate_list_from_index(_session, &iterator, CInt(index)).Bool) {
-          let endIndex: Int = pageSize * pageNum
           while (index < endIndex && rime_get_api().pointee.candidate_list_next(&iterator).Bool) {
             updateCandidate(iterator.candidate, atIndex: index)
             index += 1
@@ -990,10 +1015,10 @@ class SquirrelInputController: IMKInputController {
           index += 1
         }
       }
-      if (index < _candidateIndices.upperBound) {
+      endIndex = _candidateIndices.upperBound
+      if (index < endIndex) {
         var iterator: RimeCandidateListIterator = RimeCandidateListIterator()
         if (rime_get_api().pointee.candidate_list_from_index(_session, &iterator, CInt(index)).Bool) {
-          let endIndex: Int = pageSize * (pageNum + (panel.vertical ? 3 : 5) - panel.sectionNum)
           while (index < endIndex && rime_get_api().pointee.candidate_list_next(&iterator).Bool) {
             updateCandidate(iterator.candidate, atIndex: index)
              index += 1
@@ -1009,7 +1034,7 @@ class SquirrelInputController: IMKInputController {
                 selRange: selRange,
                 caretPos: _showingSwitcherMenu ? NSNotFound : caretPos,
                 candidateIndices: _candidateIndices,
-                highlightedIndex: highlightedIndex,
+                highlightedCandidate: highlightedCandidate,
                 pageNum: pageNum,
                 finalPage: finalPage,
                 didCompose: didCompose)
@@ -1032,14 +1057,14 @@ class SquirrelInputController: IMKInputController {
     }
     if (index == _candidateTexts.count) {
       _candidateTexts.append(String(cString: candidate!.text))
-      _candidateComments.append(String(cString: candidate!.comment))
+      _candidateComments.append(candidate!.comment == nil ? "" : String(cString: candidate!.comment))
     } else {
       if (strcmp(candidate!.text, _candidateTexts[index].cString(using: .utf8)) != 0) {
         _candidateTexts[index] = String(cString: candidate!.text)
       }
       if (strcmp(candidate!.comment ?? [0] as! UnsafeMutablePointer<CChar>,
                  _candidateComments[index].cString(using: .utf8)) != 0) {
-        _candidateComments[index] = String(cString: candidate!.comment ?? [0] as! UnsafeMutablePointer<CChar>)
+        _candidateComments[index] = candidate!.comment == nil ? "" : String(cString: candidate!.comment)
       }
     }
   }

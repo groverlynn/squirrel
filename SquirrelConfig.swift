@@ -44,7 +44,7 @@ class SquirrelOptionSwitcher: NSObject {
     _optionGroups = optionGroups ?? [:]
     _optionNames = switcher == nil ? [] : Set(switcher!.keys)
     _optionStates = switcher == nil ? [] : Set(switcher!.values)
-    _currentScriptVariant = defaultScriptVariant ?? Bundle.preferredLocalizations(from:kScripts)[0]
+    _currentScriptVariant = defaultScriptVariant ?? Bundle.preferredLocalizations(from: kScripts)[0]
     _scriptVariantOptions = scriptVariantOptions ?? [:]
   }
 
@@ -83,23 +83,23 @@ class SquirrelOptionSwitcher: NSObject {
   }
 
   func updateGroupState(_ optionState: String,
-                                 ofOption optionName: String) -> Boolean {
-    let optionGroup: [String]? = _optionGroups[optionName]
-    if (optionGroup == nil) {
+                        ofOption optionName: String) -> Boolean {
+    if let optionGroup = _optionGroups[optionName] {
+      if (optionGroup.count == 1) {
+        if (optionState == (optionState.hasPrefix("!") ? "!" + optionName : optionName)) {
+          return false
+        }
+        _switcher[optionName] = optionState
+      } else if !(optionGroup.contains(optionState)) {
+        for option in optionGroup {
+          _switcher[option] = optionState
+        }
+      }
+      _optionStates = Set(_switcher.values)
+      return true
+    } else {
       return false
     }
-    if (optionGroup!.count == 1) {
-      if (optionState == (optionState.hasPrefix("!") ? "!" + optionName : optionName)) {
-        return false
-      }
-      _switcher[optionName] = optionState
-    } else if !(optionGroup!.contains(optionState)) {
-      for option in optionGroup! {
-        _switcher[option] = optionState
-      }
-    }
-    _optionStates = Set(_switcher.values)
-    return true
   }
 
   func updateCurrentScriptVariant(_ scriptVariant: String) -> Boolean {
@@ -115,12 +115,12 @@ class SquirrelOptionSwitcher: NSObject {
   }
 
   func update(withRimeSession session: RimeSessionId) {
-    if (switcher.count == 0 || session == 0) {
+    if (_switcher.count == 0 || session == 0) {
       return
     }
-    for state in optionStates {
+    for state in _optionStates {
       var updatedState: String?
-      let optionGroup: [String] = switcher.compactMap({ (key: String, value: String) -> String? in
+      let optionGroup: [String] = _switcher.compactMap({ (key: String, value: String) -> String? in
         value == state ? key : nil
       })
       for option in optionGroup {
@@ -135,8 +135,8 @@ class SquirrelOptionSwitcher: NSObject {
       }
     }
     // update script variant
-    if (scriptVariantOptions.count > 0) {
-      for (option, _) in scriptVariantOptions {
+    if (_scriptVariantOptions.count > 0) {
+      for (option, _) in _scriptVariantOptions {
         if (option.hasPrefix("!")
             ? !rime_get_api().pointee.get_option(session, option.suffix(option.count - 1).withCString{ $0 }).Bool
             : rime_get_api().pointee.get_option(session, option.withCString{ $0 }).Bool) {
@@ -149,7 +149,59 @@ class SquirrelOptionSwitcher: NSObject {
 
 }  // SquirrelOptionSwitcher
 
-typealias SquirrelAppOptions = [String: Any]
+
+struct SquirrelAppOptions {
+  private var appOptions: [String: Any]
+  init() { appOptions = [:] }
+  subscript(key: String) -> Any? {
+    get { if let value = appOptions[key] {
+            if value is Boolean.Type {
+              return value as! Boolean
+            } else if value is Int.Type {
+              return value as! Int
+            } else if value is Double.Type {
+              return value as! Double
+            }
+          }
+          return nil
+        }
+    set (newValue) {
+      if newValue is Boolean.Type || newValue is Int.Type ||
+          newValue is Double.Type {
+        appOptions[key] = newValue }
+    }
+  }
+  mutating func setValue(_ value: Boolean, forKey key: String) {
+    appOptions[key] = value
+  }
+  mutating func setValue(_ value: Int, forKey key: String) {
+    appOptions[key] = value
+  }
+  mutating func setValue(_ value: Double, forKey key: String) {
+    appOptions[key] = value
+  }
+  func boolValue(forKey key: String) -> Boolean! {
+    if let value = appOptions[key], value is Boolean.Type {
+      return value as? Boolean
+    } else {
+      return false
+    }
+  }
+  func intValue(forKey key: String) -> Int! {
+    if let value = appOptions[key], value is Int.Type {
+      return value as? Int
+    } else {
+      return 0
+    }
+  }
+  func doubleValue(forKey key: String) -> Double! {
+    if let value = appOptions[key], value is Double.Type {
+      return value as? Double
+    } else {
+      return 0.0
+    }
+  }
+}
 
 let colorSpaceMap: [String: NSColorSpace] =
   ["deviceRGB"    : NSColorSpace.deviceRGB,
@@ -239,7 +291,7 @@ class SquirrelConfig : NSObject {
 
   func hasSection(_ section: String) -> Boolean {
     if (_isOpen) {
-      var iterator: RimeConfigIterator = RimeConfigIterator()
+      var iterator = RimeConfigIterator()
       if (rime_get_api().pointee.config_begin_map(&iterator, &_config, section).Bool) {
         rime_get_api().pointee.config_end(&iterator);
         return true
@@ -265,34 +317,34 @@ class SquirrelConfig : NSObject {
   }
 
   func getBoolForOption(_ option: String) -> Boolean! {
-    return getOptionalBoolForOption(option) ?? false
+    return getOptionalBoolForOption(option, alias: nil) ?? false
   }
 
   func getIntForOption(_ option: String) -> Int! {
-    return getOptionalIntForOption(option) ?? 0
+    return getOptionalIntForOption(option, alias: nil) ?? 0
   }
 
   func getDoubleForOption(_ option: String) -> Double! {
-    return getOptionalDoubleForOption(option) ?? 0
+    return getOptionalDoubleForOption(option, alias: nil) ?? 0
   }
 
-  func getDoubleForOption(_ option: String, applyConstraint function: (Double) -> Double) -> Double! {
-    let value: Double = getOptionalDoubleForOption(option) ?? 0
-    return function(value)
+  func getDoubleForOption(_ option: String,
+                          applyConstraint function: (Double) -> Double) -> Double! {
+    return function(getOptionalDoubleForOption(option, alias: nil) ?? 0)
   }
 
   func getOptionalBoolForOption(_ option: String, alias: String?) -> Boolean? {
-    let cachedValue: Boolean? = cachedValueOfType(Boolean.self, forKey: option) as? Boolean
-    if (cachedValue != nil) {
+    if let cachedValue = cachedValueOfType(Boolean.self, forKey: option) as? Boolean {
       return cachedValue
     }
-    var value: Bool = False
+    var value: RimeBool = False
     if (_isOpen && rime_get_api().pointee.config_get_bool(&_config, option, &value).Bool) {
       _cache[option] = value.Bool
       return value.Bool
     }
     if (alias != nil) {
-      let aliasOption: String = ((option as NSString).deletingLastPathComponent as NSString).appendingPathComponent((alias! as NSString).lastPathComponent)
+      let aliasOption: String = ((option as NSString).deletingLastPathComponent as NSString)
+        .appendingPathComponent((alias! as NSString).lastPathComponent)
       if (_isOpen && rime_get_api().pointee.config_get_bool(&_config, aliasOption, &value).Bool) {
         _cache[option] = value.Bool
         return value.Bool
@@ -302,8 +354,7 @@ class SquirrelConfig : NSObject {
   }
 
   func getOptionalIntForOption(_ option: String, alias: String?) -> Int? {
-    let cachedValue: Int? = cachedValueOfType(Int.self, forKey: option) as? Int
-    if (cachedValue != nil) {
+    if let cachedValue = cachedValueOfType(Int.self, forKey: option) as? Int {
       return cachedValue
     }
     var value: CInt = 0
@@ -312,7 +363,8 @@ class SquirrelConfig : NSObject {
       return Int(value)
     }
     if (alias != nil) {
-      let aliasOption: String = ((option as NSString).deletingLastPathComponent as NSString).appendingPathComponent((alias! as NSString).lastPathComponent)
+      let aliasOption: String = ((option as NSString).deletingLastPathComponent as NSString)
+        .appendingPathComponent((alias! as NSString).lastPathComponent)
       if (_isOpen && rime_get_api().pointee.config_get_int(&_config, aliasOption, &value).Bool) {
         _cache[option] = Int(value)
         return Int(value)
@@ -322,8 +374,7 @@ class SquirrelConfig : NSObject {
   }
 
   func getOptionalDoubleForOption(_ option: String, alias: String?) -> Double? {
-    let cachedValue: Double? = cachedValueOfType(Double.self, forKey: option) as? Double
-    if (cachedValue != nil) {
+    if let cachedValue = cachedValueOfType(Double.self, forKey: option) as? Double {
       return cachedValue;
     }
     var value: CDouble = 0
@@ -332,7 +383,8 @@ class SquirrelConfig : NSObject {
       return Double(value)
     }
     if (alias != nil) {
-      let aliasOption: String = ((option as NSString).deletingLastPathComponent as NSString).appendingPathComponent((alias! as NSString).lastPathComponent)
+      let aliasOption: String = ((option as NSString).deletingLastPathComponent as NSString)
+        .appendingPathComponent((alias! as NSString).lastPathComponent)
       if (_isOpen && rime_get_api().pointee.config_get_double(&_config, aliasOption, &value).Bool) {
         _cache[option] = Double(value)
         return Double(value)
@@ -341,7 +393,8 @@ class SquirrelConfig : NSObject {
     return _baseConfig?.getOptionalDoubleForOption(option, alias: alias)
   }
 
-  func getOptionalDoubleForOption(_ option: String, alias: String?, applyConstraint function: (CDouble) -> CDouble) -> Double? {
+  func getOptionalDoubleForOption(_ option: String, alias: String?,
+                                  applyConstraint function: (CDouble) -> CDouble) -> Double? {
     if let value = getOptionalDoubleForOption(option, alias: alias) {
       return function(value)
     } else {
@@ -361,7 +414,8 @@ class SquirrelConfig : NSObject {
     return getOptionalDoubleForOption(option, alias: nil)
   }
 
-  func getOptionalDoubleForOption(_ option: String, applyConstraint function: (CDouble) -> CDouble) -> Double? {
+  func getOptionalDoubleForOption(_ option: String,
+                                  applyConstraint function: (CDouble) -> CDouble) -> Double? {
     if let value = getOptionalDoubleForOption(option, alias: nil) {
       return function(value)
     } else {
@@ -370,8 +424,7 @@ class SquirrelConfig : NSObject {
   }
 
   func getStringForOption(_ option: String, alias: String?) -> String? {
-    let cachedValue: String? = cachedValueOfType(String.self, forKey: option) as? String
-    if (cachedValue != nil) {
+    if let cachedValue = cachedValueOfType(String.self, forKey: option) as? String {
       return cachedValue
     }
     var value: UnsafePointer<CChar>? = _isOpen ? rime_get_api().pointee.config_get_cstring(&_config, option) : nil
@@ -381,7 +434,8 @@ class SquirrelConfig : NSObject {
       return string
     }
     if (alias != nil) {
-      let aliasOption: String = ((option as NSString).deletingLastPathComponent as NSString).appendingPathComponent((alias! as NSString).lastPathComponent)
+      let aliasOption: String = ((option as NSString).deletingLastPathComponent as NSString)
+        .appendingPathComponent((alias! as NSString).lastPathComponent)
       value = _isOpen ? rime_get_api().pointee.config_get_cstring(&_config, aliasOption) : nil
       if (value != nil) {
         let string: String = String(cString: value!).trimmingCharacters(in: CharacterSet.whitespaces)
@@ -389,49 +443,29 @@ class SquirrelConfig : NSObject {
         return string
       }
     }
-    return _baseConfig?.getStringForOption(option) ?? nil
+    return _baseConfig?.getStringForOption(option, alias: alias) ?? nil
   }
 
   func getColorForOption(_ option: String, alias: String?) -> NSColor? {
-    let cachedValue: NSColor? = cachedValueOfClass(NSColor.self, forKey: option) as? NSColor
-    if (cachedValue != nil) {
+    if let cachedValue = cachedValueOfClass(NSColor.self, forKey: option) as? NSColor {
       return cachedValue
     }
-    var color: NSColor? = colorFromString(getStringForOption(option))
-    if (color != nil) {
+    if let color = colorFromString(getStringForOption(option, alias: alias)) {
       _cache[option] = color
       return color
     }
-    if (alias != nil) {
-      let _: String = ((option as NSString).deletingLastPathComponent as NSString).appendingPathComponent((alias! as NSString).lastPathComponent)
-      color = colorFromString(getStringForOption(option))
-      if (color != nil) {
-        _cache[option] = color
-        return color
-      }
-    }
-    return _baseConfig?.getColorForOption(option) ?? nil
+    return _baseConfig?.getColorForOption(option, alias:  alias) ?? nil
   }
 
   func getImageForOption(_ option: String, alias: String?) -> NSImage? {
-    let cachedValue: NSImage? = cachedValueOfClass(NSImage.self, forKey: option) as? NSImage
-    if (cachedValue != nil) {
+    if let cachedValue = cachedValueOfClass(NSImage.self, forKey: option) as? NSImage {
       return cachedValue
     }
-    var image: NSImage? = imageFromFile(getStringForOption(option))
-    if (image != nil) {
+    if let image = imageFromFile(getStringForOption(option, alias: alias)) {
       _cache[option] = image
       return image
     }
-    if (alias != nil) {
-      let _: String = ((option as NSString).deletingLastPathComponent as NSString).appendingPathComponent((alias! as NSString).lastPathComponent)
-      image = imageFromFile(getStringForOption(option))
-      if (image != nil) {
-        _cache[option] = image
-        return image
-      }
-    }
-    return _baseConfig?.getImageForOption(option) ?? nil
+    return _baseConfig?.getImageForOption(option, alias: alias) ?? nil
   }
 
   func getStringForOption(_ option: String) -> String? {
@@ -451,7 +485,7 @@ class SquirrelConfig : NSObject {
   }
 
   func getListForOption(_ option: String) -> [String]? {
-    var iterator: RimeConfigIterator = RimeConfigIterator()
+    var iterator = RimeConfigIterator()
     if (!rime_get_api().pointee.config_begin_list(&iterator, &_config, option).Bool) {
       return nil;
     }
@@ -464,19 +498,19 @@ class SquirrelConfig : NSObject {
   }
 
   let localeScript: [String: String] =
-  ["simplification" : "zh-Hans",
-   "simplified"     : "zh-Hans",
-   "!traditional"   : "zh-Hans",
-   "traditional"    : "zh-Hant",
-   "!simplification": "zh-Hant",
-   "!simplified"    : "zh-Hant"]
+    ["simplification" : "zh-Hans",
+     "simplified"     : "zh-Hans",
+     "!traditional"   : "zh-Hans",
+     "traditional"    : "zh-Hant",
+     "!simplification": "zh-Hant",
+     "!simplified"    : "zh-Hant"]
   let localeRegion: [String: String] =
-  ["tw"       : "zh-TW", "taiwan"   : "zh-TW",
-   "hk"       : "zh-HK", "hongkong" : "zh-HK",
-   "hong_kong": "zh-HK", "mo"       : "zh-MO",
-   "macau"    : "zh-MO", "macao"    : "zh-MO",
-   "sg"       : "zh-SG", "singapore": "zh-SG",
-   "cn"       : "zh-CN", "china"    : "zh-CN"]
+    ["tw"       : "zh-TW", "taiwan"   : "zh-TW",
+     "hk"       : "zh-HK", "hongkong" : "zh-HK",
+     "hong_kong": "zh-HK", "mo"       : "zh-MO",
+     "macau"    : "zh-MO", "macao"    : "zh-MO",
+     "sg"       : "zh-SG", "singapore": "zh-SG",
+     "cn"       : "zh-CN", "china"    : "zh-CN"]
 
   func codeForScriptVariant(_ scriptVariant: String) -> String {
     for (script, locale) in localeScript {
@@ -492,13 +526,13 @@ class SquirrelConfig : NSObject {
     return "zh";
   }
 
-  func getOptionSwitcher() -> SquirrelOptionSwitcher? {
+  func getOptionSwitcher() -> SquirrelOptionSwitcher {
     if (_schemaId == nil || _schemaId!.isEmpty || _schemaId == ".") {
-      return nil
+      return SquirrelOptionSwitcher()
     }
     var switchIter: RimeConfigIterator = RimeConfigIterator()
     if (!rime_get_api().pointee.config_begin_list(&switchIter, &_config, "switches").Bool) {
-      return nil;
+      return SquirrelOptionSwitcher(schemaId: _schemaId)
     }
     var switcher: [String: String] = [:]
     var optionGroups: [String: [String]] = [:]
@@ -512,7 +546,10 @@ class SquirrelConfig : NSObject {
           switcher[name!] = reset != 0 ? name! : "!" + name!
           optionGroups[name!] = [name!]
         }
-        if (defaultScriptVariant == nil && (name == "simplification" || name == "simplified" || name == "traditional")) {
+        if (defaultScriptVariant == nil &&
+            (name?.caseInsensitiveCompare("simplification") == .orderedSame ||
+             name?.caseInsensitiveCompare("simplified") == .orderedSame ||
+             name?.caseInsensitiveCompare("traditional") == .orderedSame)) {
           defaultScriptVariant = reset > 0 ? name : "!" + name!
           scriptVariantOptions[name!] = codeForScriptVariant(name!)
           scriptVariantOptions["!" + name!] = codeForScriptVariant("!" + name!)
@@ -547,11 +584,11 @@ class SquirrelConfig : NSObject {
       }
     }
     rime_get_api().pointee.config_end(&switchIter)
-    return SquirrelOptionSwitcher.init(schemaId: _schemaId,
-                                       switcher: switcher,
-                                       optionGroups: optionGroups,
-                                       defaultScriptVariant: defaultScriptVariant,
-                                       scriptVariantOptions: scriptVariantOptions)
+    return SquirrelOptionSwitcher(schemaId: _schemaId,
+                                  switcher: switcher,
+                                  optionGroups: optionGroups,
+                                  defaultScriptVariant: defaultScriptVariant,
+                                  scriptVariantOptions: scriptVariantOptions)
   }
 
   func getAppOptions(_ appName: String) -> SquirrelAppOptions {
@@ -562,11 +599,11 @@ class SquirrelConfig : NSObject {
       return appOptions;
     }
     while (rime_get_api().pointee.config_next(&iterator).Bool) {
-      //NSLog(@"DEBUG option[%d]: %s (%s)", iterator.index, iterator.key, iterator.path);
-      let value: Any? = getOptionalBoolForOption(String(cString: iterator.path)) ??
-                        getOptionalIntForOption(String(cString: iterator.path)) ??
-                        getOptionalDoubleForOption(String(cString: iterator.path))
-      if (value != nil && (type(of: value!) == Boolean.self || type(of: value!) == Int.self)) {
+      // NSLog(@"DEBUG option[%d]: %s (%s)", iterator.index, iterator.key, iterator.path);
+      if let value: Any = getOptionalBoolForOption(String(cString: iterator.path)) ??
+                          getOptionalIntForOption(String(cString: iterator.path)) ??
+                          getOptionalDoubleForOption(String(cString: iterator.path)),
+         type(of: value) == Boolean.self || type(of: value) == Int.self {
         appOptions[String(cString: iterator.key)] = value
       }
     }
@@ -621,20 +658,19 @@ class SquirrelConfig : NSObject {
       }
     }
     let components: [CGFloat] = [CGFloat(r) / 255, CGFloat(g) / 255, CGFloat(b) / 255, CGFloat(a) / 255]
-    return NSColor.init(colorSpace: _colorSpace, components: components, count: 4)
+    return NSColor(colorSpace: _colorSpace, components: components, count: 4)
   }
 
   private func imageFromFile(_ filePath: String?) -> NSImage? {
     if (filePath == nil) {
       return nil
     }
-    let userDataDir = URL.init(fileURLWithPath:("~/Library/Rime" as NSString).expandingTildeInPath,
-                               isDirectory: true)
-    let imageFile = URL.init(fileURLWithPath: filePath!,
-                             isDirectory: false,
-                             relativeTo: userDataDir)
+    let userDataDir = URL(fileURLWithPath:("~/Library/Rime" as NSString).expandingTildeInPath,
+                          isDirectory: true)
+    let imageFile = URL(fileURLWithPath: filePath!,
+                        isDirectory: false, relativeTo: userDataDir)
     if ((try? imageFile.checkResourceIsReachable()) != nil) {
-      let image = NSImage.init(byReferencing: imageFile)
+      let image = NSImage(byReferencing: imageFile)
       return image
     }
     return nil
