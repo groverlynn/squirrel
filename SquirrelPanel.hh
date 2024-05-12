@@ -1,4 +1,3 @@
-#import <Cocoa/Cocoa.h>
 #import "SquirrelInputController.hh"
 
 @class SquirrelConfig;
@@ -32,21 +31,21 @@
 // query
 - (NSUInteger)candidateIndexOnDirection:(SquirrelIndex)arrowKey __attribute__((objc_direct));
 // status message
-- (void)updateStatusLong:(NSString * _Nullable)messageLong
-             statusShort:(NSString * _Nullable)messageShort __attribute__((objc_direct));
+- (void)updateStatusLong:(NSString *_Nullable)messageLong
+             statusShort:(NSString *_Nullable)messageShort __attribute__((objc_direct));
 // display
-- (void)showPreedit:(NSString * _Nullable)preeditString
+- (void)showPreedit:(NSString *_Nullable)preedit
            selRange:(NSRange)selRange
            caretPos:(NSUInteger)caretPos
    candidateIndices:(NSRange)indexRange
-   highlightedIndex:(NSUInteger)highlightedIndex
+   hilitedCandidate:(NSUInteger)hilitedCandidate
             pageNum:(NSUInteger)pageNum
           finalPage:(BOOL)finalPage
          didCompose:(BOOL)didCompose __attribute__((objc_direct));
 - (void)hide __attribute__((objc_direct));
 // settings
-- (void)loadConfig:(SquirrelConfig * _Nonnull)config __attribute__((objc_direct));
-- (void)loadLabelConfig:(SquirrelConfig * _Nonnull)config
+- (void)loadConfig:(SquirrelConfig *_Nonnull)config __attribute__((objc_direct));
+- (void)loadLabelConfig:(SquirrelConfig *_Nonnull)config
            directUpdate:(BOOL)update __attribute__((objc_direct));
 - (void)updateScriptVariant __attribute__((objc_direct));
 

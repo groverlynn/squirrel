@@ -3,10 +3,10 @@
 #import "SquirrelConfig.hh"
 #import "SquirrelPanel.hh"
 #import "macos_keycode.hh"
-#import "rime_api.h"
 #import <UserNotifications/UserNotifications.h>
 
 static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
+static const CFStringRef kBundleId = CFSTR("im.rime.inputmethod.Squirrel");
 
 @implementation SquirrelApplicationDelegate {
   int _switcherKeyEquivalent;
@@ -15,7 +15,7 @@ static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
 
 - (IBAction)showSwitcher:(id)sender {
   NSLog(@"Show Switcher");
-  if (_switcherKeyEquivalent) {
+  if (_switcherKeyEquivalent != 0) {
     RimeSessionId session = [sender unsignedLongValue];
     rime_get_api()->process_key(session, _switcherKeyEquivalent,
                                 _switcherKeyModifierMask);
@@ -45,22 +45,29 @@ static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
 }
 
 - (IBAction)openLogFolder:(id)sender {
-  NSURL *logFile = [NSFileManager.defaultManager.temporaryDirectory
+  NSURL *infoLog = [NSFileManager.defaultManager.temporaryDirectory
                     URLByAppendingPathComponent:@"rime.squirrel.INFO"
                                     isDirectory:NO];
-  [NSWorkspace.sharedWorkspace activateFileViewerSelectingURLs:@[logFile]];
+  NSURL *warningLog = [NSFileManager.defaultManager.temporaryDirectory
+                       URLByAppendingPathComponent:@"rime.squirrel.WARNING"
+                       isDirectory:NO];
+  NSURL *errorLog = [NSFileManager.defaultManager.temporaryDirectory
+                     URLByAppendingPathComponent:@"rime.squirrel.ERROR"
+                     isDirectory:NO];
+  [NSWorkspace.sharedWorkspace activateFileViewerSelectingURLs:
+   @[infoLog, warningLog, errorLog]];
 }
 
- void show_notification(const char *msg_text) {
+extern void show_notification(const char *msg_text) {
   if (@available(macOS 10.14, *)) {
     UNUserNotificationCenter *center = UNUserNotificationCenter.currentNotificationCenter;
     [center requestAuthorizationWithOptions:UNAuthorizationOptionAlert | UNAuthorizationOptionProvisional
-                          completionHandler:^(BOOL granted, NSError * _Nullable error) {
-      if (error) {
+                          completionHandler:^(BOOL granted, NSError *_Nullable error) {
+      if (error != nil) {
         NSLog(@"User notification authorization error: %@", error.debugDescription);
       }
     }];
-    [center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
+    [center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings *_Nonnull settings) {
       if ((settings.authorizationStatus == UNAuthorizationStatusAuthorized ||
            settings.authorizationStatus == UNAuthorizationStatusProvisional) &&
           (settings.alertSetting == UNNotificationSettingEnabled)) {
@@ -74,8 +81,8 @@ static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
                                         requestWithIdentifier:@"SquirrelNotification"
                                         content:content
                                         trigger:nil]
-                 withCompletionHandler:^(NSError * _Nullable error) {
-          if (error) {
+                 withCompletionHandler:^(NSError *_Nullable error) {
+          if (error != nil) {
             NSLog(@"User notification request error: %@", error.debugDescription);
           }
         }];
@@ -95,8 +102,8 @@ static NSString *const kRimeWikiURL = @"https://github.com/rime/home/wiki";
 
 static void show_status(const char *msg_text_long,
                         const char *msg_text_short) {
-  NSString *msgLong = msg_text_long ? @(msg_text_long) : nil;
-  NSString *msgShort = msg_text_short ? @(msg_text_short) :
+  NSString *msgLong = msg_text_long != NULL ? @(msg_text_long) : nil;
+  NSString *msgShort = msg_text_short != NULL ? @(msg_text_short) :
                        [msgLong substringWithRange:
                         [msgLong rangeOfComposedCharacterSequenceAtIndex:0]];
   [NSApp.squirrelAppDelegate.panel updateStatusLong:msgLong
@@ -107,36 +114,34 @@ static void notification_handler(void *context_object,
                                  RimeSessionId session_id,
                                  const char *message_type,
                                  const char *message_value) {
-  if (!strcmp(message_type, "deploy")) {
-    if (!strcmp(message_value, "start")) {
+  if (strcmp(message_type, "deploy") == 0) {
+    if (strcmp(message_value, "start") == 0) {
       show_notification("deploy_start");
-    } else if (!strcmp(message_value, "success")) {
+    } else if (strcmp(message_value, "success") == 0) {
       show_notification("deploy_success");
-    } else if (!strcmp(message_value, "failure")) {
+    } else if (strcmp(message_value, "failure") == 0) {
       show_notification("deploy_failure");
     }
     return;
   }
   SquirrelApplicationDelegate *app_delegate = (__bridge id)context_object;
   // schema change
-  if (!strcmp(message_type, "schema") &&
+  if (strcmp(message_type, "schema") == 0 &&
       app_delegate.showNotifications != kShowNotificationsNever) {
     const char *schema_name = strchr(message_value, '/');
-    if (schema_name) {
+    if (schema_name != NULL) {
       ++schema_name;
       show_status(schema_name, schema_name);
     }
     return;
   }
   // option change
-  if (!strcmp(message_type, "option") && app_delegate) {
+  if (strcmp(message_type, "option") == 0 && app_delegate) {
     Bool state = message_value[0] != '!';
     const char *option_name = message_value + !state;
+    BOOL updateScriptVariant = [app_delegate.panel.optionSwitcher
+                                updateCurrentScriptVariant:@(message_value)];
     BOOL updateStyleOptions = NO;
-    BOOL updateScriptVariant = NO;
-    if ([app_delegate.panel.optionSwitcher updateCurrentScriptVariant:@(message_value)]) {
-      updateScriptVariant = YES;
-    }
     if ([app_delegate.panel.optionSwitcher updateGroupState:@(message_value)
                                                    ofOption:@(option_name)]) {
       updateStyleOptions = YES;
@@ -153,7 +158,7 @@ static void notification_handler(void *context_object,
         rime_get_api()->get_state_label_abbreviated(session_id, option_name, state, False);
       RimeStringSlice state_label_short =
         rime_get_api()->get_state_label_abbreviated(session_id, option_name, state, True);
-      if (state_label_long.str || state_label_short.str) {
+      if (state_label_long.str != NULL || state_label_short.str != NULL) {
         const char *short_message =
           state_label_short.length < strlen(state_label_short.str) ? NULL : state_label_short.str;
         show_status(state_label_long.str, short_message);
@@ -207,7 +212,7 @@ static void notification_handler(void *context_object,
   SquirrelConfig *defaultConfig = SquirrelConfig.alloc.init;
   if ([defaultConfig openWithConfigId:@"default"]) {
     NSString *hotkey = [defaultConfig getStringForOption:@"switcher/hotkeys/@0"];
-    if (hotkey) {
+    if (hotkey != nil) {
       NSArray<NSString *> *keys = [hotkey componentsSeparatedByString:@"+"];
       for (NSUInteger i = 0; i < keys.count - 1; ++i) {
         _switcherKeyModifierMask |= rime_modifiers_from_name(keys[i].UTF8String);
@@ -282,7 +287,7 @@ static void notification_handler(void *context_object,
   NSData *archive = [NSData dataWithContentsOfURL:logfile
                                           options:NSDataReadingUncached
                                             error:nil];
-  if (archive) {
+  if (archive != nil) {
     NSDate *previousLaunch = [NSKeyedUnarchiver unarchivedObjectOfClass:NSDate.class
                                                                fromData:archive
                                                                   error:nil];
@@ -321,11 +326,11 @@ static void notification_handler(void *context_object,
 }
 
 - (void)inputSourceChanged:(NSNotification *)aNotification {
-  CFStringRef inputSource = (CFStringRef)TISGetInputSourceProperty
-      (TISCopyCurrentKeyboardInputSource(), kTISPropertyInputSourceID);
-  CFStringRef bundleId = CFBundleGetIdentifier(CFBundleGetMainBundle());
-  if (!CFStringHasPrefix(inputSource, bundleId)) {
-    _isCurrentInputMethod = NO;
+  if (CFStringRef inputSource = (CFStringRef)TISGetInputSourceProperty
+      (TISCopyCurrentKeyboardInputSource(), kTISPropertyInputSourceID)) {
+    if (!CFStringHasPrefix(inputSource, kBundleId)) {
+      _isCurrentInputMethod = NO;
+    }
   }
 }
 
