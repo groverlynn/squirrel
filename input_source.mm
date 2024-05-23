@@ -24,7 +24,7 @@ void RegisterInputSource(void) {
     return;
   }
   CFURLRef installPathURL = CFURLCreateFromFileSystemRepresentation
-    (NULL, (UInt8 *)kInstallPath, (CFIndex)strlen(kInstallPath), false);
+    (NULL, (UInt8*)kInstallPath, (CFIndex)strlen(kInstallPath), false);
   if (installPathURL != NULL) {
     TISRegisterInputSource((CFURLRef)CFAutorelease(installPathURL));
     NSLog(@"Registered input source from %s", kInstallPath);

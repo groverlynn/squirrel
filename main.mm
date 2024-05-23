@@ -1,8 +1,9 @@
 
 #import "SquirrelApplicationDelegate.hh"
+#import <rime_api_stdbool.h>
+#import <rime_api.h>
 #import <Cocoa/Cocoa.h>
 #import <InputMethodKit/InputMethodKit.h>
-#import <rime_api.h>
 
 void RegisterInputSource(void);
 void DisableInputSource(void);
@@ -11,14 +12,14 @@ void SelectInputSource(void);
 
 // Each input method needs a unique connection name.
 // Note that periods and spaces are not allowed in the connection name.
-static NSString *const kConnectionName = @"Squirrel_1_Connection";
+static NSString* const kConnectionName = @"Squirrel_1_Connection";
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   if (argc > 1 && strcmp("--quit", argv[1]) == 0) {
-    NSString *bundleId = NSBundle.mainBundle.bundleIdentifier;
-    NSArray<NSRunningApplication *> *runningSquirrels =
+    NSString* bundleId = NSBundle.mainBundle.bundleIdentifier;
+    NSArray<NSRunningApplication*>* runningSquirrels =
       [NSRunningApplication runningApplicationsWithBundleIdentifier:bundleId];
-    for (NSRunningApplication *squirrelApp in runningSquirrels) {
+    for (NSRunningApplication* squirrelApp in runningSquirrels) {
       [squirrelApp terminate];
     }
     return 0;
@@ -58,9 +59,9 @@ int main(int argc, char *argv[]) {
     // build all schemas in current directory
     RIME_STRUCT(RimeTraits, builder_traits);
     builder_traits.app_name = "rime.squirrel-builder";
-    rime_get_api()->setup(&builder_traits);
-    rime_get_api()->deployer_initialize(NULL);
-    return rime_get_api()->deploy() ? 0 : 1;
+    rime_get_api_stdbool()->setup(&builder_traits);
+    rime_get_api_stdbool()->deployer_initialize(NULL);
+    return rime_get_api_stdbool()->deploy() ? 0 : 1;
   }
 
   if (argc > 1 && strcmp("--sync", argv[1]) == 0) {
@@ -72,8 +73,8 @@ int main(int argc, char *argv[]) {
 
   @autoreleasepool {
     // find the bundle identifier and then initialize the input method server
-    NSBundle *main = NSBundle.mainBundle;
-    IMKServer *server __unused =
+    NSBundle* main = NSBundle.mainBundle;
+    IMKServer* server __unused =
       [IMKServer.alloc initWithName:kConnectionName
                    bundleIdentifier:main.bundleIdentifier];
 
@@ -89,8 +90,8 @@ int main(int argc, char *argv[]) {
 
     if (NSApp.squirrelAppDelegate.problematicLaunchDetected) {
       NSLog(@"Problematic launch detected!");
-      NSArray<NSString *> *args = @[@"-v", NSLocalizedString(@"say_voice", nil),
-                                    NSLocalizedString(@"problematic_launch", nil)];
+      NSArray<NSString*>* args = @[@"-v", NSLocalizedString(@"say_voice", nil),
+                                          NSLocalizedString(@"problematic_launch", nil)];
       if (@available(macOS 10.13, *)) {
         [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/say"
                                                          isDirectory:NO]
@@ -112,7 +113,7 @@ int main(int argc, char *argv[]) {
     [NSApplication.sharedApplication run];
 
     NSLog(@"Squirrel is quitting...");
-    rime_get_api()->finalize();
+    rime_get_api_stdbool()->finalize();
   }
   return 0;
 }

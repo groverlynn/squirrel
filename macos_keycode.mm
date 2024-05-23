@@ -164,7 +164,7 @@ int rime_keycode_from_keychar(unichar keychar, bool shift, bool caps) {
   }
 }
 
-static const char *rime_modidifers[] = {
+static const char* rime_modidifers[] = {
   "Shift",   // 1 << 0
   "Lock",    // 1 << 1
   "Control", // 1 << 2
@@ -174,7 +174,7 @@ static const char *rime_modidifers[] = {
   "Meta",    // 1 << 28
 };
 
-int rime_modifiers_from_name(const char *modifier_name) {
+int rime_modifiers_from_name(const char* modifier_name) {
   if (modifier_name == NULL) {
     return 0;
   }
@@ -186,7 +186,7 @@ int rime_modifiers_from_name(const char *modifier_name) {
   return 0;
 }
 
-int rime_keycode_from_name(const char *key_name) {
+int rime_keycode_from_name(const char* key_name) {
   int keycode = RimeGetKeycodeByName(key_name);
   return keycode == XK_VoidSymbol ? 0 : keycode;
 }
