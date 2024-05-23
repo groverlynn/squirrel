@@ -3,6 +3,8 @@
 #import "SquirrelConfig.hh"
 #import "SquirrelPanel.hh"
 #import "macos_keycode.hh"
+#import <rime_api_stdbool.h>
+#import <rime_api.h>
 #import <UserNotifications/UserNotifications.h>
 
 static NSString* const kRimeWikiURL = @"https://github.com/rime/home/wiki";
@@ -17,8 +19,8 @@ static const CFStringRef kBundleId = CFSTR("im.rime.inputmethod.Squirrel");
   NSLog(@"Show Switcher");
   if (_switcherKeyEquivalent != 0) {
     RimeSessionId session = [sender unsignedLongValue];
-    rime_get_api()->process_key(session, _switcherKeyEquivalent,
-                                _switcherKeyModifierMask);
+    rime_get_api_stdbool()->process_key(session, _switcherKeyEquivalent,
+                                        _switcherKeyModifierMask);
   }
 }
 
@@ -31,7 +33,7 @@ static const CFStringRef kBundleId = CFSTR("im.rime.inputmethod.Squirrel");
 
 - (IBAction)syncUserData:(id)sender {
   NSLog(@"Sync user data");
-  rime_get_api()->sync_user_data();
+  rime_get_api_stdbool()->sync_user_data();
 }
 
 - (IBAction)configure:(id)sender {
@@ -46,15 +48,14 @@ static const CFStringRef kBundleId = CFSTR("im.rime.inputmethod.Squirrel");
 }
 
 - (IBAction)openLogFolder:(id)sender {
-  NSURL* infoLog = [NSFileManager.defaultManager.temporaryDirectory
-      URLByAppendingPathComponent:@"rime.squirrel.INFO"
-                      isDirectory:NO];
-  NSURL* warningLog = [NSFileManager.defaultManager.temporaryDirectory
-      URLByAppendingPathComponent:@"rime.squirrel.WARNING"
-                      isDirectory:NO];
-  NSURL* errorLog = [NSFileManager.defaultManager.temporaryDirectory
-      URLByAppendingPathComponent:@"rime.squirrel.ERROR"
-                      isDirectory:NO];
+  NSURL* tmpDir = NSFileManager.defaultManager.temporaryDirectory;
+  NSURL* infoLog = [tmpDir URLByAppendingPathComponent:@"rime.squirrel.INFO"
+                                           isDirectory:NO];
+  NSURL* warningLog =
+      [tmpDir URLByAppendingPathComponent:@"rime.squirrel.WARNING"
+                              isDirectory:NO];
+  NSURL* errorLog = [tmpDir URLByAppendingPathComponent:@"rime.squirrel.ERROR"
+                                            isDirectory:NO];
   [NSWorkspace.sharedWorkspace
       activateFileViewerSelectingURLs:@[ infoLog, warningLog, errorLog ]];
 }
@@ -148,7 +149,7 @@ static void notification_handler(void* context_object,
   }
   // option change
   if (strcmp(message_type, "option") == 0 && app_delegate) {
-    Bool state = message_value[0] != '!';
+    bool state = message_value[0] != '!';
     const char* option_name = message_value + !state;
     BOOL updateScriptVariant = [app_delegate.panel.optionSwitcher
         updateCurrentScriptVariant:@(message_value)];
@@ -166,11 +167,11 @@ static void notification_handler(void* context_object,
     }
     if (app_delegate.showNotifications != kShowNotificationsNever) {
       RimeStringSlice state_label_long =
-          rime_get_api()->get_state_label_abbreviated(session_id, option_name,
-                                                      state, False);
+          rime_get_api_stdbool()->get_state_label_abbreviated(
+              session_id, option_name, state, false);
       RimeStringSlice state_label_short =
-          rime_get_api()->get_state_label_abbreviated(session_id, option_name,
-                                                      state, True);
+          rime_get_api_stdbool()->get_state_label_abbreviated(
+              session_id, option_name, state, true);
       if (state_label_long.str != NULL || state_label_short.str != NULL) {
         const char* short_message =
             state_label_short.length < strlen(state_label_short.str)
@@ -193,8 +194,8 @@ static void notification_handler(void* context_object,
       NSLog(@"Error creating user data directory: %@", userDataDir);
     }
   }
-  rime_get_api()->set_notification_handler(notification_handler,
-                                           (__bridge void*)self);
+  rime_get_api_stdbool()->set_notification_handler(notification_handler,
+                                                   (__bridge void*)self);
   RIME_STRUCT(RimeTraits, squirrel_traits);
   squirrel_traits.shared_data_dir =
       NSBundle.mainBundle.sharedSupportPath.fileSystemRepresentation;
@@ -206,22 +207,23 @@ static void notification_handler(void* context_object,
                                 CFBundleGetMainBundle(), kCFBundleVersionKey),
                             kCFStringEncodingUTF8);
   squirrel_traits.app_name = "rime.squirrel";
-  rime_get_api()->setup(&squirrel_traits);
+  rime_get_api_stdbool()->setup(&squirrel_traits);
 }
 
-- (void)startRimeWithFullCheck:(BOOL)fullCheck {
+- (void)startRimeWithFullCheck:(bool)fullCheck {
   NSLog(@"Initializing la rime...");
-  rime_get_api()->initialize(NULL);
+  rime_get_api_stdbool()->initialize(NULL);
   // check for configuration updates
-  if (rime_get_api()->start_maintenance(fullCheck)) {
+  if (rime_get_api_stdbool()->start_maintenance(fullCheck)) {
     // update squirrel config
-    rime_get_api()->deploy_config_file("squirrel.yaml", "config_version");
+    rime_get_api_stdbool()->deploy_config_file("squirrel.yaml",
+                                               "config_version");
   }
 }
 
 - (void)shutdownRime {
   [_config close];
-  rime_get_api()->finalize();
+  rime_get_api_stdbool()->finalize();
 }
 
 - (void)loadSettings {
@@ -317,25 +319,24 @@ static void notification_handler(void* context_object,
       detected = YES;
     }
   }
-  NSDate* now = [NSDate date];
-  NSData* record = [NSKeyedArchiver archivedDataWithRootObject:now
+  NSData* record = [NSKeyedArchiver archivedDataWithRootObject:NSDate.date
                                          requiringSecureCoding:NO
                                                          error:nil];
   [record writeToURL:logfile atomically:NO];
   return detected;
 }
 
-- (void)workspaceWillPowerOff:(NSNotification*)aNotification {
+- (void)workspaceWillPowerOff:(NSNotification*)notification {
   NSLog(@"Finalizing before logging out.");
   [self shutdownRime];
 }
 
-- (void)rimeNeedsReload:(NSNotification*)aNotification {
+- (void)rimeNeedsReload:(NSNotification*)notification {
   NSLog(@"Reloading rime on demand.");
   [self deploy:nil];
 }
 
-- (void)rimeNeedsSync:(NSNotification*)aNotification {
+- (void)rimeNeedsSync:(NSNotification*)notification {
   NSLog(@"Sync rime on demand.");
   [self syncUserData:nil];
 }
@@ -344,11 +345,11 @@ static void notification_handler(void* context_object,
     (NSApplication*)sender {
   NSLog(@"Squirrel is quitting.");
   [_config close];
-  rime_get_api()->cleanup_all_sessions();
+  rime_get_api_stdbool()->cleanup_all_sessions();
   return NSTerminateNow;
 }
 
-- (void)inputSourceChanged:(NSNotification*)aNotification {
+- (void)inputSourceChanged:(NSNotification*)notification {
   if (CFStringRef inputSource = (CFStringRef)TISGetInputSourceProperty(
           TISCopyCurrentKeyboardInputSource(), kTISPropertyInputSourceID)) {
     if (!CFStringHasPrefix(inputSource, kBundleId)) {

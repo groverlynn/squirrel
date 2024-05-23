@@ -1,8 +1,9 @@
 
 #import "SquirrelApplicationDelegate.hh"
+#import <rime_api_stdbool.h>
+#import <rime_api.h>
 #import <Cocoa/Cocoa.h>
 #import <InputMethodKit/InputMethodKit.h>
-#import <rime_api.h>
 
 void RegisterInputSource(void);
 void DisableInputSource(void);
@@ -58,9 +59,9 @@ int main(int argc, char* argv[]) {
     // build all schemas in current directory
     RIME_STRUCT(RimeTraits, builder_traits);
     builder_traits.app_name = "rime.squirrel-builder";
-    rime_get_api()->setup(&builder_traits);
-    rime_get_api()->deployer_initialize(NULL);
-    return rime_get_api()->deploy() ? 0 : 1;
+    rime_get_api_stdbool()->setup(&builder_traits);
+    rime_get_api_stdbool()->deployer_initialize(NULL);
+    return rime_get_api_stdbool()->deploy() ? 0 : 1;
   }
 
   if (argc > 1 && strcmp("--sync", argv[1]) == 0) {
@@ -114,7 +115,7 @@ int main(int argc, char* argv[]) {
     [NSApplication.sharedApplication run];
 
     NSLog(@"Squirrel is quitting...");
-    rime_get_api()->finalize();
+    rime_get_api_stdbool()->finalize();
   }
   return 0;
 }
