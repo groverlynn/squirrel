@@ -21,12 +21,18 @@
             "state" : "translated",
             "value" : "鼠鬚管"
           }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鼠鬚筆"
+          }
         }
       }
     },
     "CFBundleName" : {
       "comment" : "Bundle name",
-      "extractionState" : "manual",
+      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -44,6 +50,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "鼠鬚管"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鼠鬚筆"
           }
         }
       }
@@ -68,6 +80,41 @@
             "state" : "translated",
             "value" : "鼠鬚管"
           }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鼠鬚筆"
+          }
+        }
+      }
+    },
+    "im.rime.inputmethod.Squirrel.Cant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Squirrel – Cantonese"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鼠鬚筆"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鼠鬚筆"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鼠鬚筆"
+          }
         }
       }
     },
@@ -77,7 +124,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Squirrel - Simplified"
+            "value" : "Squirrel – Simplified"
           }
         },
         "zh-Hans" : {
@@ -87,6 +134,12 @@
           }
         },
         "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鼠须管"
+          }
+        },
+        "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "鼠须管"
@@ -100,7 +153,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Squirrel - Traditional"
+            "value" : "Squirrel – Traditional"
           }
         },
         "zh-Hans" : {
@@ -110,6 +163,12 @@
           }
         },
         "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鼠鬚管"
+          }
+        },
+        "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "鼠鬚管"
@@ -118,25 +177,30 @@
       }
     },
     "NSHumanReadableCopyright" : {
-      "comment" : "Localized versions of Info.plist keys",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copyleft, RIME Developers"
+            "value" : "Copyleft 🄯 RIME Developers"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "式恕堂 版权所无"
+            "value" : "式恕堂🄯版权所无"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "式恕堂 版權所無"
+            "value" : "式恕堂🄯版權所無"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "式恕堂🄯版權所無"
           }
         }
       }

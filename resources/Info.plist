@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>English</string>
+	<string>en</string>
 	<key>CFBundleExecutable</key>
-	<string>Squirrel</string>
+	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
 	<string>RimeIcon.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -13,28 +13,55 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Squirrel</string>
+	<string>${PRODUCT_NAME}</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleSupportedPlatforms</key>
+	<array>
+		<string>MacOSX</string>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ComponentInputModeDict</key>
 	<dict>
 		<key>tsInputModeListKey</key>
 		<dict>
+			<key>im.rime.inputmethod.Squirrel.Cant</key>
+			<dict>
+				<key>TISInputSourceID</key>
+				<string>${PRODUCT_BUNDLE_IDENTIFIER}.Cant</string>
+				<key>TISIntendedLanguage</key>
+				<string>yue-Hant</string>
+				<key>tsInputModeCharacterRepertoireKey</key>
+				<array>
+					<string>Hant</string>
+					<string>Hans</string>
+				</array>
+				<key>tsInputModeDefaultStateKey</key>
+				<true/>
+				<key>tsInputModeIsVisibleKey</key>
+				<true/>
+				<key>tsInputModeKeyEquivalentModifiersKey</key>
+				<integer>4608</integer>
+				<key>tsInputModeMenuIconFileKey</key>
+				<string>rime.pdf</string>
+				<key>tsInputModePaletteIconFileKey</key>
+				<string>rime.pdf</string>
+				<key>tsInputModePrimaryInScriptKey</key>
+				<true/>
+				<key>tsInputModeScriptKey</key>
+				<string>smUnicodeScript</string>
+			</dict>
 			<key>im.rime.inputmethod.Squirrel.Hans</key>
 			<dict>
 				<key>TISInputSourceID</key>
-				<string>im.rime.inputmethod.Squirrel.Hans</string>
+				<string>${PRODUCT_BUNDLE_IDENTIFIER}.Hans</string>
 				<key>TISIntendedLanguage</key>
 				<string>zh-Hans</string>
-				<key>tsInputModeAlternateMenuIconFileKey</key>
-				<string>rime.pdf</string>
 				<key>tsInputModeCharacterRepertoireKey</key>
 				<array>
-					<string>Latn</string>
 					<string>Hans</string>
 					<string>Hant</string>
 				</array>
@@ -56,38 +83,9 @@
 			<key>im.rime.inputmethod.Squirrel.Hant</key>
 			<dict>
 				<key>TISInputSourceID</key>
-				<string>im.rime.inputmethod.Squirrel.Hant</string>
+				<string>${PRODUCT_BUNDLE_IDENTIFIER}.Hant</string>
 				<key>TISIntendedLanguage</key>
 				<string>zh-Hant</string>
-				<key>tsInputModeAlternateMenuIconFileKey</key>
-				<string>rime.pdf</string>
-				<key>tsInputModeCharacterRepertoireKey</key>
-				<array>
-					<string>Latn</string>
-					<string>Hant</string>
-					<string>Hans</string>
-				</array>
-				<key>tsInputModeDefaultStateKey</key>
-				<true/>
-				<key>tsInputModeIsVisibleKey</key>
-				<true/>
-				<key>tsInputModeKeyEquivalentModifiersKey</key>
-				<integer>4608</integer>
-				<key>tsInputModeMenuIconFileKey</key>
-				<string>rime.pdf</string>
-				<key>tsInputModePaletteIconFileKey</key>
-				<string>rime.pdf</string>
-				<key>tsInputModePrimaryInScriptKey</key>
-				<true/>
-				<key>tsInputModeScriptKey</key>
-				<string>smUnicodeScript</string>
-			</dict>
-			<key>im.rime.inputmethod.Squirrel.Cant</key>
-			<dict>
-				<key>TISInputSourceID</key>
-				<string>im.rime.inputmethod.Squirrel.Cant</string>
-				<key>TISIntendedLanguage</key>
-				<string>yue-Hant</string>
 				<key>tsInputModeCharacterRepertoireKey</key>
 				<array>
 					<string>Hant</string>
@@ -117,15 +115,19 @@
 		</array>
 	</dict>
 	<key>InputMethodConnectionName</key>
-	<string>Squirrel_Connection</string>
+	<string>Squirrel_1_Connection</string>
 	<key>InputMethodServerControllerClass</key>
 	<string>Squirrel.SquirrelInputController</string>
 	<key>InputMethodServerDelegateClass</key>
 	<string>Squirrel.SquirrelInputController</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.utilities</string>
 	<key>LSBackgroundOnly</key>
 	<false/>
+	<key>LSMinimumSystemVersion</key>
+	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>
-	<true/>
+	<string>1</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>SUEnableAutomaticChecks</key>
@@ -138,6 +140,14 @@
 	<true/>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
+	<key>TISIconIsTemplate</key>
+	<true/>
+	<key>tsInputMethodCharacterRepertoireKey</key>
+	<array>
+		<string>Hani</string>
+		<string>Hans</string>
+		<string>Hant</string>
+	</array>
 	<key>tsInputMethodIconFileKey</key>
 	<string>rime.pdf</string>
 </dict>

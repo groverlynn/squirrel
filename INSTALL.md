@@ -63,7 +63,7 @@ export BUILD_UNIVERSAL=1
 
 bash librime/install-boost.sh
 
-export BOOST_ROOT="$(pwd)/librime/deps/boost-1.85.0"
+export BOOST_ROOT="$(pwd)/librime/deps/boost-1.84.0"
 ```
 
 Let's set `BUILD_UNIVERSAL` to tell `make` that we are building Boost as
@@ -112,7 +112,7 @@ make deps
 export BOOST_ROOT="path_to_boost" # required
 export DEV_ID="Your Apple ID name" # include this to codesign, optional
 export BUILD_UNIVERSAL=1 # set to build universal binary
-export PLUM_TAG=":preset” # or ":extra", optional, build with a set of plum formulae
+export PLUM_TAG=":preset" # or ":extra", optional, build with a set of plum formulae
 export ARCHS='arm64 x86_64' # optional, if not defined, only active arch is used
 export MACOSX_DEPLOYMENT_TARGET='13.0' # optional, lower version than 13.0 is not tested and may not work properly
 ```

@@ -1,43 +1,159 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "A new update is available" : {
-      "comment" : "Update",
+    "candidate" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click a candidate to ⎆select.\nSecondary click to ⎌forget selected word.\nPress and hold ⌃control to temporarily disable mouse interactions.\nPress and hold ⌥option to display tooltips."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有新版本"
+            "value" : "点按以⎆选择候选字。\n辅助点按以⎌删除所选的记忆字词。\n按住⌃control键以暂时停用鼠标与“鼠须管”互动。\n按住⌥Option键以显示工具提示"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有新版本"
+            "value" : "點按來⎆選取候選字。\n點按輔助按鈕來⎌清除所選的記憶字詞。\n按住⌃control鍵來暫時停用滑鼠與「鼠鬚管」互動。\n按住⌥Option鍵來顯示工具提示。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按以⎆選取候選字。\n點按輔助按鈕以⎌清除所選的記憶字詞。\n按住⌃control鍵以暫時停用滑鼠與「鼠鬚筆」互動。\n按住⌥Option鍵以顯示工具提示"
           }
         }
       }
     },
-    "Check for updates..." : {
-      "comment" : "Menu item",
+    "checkForUpdates" : {
+      "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check for updates…"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "检查新版本..."
+            "value" : "检查更新…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "檢查新版本..."
+            "value" : "檢查更新項目⋯"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢查更新項目⋯"
           }
         }
       }
     },
-    "Deploy" : {
-      "comment" : "Menu item",
+    "compress" : {
+      "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to compress candidate window.\nSecondary click to lock this multiple-row view"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按以折叠候选字窗口。辅助点按以锁定当前的多行视图。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按來收合候選字視窗。點按輔助按鈕來鎖定當前的多橫列顯示方式。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按以收合候選字視窗。點按輔助按鈕以鎖定當前的多橫列顯示方式。"
+          }
+        }
+      }
+    },
+    "configure" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用户设置…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用者設定⋯"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用户設定⋯"
+          }
+        }
+      }
+    },
+    "delete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to ⌫Delete the input by character.\nSecondary click to ⎋Escape the composing."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按以逐字⌫删除输入。\n辅助点按以⎋取消输入。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按來逐字⌫刪除輸入。\n點按輔助按鈕來⎋取消輸入。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按以逐字⌫刪除輸入。\n點按輔助按鈕以⎋取消輸入。"
+          }
+        }
+      }
+    },
+    "deploy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deploy"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -45,6 +161,12 @@
           }
         },
         "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新部署"
+          }
+        },
+        "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新部署"
@@ -53,33 +175,41 @@
       }
     },
     "deploy_failure" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Error occurred. Please check log files"
+            "value" : "Error occurred. See log file $TMPDIR/rime.squirrel.INFO."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有错误！请查看日志"
+            "value" : "有错误！请查看日志 $TMPDIR/rime.squirrel.INFO"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "有錯誤！請查看日誌"
+            "value" : "有錯誤！請查看日誌 $TMPDIR/rime.squirrel.INFO"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有錯誤！請查看日誌 $TMPDIR/rime.squirrel.INFO"
           }
         }
       }
     },
     "deploy_start" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deploying Rime input method engine."
+            "value" : "Deploying Rime input method engine…"
           }
         },
         "zh-Hans" : {
@@ -91,12 +221,19 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "部署輸入法引擎…"
+            "value" : "部署輸入法引擎⋯"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "部署輸入法引擎⋯"
           }
         }
       }
     },
     "deploy_success" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -115,15 +252,22 @@
             "state" : "translated",
             "value" : "部署完成。"
           }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "部署完成。"
+          }
         }
       }
     },
     "deploy_update" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deploying Rime for updates."
+            "value" : "Deploying Rime for updates…"
           }
         },
         "zh-Hans" : {
@@ -135,65 +279,370 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "更新輸入法引擎…"
+            "value" : "更新輸入法引擎⋯"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新輸入法引擎⋯"
           }
         }
       }
     },
-    "Logs..." : {
-      "comment" : "Menu item",
+    "end" : {
+      "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cannot page down any further.\nSecondary click to jump to ↘End."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "日志..."
+            "value" : "不能再向下翻页。\n辅助点按以跳到↘结尾。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "日誌..."
+            "value" : "無法再向下翻頁。\n點按輔助按鈕來跳至↘結尾處。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法再向下翻頁。\n點按輔助按鈕以跳至↘結尾。"
           }
         }
       }
     },
-    "Rime Wiki..." : {
-      "comment" : "Menu item",
+    "escape" : {
+      "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cannot delete any further.\nSecondary click to ⎋Escape the composing."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在线文档..."
+            "value" : "不能再删除。\n辅助点按以⎋取消输入。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在線文檔..."
+            "value" : "無法再刪除。\n點按輔助按鈕來⎋取消輸入。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法再刪除。\n點按輔助按鈕以⎋取消輸入。"
           }
         }
       }
     },
-    "Settings..." : {
-      "comment" : "Menu item",
+    "expand" : {
+      "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to expand candidate window.\nSecondary click to lock this single-row view."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用户设定..."
+            "value" : "点按以展开候选字窗口。辅助点按以锁定当前的单行视图。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用戶設定"
+            "value" : "點按來展開候選字視窗。點按輔助按鈕來鎖定當前的單橫列顯示方式。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按以展開候選字視窗。點按輔助按鈕以鎖定當前的單橫列顯示方式。"
+          }
+        }
+      }
+    },
+    "home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cannot page up any further.\nSecondary click to jump to ↖Home."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不能再向上翻页。\n辅助点按以跳到↖开头。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法再向上翻頁。\n點按輔助按鈕來跳至↖起始處。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法再向上翻頁。\n點按輔助按鈕以跳至↖起點。"
+          }
+        }
+      }
+    },
+    "new_update" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A new update is available."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有新的更新。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有新的更新項目。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有新的更新項目可用。"
+          }
+        }
+      }
+    },
+    "openLogFolder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error and warning logs"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "错误和警告日志"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錯誤和警告記錄"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錯誤與警告記錄"
+          }
+        }
+      }
+    },
+    "openWiki" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rime Wiki…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在线帮助…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "線上輔助說明⋯"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "線上輔助説明⋯"
+          }
+        }
+      }
+    },
+    "page_down" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to ⇞Page Down.\nSecondary click to jump to ↘End."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按以⇟向下翻页。\n辅助点按以跳到↘结尾。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按來⇟向下翻頁。\n點按輔助按鈕來跳至↘結尾處。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按以⇟向下翻頁。\n點按輔助按鈕以跳至↘結尾。"
+          }
+        }
+      }
+    },
+    "page_up" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to ⇞Page Up.\nSecondary click to jump to ↖Home."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按以⇞向上翻页。\n辅助点按以跳到↖开头。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按來⇞向上翻頁。\n點按輔助按鈕來跳至↖起始處。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按以⇞向上翻頁。\n點按輔助按鈕以跳至↖起點。"
+          }
+        }
+      }
+    },
+    "problematic_launch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Problematic launch detected!\nSquirrel may be suffering a crash due to improper configurations.\nRevert previous modifications to see if the problem recurs."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检测到启动有问题！\n“鼠须管”可能因错误设置而崩溃。\n请尝试撤销之前的修改，然后查看问题是否仍旧存在。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟動時偵測到問題！\n「鼠鬚管」可能因設定不當而崩潰。\n請嘗試回退先前的修改，然後查看問題是否依然存在。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟動時偵測到錯誤！\n「鼠鬚筆」可能由於設定不當而崩潰。\n請嘗試回退先前的改動，然後查看問題是否仍然存在。"
+          }
+        }
+      }
+    },
+    "say_voice" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alex"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TingTing"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MeiJia"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sinji"
+          }
+        }
+      }
+    },
+    "showSwitcher" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ㄓ⃣Squirrel Switcher"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ㄓ⃣鼠须管〔方案菜单〕"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ㄓ⃣鼠鬚管〔方案選單〕"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ㄓ⃣鼠鬚筆〔方案選單〕"
           }
         }
       }
     },
     "Squirrel" : {
-      "comment" : "Menu title",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Squirrel"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -205,12 +654,24 @@
             "state" : "translated",
             "value" : "鼠鬚管"
           }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "鼠鬚筆"
+          }
         }
       }
     },
-    "Sync user data" : {
-      "comment" : "Menu item",
+    "syncUserData" : {
+      "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync user data"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -220,24 +681,273 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同步用戶資料"
+            "value" : "同步使用者資料"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步用户資料"
           }
         }
       }
     },
-    "Version [version] is now available" : {
-      "comment" : "Update",
+    "unlock" : {
+      "extractionState" : "manual",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to unlock the view and allow it to be expanded or collapsed."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "[version] 现已发布"
+            "value" : "点按以解锁视图，允许展开或折叠候选字窗口。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "[version] 現已發佈"
+            "value" : "點按來解鎖顯示方式，允許展開或收合候選字視窗。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按以解鎖顯示方式，允許展開或收合候選字視窗。"
+          }
+        }
+      }
+    },
+    "update_version" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@ is now available."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本%@现已可用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本%@已經可供使用。"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本%@已經可供使用。"
+          }
+        }
+      }
+    },
+    "deploy" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Deploy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新部署"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新部署"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新部署"
+          }
+        }
+      }
+    },
+    "checkForUpdates" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Check for updates…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查更新…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢查更新項目⋯"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢查更新項目⋯"
+          }
+        }
+      }
+    },
+    "showSwitcher" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "ㄓ⃣Squirrel Switcher"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ㄓ⃣鼠须管〔方案菜单〕"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ㄓ⃣鼠鬚管〔方案選單〕"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ㄓ⃣鼠鬚筆〔方案選單〕"
+          }
+        }
+      }
+    },
+    "openWiki" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Rime Wiki…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在线帮助…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "線上輔助說明⋯"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "線上輔助説明⋯"
+          }
+        }
+      }
+    },
+    "configure" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Settings…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用户设置…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用者設定⋯"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用户設定⋯"
+          }
+        }
+      }
+    },
+    "syncUserData" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Sync user data"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步用户数据"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步使用者資料"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步用户資料"
+          }
+        }
+      }
+    },
+    "openLogFolder" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Error and warning logs"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "错误和警告日志"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錯誤和警告記錄"
+          }
+        },
+        "zh-HK" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "錯誤與警告記錄"
           }
         }
       }
