@@ -3,7 +3,7 @@
 set -e
 
 rime_version=1.11.2-e
-rime_git_hash=0c0f481
+rime_git_hash=d91479f
 
 rime_archive="rime-${rime_git_hash}-macOS-universal.tar.bz2"
 rime_download_url="https://github.com/groverlynn/librime/releases/download/${rime_version}/${rime_archive}"

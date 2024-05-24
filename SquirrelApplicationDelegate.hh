@@ -1,9 +1,9 @@
 #import <Cocoa/Cocoa.h>
-#import "rime_api.h"
 
 @class SquirrelConfig;
 @class SquirrelPanel;
 @class SquirrelOptionSwitcher;
+typedef uintptr_t RimeSessionId;
 
 // Note: the SquirrelApplicationDelegate is instantiated automatically as an
 // outlet of NSApp's instance
@@ -19,21 +19,21 @@ typedef NS_CLOSED_ENUM(NSUInteger, SquirrelNotificationPolicy) {
 @property(nonatomic, weak, nullable) IBOutlet SquirrelPanel* panel;
 @property(nonatomic, weak, nullable) IBOutlet id updater;
 
-@property(nonatomic, strong, readonly, nullable, direct) SquirrelConfig* config;
+@property(nonatomic, readonly, strong, nullable, direct) SquirrelConfig* config;
 @property(nonatomic, readonly, direct)
     SquirrelNotificationPolicy showNotifications;
 @property(nonatomic, readonly, direct) BOOL problematicLaunchDetected;
 @property(nonatomic, direct) BOOL isCurrentInputMethod;
 
-- (IBAction)showSwitcher:(id _Nullable)sender __attribute__((objc_direct));
-- (IBAction)deploy:(id _Nullable)sender __attribute__((objc_direct));
-- (IBAction)syncUserData:(id _Nullable)sender __attribute__((objc_direct));
-- (IBAction)configure:(id _Nullable)sender __attribute__((objc_direct));
-- (IBAction)openWiki:(id _Nullable)sender __attribute__((objc_direct));
+- (IBAction)showSwitcher:(id _Nullable)sender;
+- (IBAction)deploy:(id _Nullable)sender;
+- (IBAction)syncUserData:(id _Nullable)sender;
+- (IBAction)configure:(id _Nullable)sender;
+- (IBAction)openWiki:(id _Nullable)sender;
 - (IBAction)openLogFolder:(id _Nullable)sender;
 
 - (void)setupRime __attribute__((objc_direct));
-- (void)startRimeWithFullCheck:(BOOL)fullCheck __attribute__((objc_direct));
+- (void)startRimeWithFullCheck:(bool)fullCheck __attribute__((objc_direct));
 - (void)loadSettings __attribute__((objc_direct));
 - (void)loadSchemaSpecificSettings:(NSString* _Nonnull)schemaId
                    withRimeSession:(RimeSessionId)sessionId
@@ -50,5 +50,5 @@ typedef NS_CLOSED_ENUM(NSUInteger, SquirrelNotificationPolicy) {
 
 @end  // NSApplication (SquirrelApp)
 
-// also used in main.m
+// also used in main.mm
 extern void show_notification(const char* _Nonnull msg_text);

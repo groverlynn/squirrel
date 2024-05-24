@@ -1,18 +1,19 @@
 #import <Cocoa/Cocoa.h>
-#import <rime_api.h>
+
+typedef uintptr_t RimeSessionId;
 
 __attribute__((objc_direct_members))
 @interface SquirrelOptionSwitcher : NSObject
 
-@property(nonatomic, strong, readonly, nonnull) NSString* schemaId;
-@property(nonatomic, strong, readonly, nonnull) NSString* currentScriptVariant;
-@property(nonatomic, strong, readonly, nonnull) NSSet<NSString*>* optionNames;
-@property(nonatomic, strong, readonly, nonnull) NSSet<NSString*>* optionStates;
-@property(nonatomic, strong, readonly, nonnull)
+@property(nonatomic, readonly, strong, nonnull) NSString* schemaId;
+@property(nonatomic, readonly, strong, nonnull) NSString* currentScriptVariant;
+@property(nonatomic, readonly, strong, nonnull) NSSet<NSString*>* optionNames;
+@property(nonatomic, readonly, strong, nonnull) NSSet<NSString*>* optionStates;
+@property(nonatomic, readonly, strong, nonnull)
     NSDictionary<NSString*, NSString*>* scriptVariantOptions;
-@property(nonatomic, strong, readonly, nonnull)
+@property(nonatomic, readonly, strong, nonnull)
     NSMutableDictionary<NSString*, NSString*>* switcher;
-@property(nonatomic, strong, readonly, nonnull)
+@property(nonatomic, readonly, strong, nonnull)
     NSDictionary<NSString*, NSOrderedSet<NSString*>*>* optionGroups;
 
 - (instancetype _Nonnull)
@@ -40,7 +41,7 @@ __attribute__((objc_direct_members))
 __attribute__((objc_direct_members))
 @interface SquirrelAppOptions : NSDictionary<NSString*, NSNumber*>
 
-- (BOOL)boolValueForKey:(NSString* _Nonnull)key;
+- (bool)boolValueForKey:(NSString* _Nonnull)key;
 - (int)intValueForKey:(NSString* _Nonnull)key;
 - (double)doubleValueForKey:(NSString* _Nonnull)key;
 
@@ -61,13 +62,13 @@ __attribute__((objc_direct_members))
 
 - (BOOL)hasSection:(NSString* _Nonnull)section;
 
-- (BOOL)setOption:(NSString* _Nonnull)option withBool:(BOOL)value;
+- (BOOL)setOption:(NSString* _Nonnull)option withBool:(bool)value;
 - (BOOL)setOption:(NSString* _Nonnull)option withInt:(int)value;
 - (BOOL)setOption:(NSString* _Nonnull)option withDouble:(double)value;
 - (BOOL)setOption:(NSString* _Nonnull)option
        withString:(NSString* _Nonnull)value;
 
-- (BOOL)getBoolForOption:(NSString* _Nonnull)option;
+- (bool)getBoolForOption:(NSString* _Nonnull)option;
 - (int)getIntForOption:(NSString* _Nonnull)option;
 - (double)getDoubleForOption:(NSString* _Nonnull)option;
 - (double)getDoubleForOption:(NSString* _Nonnull)option
