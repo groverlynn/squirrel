@@ -18,7 +18,7 @@ typedef NS_CLOSED_ENUM(NSUInteger, SquirrelNotificationPolicy) {
 @property(nonatomic, weak, nullable) IBOutlet SquirrelPanel* panel;
 @property(nonatomic, weak, nullable) IBOutlet id updater;
 
-@property(nonatomic, strong, readonly, nullable, direct) SquirrelConfig* config;
+@property(nonatomic, readonly, strong, nullable, direct) SquirrelConfig* config;
 @property(nonatomic, readonly, direct) SquirrelNotificationPolicy showNotifications;
 @property(nonatomic, readonly, direct) BOOL problematicLaunchDetected;
 @property(nonatomic, direct) BOOL isCurrentInputMethod;

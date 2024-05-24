@@ -269,9 +269,9 @@ __attribute__((objc_direct_members))
 
 @interface NSColor (semanticColors)
 
-@property(nonatomic, strong, readonly, nonnull, direct, class) NSColor* accentColor;
-@property(nonatomic, strong, readonly, nonnull, direct) NSColor* hooverColor;
-@property(nonatomic, strong, readonly, nonnull, direct) NSColor* disabledColor;
+@property(nonatomic, readonly, strong, nonnull, direct, class) NSColor* accentColor;
+@property(nonatomic, readonly, strong, nonnull, direct) NSColor* hooverColor;
+@property(nonatomic, readonly, strong, nonnull, direct) NSColor* disabledColor;
 
 @end
 
@@ -421,21 +421,22 @@ typedef NS_CLOSED_ENUM(NSUInteger, SquirrelStatusMessageType) {
 __attribute__((objc_direct_members))
 @interface SquirrelTheme : NSObject
 
-@property(nonatomic, strong, readonly, nonnull) NSColor* backColor;
-@property(nonatomic, strong, readonly, nonnull) NSColor* preeditForeColor;
-@property(nonatomic, strong, readonly, nonnull) NSColor* textForeColor;
-@property(nonatomic, strong, readonly, nonnull) NSColor* commentForeColor;
-@property(nonatomic, strong, readonly, nonnull) NSColor* labelForeColor;
-@property(nonatomic, strong, readonly, nonnull) NSColor* hilitedPreeditForeColor;
-@property(nonatomic, strong, readonly, nonnull) NSColor* hilitedTextForeColor;
-@property(nonatomic, strong, readonly, nonnull) NSColor* hilitedCommentForeColor;
-@property(nonatomic, strong, readonly, nonnull) NSColor* hilitedLabelForeColor;
-@property(nonatomic, strong, readonly, nullable) NSColor* dimmedLabelForeColor;
-@property(nonatomic, strong, readonly, nullable) NSColor* hilitedCandidateBackColor;
-@property(nonatomic, strong, readonly, nullable) NSColor* hilitedPreeditBackColor;
-@property(nonatomic, strong, readonly, nullable) NSColor* preeditBackColor;
-@property(nonatomic, strong, readonly, nullable) NSColor* borderColor;
-@property(nonatomic, strong, readonly, nullable) NSImage* backImage;
+@property(nonatomic, readonly, strong, nonnull) NSColor* backColor;
+@property(nonatomic, readonly, strong, nonnull) NSColor* preeditForeColor;
+@property(nonatomic, readonly, strong, nonnull) NSColor* textForeColor;
+@property(nonatomic, readonly, strong, nonnull) NSColor* commentForeColor;
+@property(nonatomic, readonly, strong, nonnull) NSColor* labelForeColor;
+@property(nonatomic, readonly, strong, nonnull) NSColor* hilitedPreeditForeColor;
+@property(nonatomic, readonly, strong, nonnull) NSColor* hilitedTextForeColor;
+@property(nonatomic, readonly, strong, nonnull) NSColor* hilitedCommentForeColor;
+@property(nonatomic, readonly, strong, nonnull) NSColor* hilitedLabelForeColor;
+@property(nonatomic, readonly, strong, nullable) NSColor* dimmedLabelForeColor;
+@property(nonatomic, readonly, strong, nullable) NSColor* hilitedCandidateBackColor;
+@property(nonatomic, readonly, strong, nullable) NSColor* hilitedPreeditBackColor;
+@property(nonatomic, readonly, strong, nullable) NSColor* candidateBackColor;
+@property(nonatomic, readonly, strong, nullable) NSColor* preeditBackColor;
+@property(nonatomic, readonly, strong, nullable) NSColor* borderColor;
+@property(nonatomic, readonly, strong, nullable) NSImage* backImage;
 
 @property(nonatomic, readonly) NSSize borderInsets;
 @property(nonatomic, readonly) CGFloat cornerRadius;
@@ -445,6 +446,7 @@ __attribute__((objc_direct_members))
 @property(nonatomic, readonly) CGFloat preeditSpacing;
 @property(nonatomic, readonly) CGFloat opacity;
 @property(nonatomic, readonly) CGFloat lineLength;
+@property(nonatomic, readonly) CGFloat shadowSize;
 @property(nonatomic, readonly) float translucency;
 @property(nonatomic, readonly) BOOL showPaging;
 @property(nonatomic, readonly) BOOL rememberSize;
@@ -454,36 +456,36 @@ __attribute__((objc_direct_members))
 @property(nonatomic, readonly) BOOL inlinePreedit;
 @property(nonatomic, readonly) BOOL inlineCandidate;
 
-@property(nonatomic, strong, readonly, nonnull) NSDictionary<NSAttributedStringKey, id>* textAttrs;
-@property(nonatomic, strong, readonly, nonnull) NSDictionary<NSAttributedStringKey, id>* labelAttrs;
-@property(nonatomic, strong, readonly, nonnull) NSDictionary<NSAttributedStringKey, id>* commentAttrs;
-@property(nonatomic, strong, readonly, nonnull) NSDictionary<NSAttributedStringKey, id>* preeditAttrs;
-@property(nonatomic, strong, readonly, nonnull) NSDictionary<NSAttributedStringKey, id>* pagingAttrs;
-@property(nonatomic, strong, readonly, nonnull) NSDictionary<NSAttributedStringKey, id>* statusAttrs;
-@property(nonatomic, strong, readonly, nonnull) NSParagraphStyle* candidateParagraphStyle;
-@property(nonatomic, strong, readonly, nonnull) NSParagraphStyle* preeditParagraphStyle;
-@property(nonatomic, strong, readonly, nonnull) NSParagraphStyle* statusParagraphStyle;
-@property(nonatomic, strong, readonly, nonnull) NSParagraphStyle* pagingParagraphStyle;
-@property(nonatomic, strong, readonly, nullable) NSParagraphStyle* truncatedParagraphStyle;
+@property(nonatomic, readonly, strong, nonnull) NSDictionary<NSAttributedStringKey, id>* textAttrs;
+@property(nonatomic, readonly, strong, nonnull) NSDictionary<NSAttributedStringKey, id>* labelAttrs;
+@property(nonatomic, readonly, strong, nonnull) NSDictionary<NSAttributedStringKey, id>* commentAttrs;
+@property(nonatomic, readonly, strong, nonnull) NSDictionary<NSAttributedStringKey, id>* preeditAttrs;
+@property(nonatomic, readonly, strong, nonnull) NSDictionary<NSAttributedStringKey, id>* pagingAttrs;
+@property(nonatomic, readonly, strong, nonnull) NSDictionary<NSAttributedStringKey, id>* statusAttrs;
+@property(nonatomic, readonly, strong, nonnull) NSParagraphStyle* candidateParagraphStyle;
+@property(nonatomic, readonly, strong, nonnull) NSParagraphStyle* preeditParagraphStyle;
+@property(nonatomic, readonly, strong, nonnull) NSParagraphStyle* statusParagraphStyle;
+@property(nonatomic, readonly, strong, nonnull) NSParagraphStyle* pagingParagraphStyle;
+@property(nonatomic, readonly, strong, nullable) NSParagraphStyle* truncatedParagraphStyle;
 
-@property(nonatomic, strong, readonly, nonnull) NSAttributedString* separator;
-@property(nonatomic, strong, readonly, nonnull) NSAttributedString* symbolDeleteFill;
-@property(nonatomic, strong, readonly, nonnull) NSAttributedString* symbolDeleteStroke;
-@property(nonatomic, strong, readonly, nullable) NSAttributedString* symbolBackFill;
-@property(nonatomic, strong, readonly, nullable) NSAttributedString* symbolBackStroke;
-@property(nonatomic, strong, readonly, nullable) NSAttributedString* symbolForwardFill;
-@property(nonatomic, strong, readonly, nullable) NSAttributedString* symbolForwardStroke;
-@property(nonatomic, strong, readonly, nullable) NSAttributedString* symbolCompress;
-@property(nonatomic, strong, readonly, nullable) NSAttributedString* symbolExpand;
-@property(nonatomic, strong, readonly, nullable) NSAttributedString* symbolLock;
+@property(nonatomic, readonly, strong, nonnull) NSAttributedString* separator;
+@property(nonatomic, readonly, strong, nonnull) NSAttributedString* symbolDeleteFill;
+@property(nonatomic, readonly, strong, nonnull) NSAttributedString* symbolDeleteStroke;
+@property(nonatomic, readonly, strong, nullable) NSAttributedString* symbolBackFill;
+@property(nonatomic, readonly, strong, nullable) NSAttributedString* symbolBackStroke;
+@property(nonatomic, readonly, strong, nullable) NSAttributedString* symbolForwardFill;
+@property(nonatomic, readonly, strong, nullable) NSAttributedString* symbolForwardStroke;
+@property(nonatomic, readonly, strong, nullable) NSAttributedString* symbolCompress;
+@property(nonatomic, readonly, strong, nullable) NSAttributedString* symbolExpand;
+@property(nonatomic, readonly, strong, nullable) NSAttributedString* symbolLock;
 
-@property(nonatomic, strong, readonly, nonnull) NSArray<NSString*>* labels;
-@property(nonatomic, strong, readonly, nonnull) NSAttributedString* candidateTemplate;
-@property(nonatomic, strong, readonly, nonnull) NSAttributedString* candidateHilitedTemplate;
-@property(nonatomic, strong, readonly, nullable) NSAttributedString* candidateDimmedTemplate;
-@property(nonatomic, strong, readonly, nonnull) NSString* selectKeys;
-@property(nonatomic, strong, readonly, nonnull) NSString* candidateFormat;
-@property(nonatomic, strong, readonly, nonnull) NSString* scriptVariant;
+@property(nonatomic, readonly, strong, nonnull) NSArray<NSString*>* labels;
+@property(nonatomic, readonly, strong, nonnull) NSAttributedString* candidateTemplate;
+@property(nonatomic, readonly, strong, nonnull) NSAttributedString* candidateHilitedTemplate;
+@property(nonatomic, readonly, strong, nullable) NSAttributedString* candidateDimmedTemplate;
+@property(nonatomic, readonly, strong, nonnull) NSString* selectKeys;
+@property(nonatomic, readonly, strong, nonnull) NSString* candidateFormat;
+@property(nonatomic, readonly, strong, nonnull) NSString* scriptVariant;
 @property(nonatomic, readonly) SquirrelStatusMessageType statusMessageType;
 @property(nonatomic, readonly) NSUInteger pageSize;
 @property(nonatomic, readonly) SquirrelAppearance appearance;
@@ -1089,11 +1091,13 @@ static inline double clamp_uni(double param) { return param > 0.0 ? (param < 1.0
   NSNumber* spacing = [config getOptionalDoubleForOption:@"style/spacing" applyConstraint:pos_round];
   NSNumber* baseOffset = [config getOptionalDoubleForOption:@"style/base_offset"];
   NSNumber* lineLength = [config getOptionalDoubleForOption:@"style/line_length"];
+  NSNumber* shadowSize = [config getOptionalDoubleForOption:@"style/shadow_size"];
   /*** CHROMATICS ***/
   NSColor* backColor;
   NSColor* borderColor;
   NSColor* preeditBackColor;
   NSColor* preeditForeColor;
+  NSColor* candidateBackColor;
   NSColor* textForeColor;
   NSColor* commentForeColor;
   NSColor* labelForeColor;
@@ -1136,6 +1140,7 @@ static inline double clamp_uni(double param) { return param > 0.0 ? (param < 1.0
     borderColor = [config getColorForOption:[prefix stringByAppendingString:@"/border_color"]] ? : borderColor;
     preeditBackColor = [config getColorForOption:[prefix stringByAppendingString:@"/preedit_back_color"]] ? : preeditBackColor;
     preeditForeColor = [config getColorForOption:[prefix stringByAppendingString:@"/text_color"]] ? : preeditForeColor;
+    candidateBackColor = [config getColorForOption:[prefix stringByAppendingString:@"/candidate_back_color"]] ? : candidateBackColor;
     textForeColor = [config getColorForOption:[prefix stringByAppendingString:@"/candidate_text_color"]] ? : textForeColor;
     commentForeColor = [config getColorForOption:[prefix stringByAppendingString:@"/comment_text_color"]] ? : commentForeColor;
     labelForeColor = [config getColorForOption:[prefix stringByAppendingString:@"/label_color"]] ? : labelForeColor;
@@ -1195,6 +1200,8 @@ static inline double clamp_uni(double param) { return param > 0.0 ? (param < 1.0
                                                      @"/base_offset"]] ? : baseOffset;
     lineLength = [config getOptionalDoubleForOption:[prefix stringByAppendingString:
                                                      @"/line_length"]] ? : lineLength;
+    shadowSize = [config getOptionalDoubleForOption:[prefix stringByAppendingString:@"/shadow_size"]
+                                    applyConstraint:positive] ? : shadowSize;
   }
 
   /*** TYPOGRAPHY refinement ***/
@@ -1231,9 +1238,7 @@ static inline double clamp_uni(double param) { return param > 0.0 ? (param < 1.0
   CGFloat lineHeight = fmax(fontHeight, fmax(labelFontHeight, commentFontHeight));
   CGFloat fullWidth = ceil([kFullWidthSpace sizeWithAttributes:
                             @{NSFontAttributeName : commentFont}].width);
-  spacing = spacing ? : @0;
-  lineSpacing = lineSpacing ? : @0;
- 
+
   NSMutableParagraphStyle* preeditParagraphStyle = _preeditParagraphStyle.mutableCopy;
   preeditParagraphStyle.minimumLineHeight = fontHeight;
   preeditParagraphStyle.maximumLineHeight = fontHeight;
@@ -1330,7 +1335,6 @@ static inline double clamp_uni(double param) { return param > 0.0 ? (param < 1.0
   pagingAttrs[NSVerticalGlyphFormAttributeName] = @NO;
 
   /*** CHROMATICS refinement ***/
-  translucency = translucency ? : @0;
   if (@available(macOS 10.14, *)) {
     if (translucency.floatValue > 0.001f && !isNative && backColor != nil &&
         (_appearance == kDarkAppearance ? backColor.lStarComponent > 0.6
@@ -1339,6 +1343,7 @@ static inline double clamp_uni(double param) { return param > 0.0 ? (param < 1.0
       borderColor = [borderColor colorByInvertingLuminanceToExtent:kStandardColorInversion];
       preeditBackColor = [preeditBackColor colorByInvertingLuminanceToExtent:kStandardColorInversion];
       preeditForeColor = [preeditForeColor colorByInvertingLuminanceToExtent:kStandardColorInversion];
+      candidateBackColor = [candidateBackColor colorByInvertingLuminanceToExtent:kStandardColorInversion];
       textForeColor = [textForeColor colorByInvertingLuminanceToExtent:kStandardColorInversion];
       commentForeColor = [commentForeColor colorByInvertingLuminanceToExtent:kStandardColorInversion];
       labelForeColor = [labelForeColor colorByInvertingLuminanceToExtent:kStandardColorInversion];
@@ -1382,6 +1387,7 @@ static inline double clamp_uni(double param) { return param > 0.0 ? (param < 1.0
   _preeditSpacing = spacing.doubleValue;
   _opacity = opacity ? opacity.doubleValue : 1.0;
   _lineLength = lineLength.doubleValue > 0.1 ? fmax(ceil(lineLength.doubleValue), fullWidth * 5) : 0.0;
+  _shadowSize = shadowSize.doubleValue;
   _translucency = translucency.floatValue;
   _showPaging = showPaging.boolValue;
   _rememberSize = rememberSize.boolValue;
@@ -1392,8 +1398,8 @@ static inline double clamp_uni(double param) { return param > 0.0 ? (param < 1.0
   _inlineCandidate = inlineCandidate.boolValue;
 
   _textAttrs = textAttrs;
-  _labelAttrs = labelAttrs;
   _commentAttrs = commentAttrs;
+  _labelAttrs = labelAttrs;
   _preeditAttrs = preeditAttrs;
   _pagingAttrs = pagingAttrs;
   _statusAttrs = statusAttrs;
@@ -1405,15 +1411,16 @@ static inline double clamp_uni(double param) { return param > 0.0 ? (param < 1.0
 
   _backImage = backImage;
   _backColor = backColor;
-  _preeditBackColor = preeditBackColor;
-  _hilitedPreeditBackColor = hilitedPreeditBackColor;
-  _hilitedCandidateBackColor = hilitedCandidateBackColor;
   _borderColor = borderColor;
+  _preeditBackColor = preeditBackColor;
   _preeditForeColor = preeditForeColor;
+  _candidateBackColor = candidateBackColor;
   _textForeColor = textForeColor;
   _commentForeColor = commentForeColor;
   _labelForeColor = labelForeColor;
+  _hilitedPreeditBackColor = hilitedPreeditBackColor;
   _hilitedPreeditForeColor = hilitedPreeditForeColor;
+  _hilitedCandidateBackColor = hilitedCandidateBackColor;
   _hilitedTextForeColor = hilitedTextForeColor;
   _hilitedCommentForeColor = hilitedCommentForeColor;
   _hilitedLabelForeColor = hilitedLabelForeColor;
@@ -1912,9 +1919,10 @@ __attribute__((objc_direct_members))
 @property(nonatomic, readonly, strong, nonnull) CAShapeLayer* functionButtonLayer;
 @property(nonatomic, readonly, strong, nonnull) CALayer* logoLayer;
 @property(nonatomic, readonly, strong, nonnull) CAShapeLayer* documentLayer;
-@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* hilitedCandidateLayer;
 @property(nonatomic, readonly, strong, nonnull) CAShapeLayer* activePageLayer;
 @property(nonatomic, readonly, strong, nonnull) CAShapeLayer* gridLayer;
+@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* nonHilitedCandidateLayer;
+@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* hilitedCandidateLayer;
 @property(nonatomic, readonly, nullable) SquirrelTabularIndex* tabularIndices;
 @property(nonatomic, readonly, nullable) SquirrelTextPolygon* candidatePolygons;
 @property(nonatomic, readonly, nullable) NSRectArray sectionRects;
@@ -2084,12 +2092,14 @@ static NSTextView* setupTextViewForContentBlock(SquirrelContentBlock contentBloc
     _documentLayer = CAShapeLayer.alloc.init;
     _activePageLayer = CAShapeLayer.alloc.init;
     _gridLayer = CAShapeLayer.alloc.init;
+    _nonHilitedCandidateLayer = CAShapeLayer.alloc.init;
     _hilitedCandidateLayer = CAShapeLayer.alloc.init;
     _documentLayer.fillRule = kCAFillRuleEvenOdd;
     _gridLayer.lineWidth = 1.0;
     [_documentView.layer addSublayer:_documentLayer];
     [_documentLayer addSublayer:_activePageLayer];
     [_documentView.layer addSublayer:_gridLayer];
+    [_documentView.layer addSublayer:_nonHilitedCandidateLayer];
     [_documentView.layer addSublayer:_hilitedCandidateLayer];
   }
   return self;
@@ -2110,8 +2120,21 @@ static NSTextView* setupTextViewForContentBlock(SquirrelContentBlock contentBloc
   } else {
     _hilitedPreeditLayer.hidden = YES;
   }
+  if (_theme.candidateBackColor != nil) {
+    _nonHilitedCandidateLayer.fillColor = _theme.candidateBackColor.CGColor;
+  } else {
+    _nonHilitedCandidateLayer.hidden = YES;
+  }
   if (_theme.hilitedCandidateBackColor != nil) {
     _hilitedCandidateLayer.fillColor = _theme.hilitedCandidateBackColor.CGColor;
+    if (_theme.shadowSize > 0.1) {
+      _hilitedCandidateLayer.shadowOffset = CGSizeMake(_theme.shadowSize, _theme.shadowSize);
+//      _hilitedCandidateLayer.shadowRadius = _theme.shadowSize * 0.3;
+      _hilitedCandidateLayer.shadowOpacity = 1.0;
+//      _hilitedCandidateLayer.shadowColor = [_theme.hilitedCandidateBackColor shadowWithLevel:0.3].CGColor;
+    } else {
+      _hilitedCandidateLayer.shadowOpacity = 0.0;
+    }
   } else {
     _hilitedCandidateLayer.hidden = YES;
   }
@@ -3077,9 +3100,22 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon, CGFloat cornerRad
     } else {
       _gridLayer.hidden = YES;
     }
+    CGFloat cornerRadius = fmin(_theme.hilitedCornerRadius,
+                                _theme.candidateParagraphStyle.minimumLineHeight * 0.5);
+    if (_theme.candidateBackColor != nil) {
+      NSBezierPath* nonHilitedCandidatePath = NSBezierPath.bezierPath;
+      for (NSUInteger i = 0; i < _candidateCount; ++i) {
+        if (i != _hilitedCandidate)
+          [nonHilitedCandidatePath appendBezierPath:_theme.linear
+           ? squirclePath(_candidatePolygons[i], cornerRadius)
+           : squirclePath(_candidatePolygons[i].body, cornerRadius)];
+      }
+      _nonHilitedCandidateLayer.path = nonHilitedCandidatePath.quartzPath;
+      _nonHilitedCandidateLayer.hidden = NO;
+    } else {
+      _nonHilitedCandidateLayer.hidden = YES;
+    }
     if (_hilitedCandidate != NSNotFound && _theme.hilitedCandidateBackColor != nil) {
-      CGFloat cornerRadius = fmin(_theme.hilitedCornerRadius,
-                                  _theme.candidateParagraphStyle.minimumLineHeight * 0.5);
       NSBezierPath* hilitedCandidatePath = _theme.linear
       ? squirclePath(_candidatePolygons[_hilitedCandidate], cornerRadius)
       : squirclePath(_candidatePolygons[_hilitedCandidate].body, cornerRadius);
@@ -3135,8 +3171,8 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon, CGFloat cornerRad
    This class makes system-alike tooltips above SquirrelPanel */
 @interface SquirrelToolTip : NSWindow
 
-@property(nonatomic, strong, readonly, nullable, direct) NSTimer* displayTimer;
-@property(nonatomic, strong, readonly, nullable, direct) NSTimer* hideTimer;
+@property(nonatomic, readonly, strong, nullable, direct) NSTimer* displayTimer;
+@property(nonatomic, readonly, strong, nullable, direct) NSTimer* hideTimer;
 
 - (void)showWithToolTip:(NSString* _Nullable)toolTip
               withDelay:(BOOL)delay __attribute__((objc_direct));

@@ -47,15 +47,13 @@ static const CFStringRef kBundleId = CFSTR("im.rime.inputmethod.Squirrel");
 }
 
 - (IBAction)openLogFolder:(id)sender {
-  NSURL* infoLog = [NSFileManager.defaultManager.temporaryDirectory
-                    URLByAppendingPathComponent:@"rime.squirrel.INFO"
-                                    isDirectory:NO];
-  NSURL* warningLog = [NSFileManager.defaultManager.temporaryDirectory
-                       URLByAppendingPathComponent:@"rime.squirrel.WARNING"
-                       isDirectory:NO];
-  NSURL* errorLog = [NSFileManager.defaultManager.temporaryDirectory
-                     URLByAppendingPathComponent:@"rime.squirrel.ERROR"
-                     isDirectory:NO];
+  NSURL* tmpDir = NSFileManager.defaultManager.temporaryDirectory;
+  NSURL* infoLog = [tmpDir URLByAppendingPathComponent:@"rime.squirrel.INFO"
+                                           isDirectory:NO];
+  NSURL* warningLog = [tmpDir URLByAppendingPathComponent:@"rime.squirrel.WARNING"
+                                              isDirectory:NO];
+  NSURL* errorLog = [tmpDir URLByAppendingPathComponent:@"rime.squirrel.ERROR"
+                                            isDirectory:NO];
   [NSWorkspace.sharedWorkspace activateFileViewerSelectingURLs:
    @[infoLog, warningLog, errorLog]];
 }

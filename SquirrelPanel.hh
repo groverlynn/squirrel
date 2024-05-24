@@ -22,9 +22,9 @@
 @property(nonatomic, direct) NSUInteger sectionNum;
 // position of the text input I-beam cursor on screen.
 @property(nonatomic, direct) NSRect IbeamRect;
-@property(nonatomic, strong, readonly, nullable) NSScreen* screen;
+@property(nonatomic, readonly, strong, nullable) NSScreen* screen;
 // Status message before pop-up is displayed; nil before normal panel is displayed
-@property(nonatomic, strong, readonly, nullable, direct) NSString* statusMessage;
+@property(nonatomic, readonly, strong, nullable, direct) NSString* statusMessage;
 // Store switch options that change style (color theme) settings
 @property(nonatomic, strong, nonnull, direct) SquirrelOptionSwitcher* optionSwitcher;
 

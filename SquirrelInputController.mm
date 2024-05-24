@@ -107,7 +107,7 @@ static int _asciiMode = -1;
           case kVK_CapsLock:
             if (!_goodOldCapsLock) {
               set_CapsLock_LED_state(false);
-              Bool ascii_mode = rime_get_api_stdbool()->get_option(_session, "ascii_mode");
+              bool ascii_mode = rime_get_api_stdbool()->get_option(_session, "ascii_mode");
               rime_modifiers = ascii_mode ? rime_modifiers | kLockMask : rime_modifiers & ~kLockMask;
             } else {
               rime_modifiers ^= kLockMask;
