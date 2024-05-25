@@ -60,45 +60,53 @@ __attribute__((objc_direct_members))
 - (BOOL)setOption:(NSString* _Nonnull)option withDouble:(double)value;
 - (BOOL)setOption:(NSString* _Nonnull)option withString:(NSString* _Nonnull)value;
 
-- (bool)getBoolForOption:(NSString* _Nonnull)option;
-- (int)getIntForOption:(NSString* _Nonnull)option;
-- (double)getDoubleForOption:(NSString* _Nonnull)option;
-- (double)getDoubleForOption:(NSString* _Nonnull)option
-             applyConstraint:(double(* _Nonnull)(double param))func;
+- (bool)boolValueForOption:(NSString* _Nonnull)option;
+- (int)intValueForOption:(NSString* _Nonnull)option;
+- (double)doubleForOption:(NSString* _Nonnull)option;
+- (double)doubleForOption:(NSString* _Nonnull)option
+               constraint:(double(* _Nonnull)(double param))func;
 
-- (NSNumber* _Nullable)getOptionalBoolForOption:(NSString* _Nonnull)option;
-- (NSNumber* _Nullable)getOptionalIntForOption:(NSString* _Nonnull)option;
-- (NSNumber* _Nullable)getOptionalDoubleForOption:(NSString* _Nonnull)option;
-- (NSNumber* _Nullable)getOptionalDoubleForOption:(NSString* _Nonnull)option
-                                  applyConstraint:(double(* _Nonnull)(double param))func;
+- (NSNumber* _Nullable)optionalBoolForOption:(NSString* _Nonnull)option;
+- (NSNumber* _Nullable)optionalIntForOption:(NSString* _Nonnull)option;
+- (NSNumber* _Nullable)optionalDoubleForOption:(NSString* _Nonnull)option;
+- (NSNumber* _Nullable)optionalDoubleForOption:(NSString* _Nonnull)option
+                                    constraint:(double(* _Nonnull)(double param))func;
 
-- (NSNumber* _Nullable)getOptionalBoolForOption:(NSString* _Nonnull)option
-                                          alias:(NSString* _Nullable)alias;
-- (NSNumber* _Nullable)getOptionalIntForOption:(NSString* _Nonnull)option
+- (NSNumber* _Nullable)optionalBoolForOption:(NSString* _Nonnull)option
+                                       alias:(NSString* _Nullable)alias;
+- (NSNumber* _Nullable)optionalIntForOption:(NSString* _Nonnull)option
+                                      alias:(NSString* _Nullable)alias;
+- (NSNumber* _Nullable)optionalDoubleForOption:(NSString* _Nonnull)option
                                          alias:(NSString* _Nullable)alias;
-- (NSNumber* _Nullable)getOptionalDoubleForOption:(NSString* _Nonnull)option
-                                            alias:(NSString* _Nullable)alias;
-- (NSNumber* _Nullable)getOptionalDoubleForOption:(NSString* _Nonnull)option
-                                            alias:(NSString* _Nullable)alias
-                                  applyConstraint:(double(* _Nonnull)(double param))func;
+- (NSNumber* _Nullable)optionalDoubleForOption:(NSString* _Nonnull)option
+                                         alias:(NSString* _Nullable)alias
+                                    constraint:(double(* _Nonnull)(double param))func;
 
-- (NSString* _Nullable)getStringForOption:(NSString* _Nonnull)option;
+- (NSString* _Nullable)stringForOption:(NSString* _Nonnull)option;
 // 0xaabbggrr or 0xbbggrr
-- (NSColor* _Nullable)getColorForOption:(NSString* _Nonnull)option;
+- (NSColor* _Nullable)colorForOption:(NSString* _Nonnull)option;
 // file path (absolute or relative to ~/Library/Rime)
-- (NSImage* _Nullable)getImageForOption:(NSString* _Nonnull)option;
+- (NSImage* _Nullable)imageForOption:(NSString* _Nonnull)option;
 
-- (NSString* _Nullable)getStringForOption:(NSString* _Nonnull)option
-                                    alias:(NSString* _Nullable)alias;
-- (NSColor* _Nullable)getColorForOption:(NSString* _Nonnull)option
-                                  alias:(NSString* _Nullable)alias;
-- (NSImage* _Nullable)getImageForOption:(NSString* _Nonnull)option
-                                  alias:(NSString* _Nullable)alias;
+- (NSString* _Nullable)stringForOption:(NSString* _Nonnull)option
+                                 alias:(NSString* _Nullable)alias;
+- (NSColor* _Nullable)colorForOption:(NSString* _Nonnull)option
+                               alias:(NSString* _Nullable)alias;
+- (NSImage* _Nullable)imageForOption:(NSString* _Nonnull)option
+                               alias:(NSString* _Nullable)alias;
 
-- (NSUInteger)getListSizeForOption:(NSString* _Nonnull)option;
-- (NSArray<NSString*>* _Nullable)getListForOption:(NSString* _Nonnull)option;
+- (NSUInteger)listSizeForOption:(NSString* _Nonnull)option;
+- (NSArray<NSString*>* _Nullable)listForOption:(NSString* _Nonnull)option;
 
 - (SquirrelOptionSwitcher* _Nonnull)getOptionSwitcher;
 - (SquirrelAppOptions* _Nonnull)getAppOptions:(NSString* _Nonnull)appName;
 
 @end  // SquirrelConfig
+
+
+__attribute__((objc_direct_members))
+@interface NSString (NSStringAppendString)
+
+- (NSString* _Nonnull)append:(NSString* _Nonnull)string;
+
+@end

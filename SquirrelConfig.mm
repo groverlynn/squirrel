@@ -97,7 +97,7 @@ static NSArray<NSString*>* const scripts = @[@"zh-Hans", @"zh-Hant", @"zh-TW", @
         break;
       }
     }
-    updatedState = updatedState ? : [@"!" stringByAppendingString:optionGroup[0]];
+    updatedState = updatedState ? : [@"!" append:optionGroup[0]];
     if (![updatedState isEqualToString:state]) {
       [self updateGroupState:updatedState ofOption:state];
     }
@@ -230,6 +230,7 @@ static NSDictionary<NSString*, NSColorSpace*>* const colorSpaceMap =
 
 - (void)dealloc {
   [self close];
+  [_cache removeAllObjects];
 }
 
 - (BOOL)hasSection:(NSString*)section {
@@ -259,42 +260,42 @@ static NSDictionary<NSString*, NSColorSpace*>* const colorSpaceMap =
   return rime_get_api_stdbool()->config_set_string(&_config, option.UTF8String, value.UTF8String);
 }
 
-- (bool)getBoolForOption:(NSString*)option {
-  return [self getOptionalBoolForOption:option alias:nil].boolValue;
+- (bool)boolValueForOption:(NSString*)option {
+  return [self optionalBoolForOption:option alias:nil].boolValue;
 }
 
-- (int)getIntForOption:(NSString*)option {
-  return [self getOptionalIntForOption:option alias:nil].intValue;
+- (int)intValueForOption:(NSString*)option {
+  return [self optionalIntForOption:option alias:nil].intValue;
 }
 
-- (double)getDoubleForOption:(NSString*)option {
-  return [self getOptionalDoubleForOption:option alias:nil].doubleValue;
+- (double)doubleForOption:(NSString*)option {
+  return [self optionalDoubleForOption:option alias:nil].doubleValue;
 }
 
-- (double)getDoubleForOption:(NSString*)option
-             applyConstraint:(double(*)(double param))func {
-  return func([self getOptionalDoubleForOption:option alias:nil].doubleValue);
+- (double)doubleForOption:(NSString*)option
+             constraint:(double(*)(double param))func {
+  return func([self optionalDoubleForOption:option alias:nil].doubleValue);
 }
 
-- (NSNumber*)getOptionalBoolForOption:(NSString*)option {
-  return [self getOptionalBoolForOption:option alias:nil];
+- (NSNumber*)optionalBoolForOption:(NSString*)option {
+  return [self optionalBoolForOption:option alias:nil];
 }
 
-- (NSNumber*)getOptionalIntForOption:(NSString*)option {
-  return [self getOptionalIntForOption:option alias:nil];
+- (NSNumber*)optionalIntForOption:(NSString*)option {
+  return [self optionalIntForOption:option alias:nil];
 }
 
-- (NSNumber*)getOptionalDoubleForOption:(NSString*)option {
-  return [self getOptionalDoubleForOption:option alias:nil];
+- (NSNumber*)optionalDoubleForOption:(NSString*)option {
+  return [self optionalDoubleForOption:option alias:nil];
 }
 
-- (NSNumber*)getOptionalDoubleForOption:(NSString*)option
-                        applyConstraint:(double(*)(double param))func {
-  NSNumber* value = [self getOptionalDoubleForOption:option alias:nil];
+- (NSNumber*)optionalDoubleForOption:(NSString*)option
+                        constraint:(double(*)(double param))func {
+  NSNumber* value = [self optionalDoubleForOption:option alias:nil];
   return value ? [NSNumber numberWithDouble:func(value.doubleValue)] : nil;
 }
 
-- (NSNumber*)getOptionalBoolForOption:(NSString*)option
+- (NSNumber*)optionalBoolForOption:(NSString*)option
                                 alias:(NSString*)alias {
   if (NSNumber* cachedValue = [self cachedValueOfObjCType:@encode(BOOL) forKey:option]) {
     return cachedValue;
@@ -315,10 +316,10 @@ static NSDictionary<NSString*, NSColorSpace*>* const colorSpaceMap =
       return number;
     }
   }
-  return [_baseConfig getOptionalBoolForOption:option alias:alias];
+  return [_baseConfig optionalBoolForOption:option alias:alias];
 }
 
-- (NSNumber*)getOptionalIntForOption:(NSString*)option
+- (NSNumber*)optionalIntForOption:(NSString*)option
                                alias:(NSString*)alias {
   if (NSNumber* cachedValue = [self cachedValueOfObjCType:@encode(int) forKey:option]) {
     return cachedValue;
@@ -339,10 +340,10 @@ static NSDictionary<NSString*, NSColorSpace*>* const colorSpaceMap =
       return number;
     }
   }
-  return [_baseConfig getOptionalIntForOption:option alias:alias];
+  return [_baseConfig optionalIntForOption:option alias:alias];
 }
 
-- (NSNumber*)getOptionalDoubleForOption:(NSString*)option
+- (NSNumber*)optionalDoubleForOption:(NSString*)option
                                   alias:(NSString*)alias {
   if (NSNumber* cachedValue = [self cachedValueOfObjCType:@encode(double) forKey:option]) {
     return cachedValue;
@@ -363,29 +364,29 @@ static NSDictionary<NSString*, NSColorSpace*>* const colorSpaceMap =
       return number;
     }
   }
-  return [_baseConfig getOptionalDoubleForOption:option alias:alias];
+  return [_baseConfig optionalDoubleForOption:option alias:alias];
 }
 
-- (NSNumber*)getOptionalDoubleForOption:(NSString*)option
+- (NSNumber*)optionalDoubleForOption:(NSString*)option
                                   alias:(NSString*)alias
-                        applyConstraint:(double(*)(double param))func {
-  NSNumber* value = [self getOptionalDoubleForOption:option alias:alias];
+                        constraint:(double(*)(double param))func {
+  NSNumber* value = [self optionalDoubleForOption:option alias:alias];
   return value ? [NSNumber numberWithDouble:func(value.doubleValue)] : nil;
 }
 
-- (NSString*)getStringForOption:(NSString*)option {
-  return [self getStringForOption:option alias:nil];
+- (NSString*)stringForOption:(NSString*)option {
+  return [self stringForOption:option alias:nil];
 }
 
-- (NSColor*)getColorForOption:(NSString*)option {
-  return [self getColorForOption:option alias:nil];
+- (NSColor*)colorForOption:(NSString*)option {
+  return [self colorForOption:option alias:nil];
 }
 
-- (NSImage*)getImageForOption:(NSString*)option {
-  return [self getImageForOption:option alias:nil];
+- (NSImage*)imageForOption:(NSString*)option {
+  return [self imageForOption:option alias:nil];
 }
 
-- (NSString*)getStringForOption:(NSString*)option
+- (NSString*)stringForOption:(NSString*)option
                           alias:(NSString*)alias {
   if (NSString* cachedValue = [self cachedValueOfClass:NSString.class forKey:option]) {
     return cachedValue;
@@ -410,45 +411,45 @@ static NSDictionary<NSString*, NSColorSpace*>* const colorSpaceMap =
       return string;
     }
   }
-  return [_baseConfig getStringForOption:option alias:alias];
+  return [_baseConfig stringForOption:option alias:alias];
 }
 
-- (NSColor*)getColorForOption:(NSString*)option
+- (NSColor*)colorForOption:(NSString*)option
                         alias:(NSString*)alias {
   if (NSColor* cachedValue = [self cachedValueOfClass:NSColor.class forKey:option]) {
     return cachedValue;
   }
-  if (NSColor* color = [self colorFromString:[self getStringForOption:option alias:alias]]) {
+  if (NSColor* color = [self colorFromString:[self stringForOption:option alias:alias]]) {
     [_cache setObject:color forKey:option];
     return color;
   }
-  return [_baseConfig getColorForOption:option alias:alias];
+  return [_baseConfig colorForOption:option alias:alias];
 }
 
-- (NSImage*)getImageForOption:(NSString*)option
+- (NSImage*)imageForOption:(NSString*)option
                         alias:(NSString*)alias {
   if (NSImage* cachedValue = [self cachedValueOfClass:NSImage.class forKey:option]) {
     return cachedValue;
   }
-  if (NSImage* image = [self imageFromFile:[self getStringForOption:option alias:alias]]) {
+  if (NSImage* image = [self imageFromFile:[self stringForOption:option alias:alias]]) {
     [_cache setObject:image forKey:option];
     return image;
   }
-  return [_baseConfig getImageForOption:option alias:alias];
+  return [_baseConfig imageForOption:option alias:alias];
 }
 
-- (NSUInteger)getListSizeForOption:(NSString*)option {
+- (NSUInteger)listSizeForOption:(NSString*)option {
   return rime_get_api_stdbool()->config_list_size(&_config, option.UTF8String);
 }
 
-- (NSArray<NSString*>*)getListForOption:(NSString*)option {
+- (NSArray<NSString*>*)listForOption:(NSString*)option {
   RimeConfigIterator iterator;
   if (!rime_get_api_stdbool()->config_begin_list(&iterator, &_config, option.UTF8String)) {
     return nil;
   }
   NSMutableArray<NSString*>* strList = NSMutableArray.alloc.init;
   while (rime_get_api_stdbool()->config_next(&iterator))
-    [strList addObject:[self getStringForOption:@(iterator.path)]];
+    [strList addObject:[self stringForOption:@(iterator.path)]];
   rime_get_api_stdbool()->config_end(&iterator);
   return strList;
 }
@@ -493,35 +494,35 @@ static NSString* codeForScriptVariant(NSString* scriptVariant) {
   NSString* defaultScriptVariant = nil;
   NSMutableDictionary<NSString*, NSString*>* scriptVariantOptions = NSMutableDictionary.alloc.init;
   while (rime_get_api_stdbool()->config_next(&switchIter)) {
-    int reset = [self getIntForOption:[@(switchIter.path) stringByAppendingString:@"/reset"]];
-    if (NSString* name = [self getStringForOption:[@(switchIter.path) stringByAppendingString:@"/name"]]) {
-      if ([self hasSection:[@"style/!" stringByAppendingString:name]] ||
-          [self hasSection:[@"style/" stringByAppendingString:name]]) {
-        switcher[name] = reset ? name : [@"!" stringByAppendingString:name];
+    int reset = [self intValueForOption:[@(switchIter.path) append:@"/reset"]];
+    if (NSString* name = [self stringForOption:[@(switchIter.path) append:@"/name"]]) {
+      if ([self hasSection:[@"style/!" append:name]] ||
+          [self hasSection:[@"style/" append:name]]) {
+        switcher[name] = reset ? name : [@"!" append:name];
         optionGroups[name] = [NSOrderedSet orderedSetWithObject:name];
       }
       if (defaultScriptVariant == nil &&
           ([name caseInsensitiveCompare:@"simplification"] == NSOrderedSame ||
            [name caseInsensitiveCompare:@"simplified"] == NSOrderedSame ||
            [name caseInsensitiveCompare:@"traditional"] == NSOrderedSame)) {
-        defaultScriptVariant = reset ? name : [@"!" stringByAppendingString:name];
+        defaultScriptVariant = reset ? name : [@"!" append:name];
         scriptVariantOptions[name] = codeForScriptVariant(name);
-        scriptVariantOptions[[@"!" stringByAppendingString:name]] =
-          codeForScriptVariant([@"!" stringByAppendingString:name]);
+        scriptVariantOptions[[@"!" append:name]] =
+          codeForScriptVariant([@"!" append:name]);
       }
     } else {
       RimeConfigIterator optionIter;
       if (!rime_get_api_stdbool()->config_begin_list(&optionIter, &_config,
-          [@(switchIter.path) stringByAppendingString:@"/options"].UTF8String)) {
+          [@(switchIter.path) append:@"/options"].UTF8String)) {
         continue;
       }
       NSMutableOrderedSet<NSString*>* optGroup = NSMutableOrderedSet.alloc.init;
       BOOL hasStyleSection = NO;
       BOOL hasScriptVariant = defaultScriptVariant != nil;
       while (rime_get_api_stdbool()->config_next(&optionIter)) {
-        NSString* option = [self getStringForOption:@(optionIter.path)];
+        NSString* option = [self stringForOption:@(optionIter.path)];
         [optGroup addObject:option];
-        hasStyleSection |= [self hasSection:[@"style/" stringByAppendingString:option]];
+        hasStyleSection |= [self hasSection:[@"style/" append:option]];
         hasScriptVariant |= [option caseInsensitiveCompare:@"simplification"] == NSOrderedSame ||
                             [option caseInsensitiveCompare:@"simplified"] == NSOrderedSame ||
                             [option caseInsensitiveCompare:@"traditional"] == NSOrderedSame;
@@ -550,17 +551,17 @@ static NSString* codeForScriptVariant(NSString* scriptVariant) {
 }
 
 - (SquirrelAppOptions*)getAppOptions:(NSString*)appName {
-  NSString* rootKey = [@"app_options/" stringByAppendingString:appName];
+  NSString* rootKey = [@"app_options/" append:appName];
   NSMutableDictionary<NSString*, NSNumber*>* appOptions = NSMutableDictionary.alloc.init;
   RimeConfigIterator iterator;
   if (!rime_get_api_stdbool()->config_begin_map(&iterator, &_config, rootKey.UTF8String)) {
     return appOptions.copy;
   }
   while (rime_get_api_stdbool()->config_next(&iterator)) {
-    //NSLog(@"DEBUG option[%d]: %s (%s)", iterator.index, iterator.key, iterator.path);
-    if (NSNumber* value = [self getOptionalBoolForOption:@(iterator.path)] ? :
-                          [self getOptionalIntForOption:@(iterator.path)] ? :
-                          [self getOptionalDoubleForOption:@(iterator.path)]) {
+    // NSLog(@"DEBUG option[%d]: %s (%s)", iterator.index, iterator.key, iterator.path);
+    if (NSNumber* value = [self optionalBoolForOption:@(iterator.path)] ? :
+                          [self optionalIntForOption:@(iterator.path)] ? :
+                          [self optionalDoubleForOption:@(iterator.path)]) {
       appOptions[@(iterator.key)] = value;
     }
   }
@@ -625,3 +626,12 @@ static NSString* codeForScriptVariant(NSString* scriptVariant) {
 }
 
 @end  // SquirrelConfig
+
+
+@implementation NSString (NSStringAppendString)
+
+- (NSString*)append:(NSString*)string {
+  return [self stringByAppendingString:string];
+}
+
+@end  // NSString (NSStringAppendString)

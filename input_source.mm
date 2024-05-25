@@ -69,7 +69,7 @@ void EnableInputSource(void) {
       CFArrayGetValueAtIndex(sourceList, i);
     CFStringRef sourceID = (CFStringRef)TISGetInputSourceProperty
       (inputSource, kTISPropertyInputSourceID);
-    //NSLog(@"Examining input source: %@", sourceID);
+    // NSLog(@"Examining input source: %@", sourceID);
     if ((CFStringCompare(sourceID, kHansInputModeID, 0) == kCFCompareEqualTo &&
          (input_modes_to_enable & HANS_INPUT_MODE)) ||
         (CFStringCompare(sourceID, kHantInputModeID, 0) == kCFCompareEqualTo &&
@@ -171,7 +171,7 @@ void DisableInputSource(void) {
       CFArrayGetValueAtIndex(sourceList, i - 1);
     CFStringRef sourceID = (CFStringRef)TISGetInputSourceProperty
       (inputSource, kTISPropertyInputSourceID);
-    //NSLog(@"Examining input source: %@", sourceID);
+    // NSLog(@"Examining input source: %@", sourceID);
     if (CFStringCompare(sourceID, kHansInputModeID, 0) == kCFCompareEqualTo ||
         CFStringCompare(sourceID, kHantInputModeID, 0) == kCFCompareEqualTo ||
         CFStringCompare(sourceID, kCantInputModeID, 0) == kCFCompareEqualTo) {
@@ -200,7 +200,7 @@ RimeInputMode GetEnabledInputModes(void) {
       CFArrayGetValueAtIndex(sourceList, i);
     CFStringRef sourceID = (CFStringRef)TISGetInputSourceProperty
       (inputSource, kTISPropertyInputSourceID);
-    //NSLog(@"Examining input source: %@", sourceID);
+    // NSLog(@"Examining input source: %@", sourceID);
     if (CFStringCompare(sourceID, kHansInputModeID, 0) == kCFCompareEqualTo) {
       input_modes |= HANS_INPUT_MODE;
     } else if (CFStringCompare(sourceID, kHantInputModeID, 0) == kCFCompareEqualTo) {

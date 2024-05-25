@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22689"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22690"/>
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
@@ -22,7 +22,6 @@
         <menu id="773" userLabel="Menu">
             <items>
                 <menuItem title="ㄓ⃣Squirrel Switcher" id="780">
-                    <attributedString key="attributedTitle"/>
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="showSwitcher:" target="252" id="781"/>
@@ -64,6 +63,7 @@
                     </connections>
                 </menuItem>
             </items>
+            <point key="canvasLocation" x="34" y="-75"/>
         </menu>
         <customObject id="772" userLabel="Updater" customClass="SUUpdater"/>
     </objects>
