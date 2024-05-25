@@ -37,10 +37,10 @@ static const CFStringRef kBundleId = CFSTR("im.rime.inputmethod.Squirrel");
 }
 
 - (IBAction)configure:(id)sender {
-  [NSWorkspace.sharedWorkspace
-      openURL:[NSURL fileURLWithPath:@"~/Library/Rime/"
-                                         .stringByExpandingTildeInPath
-                         isDirectory:YES]];
+  NSURL* userDataDir = [NSFileManager.defaultManager.homeDirectoryForCurrentUser
+      URLByAppendingPathComponent:@"Library/Rime/"
+                      isDirectory:YES];
+  [NSWorkspace.sharedWorkspace openURL:userDataDir];
 }
 
 - (IBAction)openWiki:(id)sender {
@@ -48,16 +48,10 @@ static const CFStringRef kBundleId = CFSTR("im.rime.inputmethod.Squirrel");
 }
 
 - (IBAction)openLogFolder:(id)sender {
-  NSURL* tmpDir = NSFileManager.defaultManager.temporaryDirectory;
-  NSURL* infoLog = [tmpDir URLByAppendingPathComponent:@"rime.squirrel.INFO"
-                                           isDirectory:NO];
-  NSURL* warningLog =
-      [tmpDir URLByAppendingPathComponent:@"rime.squirrel.WARNING"
-                              isDirectory:NO];
-  NSURL* errorLog = [tmpDir URLByAppendingPathComponent:@"rime.squirrel.ERROR"
-                                            isDirectory:NO];
-  [NSWorkspace.sharedWorkspace
-      activateFileViewerSelectingURLs:@[ infoLog, warningLog, errorLog ]];
+  NSURL* infoLog = [NSFileManager.defaultManager.temporaryDirectory
+      URLByAppendingPathComponent:@"rime.squirrel.INFO"
+                      isDirectory:NO];
+  [NSWorkspace.sharedWorkspace activateFileViewerSelectingURLs:@[ infoLog ]];
 }
 
 extern void show_notification(const char* msg_text) {
@@ -184,8 +178,9 @@ static void notification_handler(void* context_object,
 }
 
 - (void)setupRime {
-  NSURL* userDataDir =
-      [NSURL fileURLWithPath:@"~/Library/Rime".stringByExpandingTildeInPath];
+  NSURL* userDataDir = [NSFileManager.defaultManager.homeDirectoryForCurrentUser
+      URLByAppendingPathComponent:@"Library/Rime/"
+                      isDirectory:YES];
   if (![userDataDir checkResourceIsReachableAndReturnError:nil]) {
     if (![NSFileManager.defaultManager createDirectoryAtURL:userDataDir
                                 withIntermediateDirectories:YES
@@ -223,6 +218,7 @@ static void notification_handler(void* context_object,
 
 - (void)shutdownRime {
   [_config close];
+  _config = nil;
   rime_get_api_stdbool()->finalize();
 }
 
@@ -231,8 +227,7 @@ static void notification_handler(void* context_object,
   _switcherKeyEquivalent = 0;
   SquirrelConfig* defaultConfig = SquirrelConfig.alloc.init;
   if ([defaultConfig openWithConfigId:@"default"]) {
-    NSString* hotkey =
-        [defaultConfig getStringForOption:@"switcher/hotkeys/@0"];
+    NSString* hotkey = [defaultConfig stringForOption:@"switcher/hotkeys/@0"];
     if (hotkey != nil) {
       NSArray<NSString*>* keys = [hotkey componentsSeparatedByString:@"+"];
       for (NSUInteger i = 0; i < keys.count - 1; ++i) {
@@ -250,7 +245,7 @@ static void notification_handler(void* context_object,
     return;
   }
   NSString* showNotificationsWhen =
-      [_config getStringForOption:@"show_notifications_when"];
+      [_config stringForOption:@"show_notifications_when"];
   if ([@"never" caseInsensitiveCompare:showNotificationsWhen] ==
       NSOrderedSame) {
     _showNotifications = kShowNotificationsNever;

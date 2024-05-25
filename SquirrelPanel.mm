@@ -488,10 +488,10 @@ __attribute__((objc_direct_members))
 
 #pragma mark - Color scheme and other user configurations
 
-typedef NS_CLOSED_ENUM(BOOL, SquirrelAppearance) {
-  kDefaultAppearance = NO,
-  kLightAppearance = NO,
-  kDarkAppearance = YES
+typedef NS_CLOSED_ENUM(BOOL, SquirrelStyle) {
+  kDefaultStyle = NO,
+  kLightStyle = NO,
+  kDarkStyle = YES
 };
 
 typedef NS_CLOSED_ENUM(NSUInteger, SquirrelStatusMessageType) {
@@ -534,6 +534,7 @@ __attribute__((objc_direct_members))
 @property(nonatomic, readonly) CGFloat lineLength;
 @property(nonatomic, readonly) CGFloat shadowSize;
 @property(nonatomic, readonly) float translucency;
+@property(nonatomic, readonly) BOOL stackColors;
 @property(nonatomic, readonly) BOOL showPaging;
 @property(nonatomic, readonly) BOOL rememberSize;
 @property(nonatomic, readonly) BOOL tabular;
@@ -596,10 +597,9 @@ __attribute__((objc_direct_members))
 @property(nonatomic, readonly, strong, nonnull) NSString* scriptVariant;
 @property(nonatomic, readonly) SquirrelStatusMessageType statusMessageType;
 @property(nonatomic, readonly) NSUInteger pageSize;
-@property(nonatomic, readonly) SquirrelAppearance appearance;
+@property(nonatomic, readonly) SquirrelStyle style;
 
-- (instancetype)initWithAppearance:(SquirrelAppearance)appearance
-    NS_DESIGNATED_INITIALIZER;
+- (instancetype)initWithStyle:(SquirrelStyle)style NS_DESIGNATED_INITIALIZER;
 - (void)updateLabelsWithConfig:(SquirrelConfig* _Nonnull)config
                   directUpdate:(BOOL)update;
 - (void)setSelectKeys:(NSString* _Nonnull)selectKeys
@@ -683,9 +683,9 @@ static CGFloat getLineHeight(NSFont* font, BOOL vertical) {
   return lineHeight;
 }
 
-- (instancetype)initWithAppearance:(SquirrelAppearance)appearance {
+- (instancetype)initWithStyle:(SquirrelStyle)style {
   if (self = [super init]) {
-    _appearance = appearance;
+    _style = style;
     _selectKeys = @"12345";
     _labels = @[ @"１", @"２", @"３", @"４", @"５" ];
     _pageSize = 5UL;
@@ -789,7 +789,7 @@ static CGFloat getLineHeight(NSFont* font, BOOL vertical) {
 }
 
 - (instancetype)init {
-  return [self initWithAppearance:kDefaultAppearance];
+  return [self initWithStyle:kDefaultStyle];
 }
 
 - (void)updateSeperatorAndSymbolAttrs {
@@ -910,13 +910,13 @@ static CGFloat getLineHeight(NSFont* font, BOOL vertical) {
 - (void)updateLabelsWithConfig:(SquirrelConfig*)config
                   directUpdate:(BOOL)update {
   NSUInteger menuSize =
-      (NSUInteger)[config getIntForOption:@"menu/page_size"] ?: 5;
+      (NSUInteger)[config intValueForOption:@"menu/page_size"] ?: 5;
   NSMutableArray<NSString*>* labels =
       [NSMutableArray.alloc initWithCapacity:menuSize];
   NSString* selectKeys =
-      [config getStringForOption:@"menu/alternative_select_keys"];
+      [config stringForOption:@"menu/alternative_select_keys"];
   NSArray<NSString*>* selectLabels =
-      [config getListForOption:@"menu/alternative_select_labels"];
+      [config listForOption:@"menu/alternative_select_labels"];
   if (selectLabels.count > 0) {
     [labels
         addObjectsFromArray:[selectLabels
@@ -1147,9 +1147,8 @@ static CGFloat getLineHeight(NSFont* font, BOOL vertical) {
           replaceCharactersInRange:commentRange
                         withString:
                             [kTipSpecifier
-                                stringByAppendingString:
-                                    [candidateTemplate.mutableString
-                                        substringWithRange:commentRange]]];
+                                append:[candidateTemplate.mutableString
+                                           substringWithRange:commentRange]]];
     } else {
       [candidateTemplate
           appendAttributedString:[NSAttributedString.alloc
@@ -1254,8 +1253,7 @@ static void updateCandidateListLayout(BOOL* isLinear,
                                       SquirrelConfig* config,
                                       NSString* prefix) {
   NSString* candidateListLayout =
-      [config getStringForOption:
-                  [prefix stringByAppendingString:@"/candidate_list_layout"]];
+      [config stringForOption:[prefix append:@"/candidate_list_layout"]];
   if ([@"stacked" caseInsensitiveCompare:candidateListLayout] ==
       NSOrderedSame) {
     *isLinear = NO;
@@ -1269,9 +1267,8 @@ static void updateCandidateListLayout(BOOL* isLinear,
     // `tabular` is a derived layout of `linear`; tabular implies linear
     *isLinear = YES;
     *isTabular = YES;
-  } else if (NSNumber* horizontal =
-                 [config getOptionalBoolForOption:
-                             [prefix stringByAppendingString:@"/horizontal"]]) {
+  } else if (NSNumber* horizontal = [config
+                 optionalBoolForOption:[prefix append:@"/horizontal"]]) {
     // Deprecated. Not to be confused with text_orientation: horizontal
     *isLinear = horizontal.boolValue;
     *isTabular = NO;
@@ -1281,16 +1278,15 @@ static void updateCandidateListLayout(BOOL* isLinear,
 static void updateTextOrientation(BOOL* isVertical,
                                   SquirrelConfig* config,
                                   NSString* prefix) {
-  NSString* textOrientation = [config
-      getStringForOption:[prefix stringByAppendingString:@"/text_orientation"]];
+  NSString* textOrientation =
+      [config stringForOption:[prefix append:@"/text_orientation"]];
   if ([@"horizontal" caseInsensitiveCompare:textOrientation] == NSOrderedSame) {
     *isVertical = NO;
   } else if ([@"vertical" caseInsensitiveCompare:textOrientation] ==
              NSOrderedSame) {
     *isVertical = YES;
   } else if (NSNumber* vertical =
-                 [config getOptionalBoolForOption:
-                             [prefix stringByAppendingString:@"/vertical"]]) {
+                 [config optionalBoolForOption:[prefix append:@"/vertical"]]) {
     *isVertical = vertical.boolValue;
   }
 }
@@ -1309,6 +1305,12 @@ static inline double clamp_uni(double param) {
   return param > 0.0 ? (param < 1.0 ? param : 1.0) : 0.0;
 }
 
+template <typename T>
+static inline void update(T* __strong* existing, T* newValue) {
+  if (newValue != nil)
+    *existing = newValue;
+}
+
 - (void)updateWithConfig:(SquirrelConfig*)config
             styleOptions:(NSSet<NSString*>*)styleOptions
            scriptVariant:(NSString*)scriptVariant {
@@ -1319,59 +1321,55 @@ static inline double clamp_uni(double param) {
   updateCandidateListLayout(&linear, &tabular, config, @"style");
   updateTextOrientation(&vertical, config, @"style");
   NSNumber* inlinePreedit =
-      [config getOptionalBoolForOption:@"style/inline_preedit"];
+      [config optionalBoolForOption:@"style/inline_preedit"];
   NSNumber* inlineCandidate =
-      [config getOptionalBoolForOption:@"style/inline_candidate"];
-  NSNumber* showPaging = [config getOptionalBoolForOption:@"style/show_paging"];
-  NSNumber* rememberSize =
-      [config getOptionalBoolForOption:@"style/remember_size"];
+      [config optionalBoolForOption:@"style/inline_candidate"];
+  NSNumber* showPaging = [config optionalBoolForOption:@"style/show_paging"];
+  NSNumber* rememberSize = [config optionalBoolForOption:@"style/remember_size"
+                                                   alias:@"memorize_size"];
   NSString* statusMessageType =
-      [config getStringForOption:@"style/status_message_type"];
+      [config stringForOption:@"style/status_message_type"];
   NSString* candidateFormat =
-      [config getStringForOption:@"style/candidate_format"];
+      [config stringForOption:@"style/candidate_format"];
   /*** TYPOGRAPHY ***/
-  NSString* fontName = [config getStringForOption:@"style/font_face"];
-  NSNumber* fontSize = [config getOptionalDoubleForOption:@"style/font_point"
-                                          applyConstraint:pos_round];
-  NSString* labelFontName =
-      [config getStringForOption:@"style/label_font_face"];
+  NSString* fontName = [config stringForOption:@"style/font_face"];
+  NSNumber* fontSize = [config optionalDoubleForOption:@"style/font_point"
+                                            constraint:pos_round];
+  NSString* labelFontName = [config stringForOption:@"style/label_font_face"];
   NSNumber* labelFontSize =
-      [config getOptionalDoubleForOption:@"style/label_font_point"
-                         applyConstraint:pos_round];
+      [config optionalDoubleForOption:@"style/label_font_point"
+                           constraint:pos_round];
   NSString* commentFontName =
-      [config getStringForOption:@"style/comment_font_face"];
+      [config stringForOption:@"style/comment_font_face"];
   NSNumber* commentFontSize =
-      [config getOptionalDoubleForOption:@"style/comment_font_point"
-                         applyConstraint:pos_round];
-  NSNumber* opacity = [config getOptionalDoubleForOption:@"style/opacity"
-                                                   alias:@"alpha"
-                                         applyConstraint:clamp_uni];
-  NSNumber* translucency =
-      [config getOptionalDoubleForOption:@"style/translucency"
-                         applyConstraint:clamp_uni];
+      [config optionalDoubleForOption:@"style/comment_font_point"
+                           constraint:pos_round];
+  NSNumber* opacity = [config optionalDoubleForOption:@"style/opacity"
+                                                alias:@"alpha"
+                                           constraint:clamp_uni];
+  NSNumber* translucency = [config optionalDoubleForOption:@"style/translucency"
+                                                constraint:clamp_uni];
+  NSNumber* stackColors = [config optionalBoolForOption:@"style/stack_colors"
+                                                  alias:@"mutual_exclusive"];
   NSNumber* cornerRadius =
-      [config getOptionalDoubleForOption:@"style/corner_radius"
-                         applyConstraint:positive];
+      [config optionalDoubleForOption:@"style/corner_radius"
+                           constraint:positive];
   NSNumber* hilitedCornerRadius =
-      [config getOptionalDoubleForOption:@"style/hilited_corner_radius"
-                         applyConstraint:positive];
+      [config optionalDoubleForOption:@"style/hilited_corner_radius"
+                           constraint:positive];
   NSNumber* borderHeight =
-      [config getOptionalDoubleForOption:@"style/border_height"
-                         applyConstraint:pos_ceil];
-  NSNumber* borderWidth =
-      [config getOptionalDoubleForOption:@"style/border_width"
-                         applyConstraint:pos_ceil];
-  NSNumber* lineSpacing =
-      [config getOptionalDoubleForOption:@"style/line_spacing"
-                         applyConstraint:pos_round];
-  NSNumber* spacing = [config getOptionalDoubleForOption:@"style/spacing"
-                                         applyConstraint:pos_round];
-  NSNumber* baseOffset =
-      [config getOptionalDoubleForOption:@"style/base_offset"];
-  NSNumber* lineLength =
-      [config getOptionalDoubleForOption:@"style/line_length"];
-  NSNumber* shadowSize =
-      [config getOptionalDoubleForOption:@"style/shadow_size"];
+      [config optionalDoubleForOption:@"style/border_height"
+                           constraint:pos_ceil];
+  NSNumber* borderWidth = [config optionalDoubleForOption:@"style/border_width"
+                                               constraint:pos_ceil];
+  NSNumber* lineSpacing = [config optionalDoubleForOption:@"style/line_spacing"
+                                               constraint:pos_round];
+  NSNumber* spacing = [config optionalDoubleForOption:@"style/spacing"
+                                           constraint:pos_round];
+  NSNumber* baseOffset = [config optionalDoubleForOption:@"style/base_offset"];
+  NSNumber* lineLength = [config optionalDoubleForOption:@"style/line_length"];
+  NSNumber* shadowSize = [config optionalDoubleForOption:@"style/shadow_size"
+                                              constraint:positive];
   /*** CHROMATICS ***/
   NSColor* backColor;
   NSColor* borderColor;
@@ -1390,27 +1388,26 @@ static inline double clamp_uni(double param) {
   NSImage* backImage;
 
   NSString* colorScheme;
-  if (_appearance == kDarkAppearance) {
+  if (_style == kDarkStyle) {
     for (NSString* option in styleOptions) {
       if ((colorScheme = [config
-               getStringForOption:
+               stringForOption:
                    [NSString stringWithFormat:@"style/%@/color_scheme_dark",
                                               option]]) != nil)
         break;
     }
     colorScheme =
-        colorScheme ?: [config getStringForOption:@"style/color_scheme_dark"];
+        colorScheme ?: [config stringForOption:@"style/color_scheme_dark"];
   }
   if (colorScheme == nil) {
     for (NSString* option in styleOptions) {
       if ((colorScheme = [config
-               getStringForOption:[NSString
-                                      stringWithFormat:@"style/%@/color_scheme",
-                                                       option]]) != nil)
+               stringForOption:[NSString
+                                   stringWithFormat:@"style/%@/color_scheme",
+                                                    option]]) != nil)
         break;
     }
-    colorScheme =
-        colorScheme ?: [config getStringForOption:@"style/color_scheme"];
+    colorScheme = colorScheme ?: [config stringForOption:@"style/color_scheme"];
   }
   BOOL isNative =
       !colorScheme ||
@@ -1419,79 +1416,52 @@ static inline double clamp_uni(double param) {
       [@"style/" stringsByAppendingPaths:styleOptions.allObjects];
   if (!isNative) {
     configPrefixes =
-        [@[ [@"preset_color_schemes/" stringByAppendingString:colorScheme] ]
+        [[NSArray arrayWithObject:[@"preset_color_schemes/" append:colorScheme]]
             arrayByAddingObjectsFromArray:configPrefixes];
   }
   // get color scheme and then check possible overrides from styleSwitcher
   for (NSString* prefix in configPrefixes) {
     /*** CHROMATICS override ***/
-    config.colorSpace =
+    if (NSString* colorSpace =
+            [config stringForOption:[prefix append:@"/color_space"]]) {
+      config.colorSpace = colorSpace;
+    }
+    update(&backColor, [config colorForOption:[prefix append:@"/back_color"]]);
+    update(&borderColor,
+           [config colorForOption:[prefix append:@"/border_color"]]);
+    update(&preeditBackColor,
+           [config colorForOption:[prefix append:@"/preedit_back_color"]]);
+    update(&preeditForeColor,
+           [config colorForOption:[prefix append:@"/text_color"]]);
+    update(&candidateBackColor,
+           [config colorForOption:[prefix append:@"/candidate_back_color"]]);
+    update(&textForeColor,
+           [config colorForOption:[prefix append:@"/candidate_text_color"]]);
+    update(&commentForeColor,
+           [config colorForOption:[prefix append:@"/comment_text_color"]]);
+    update(&labelForeColor,
+           [config colorForOption:[prefix append:@"/label_color"]]);
+    update(&hilitedPreeditBackColor,
+           [config colorForOption:[prefix append:@"/hilited_back_color"]]);
+    update(&hilitedPreeditForeColor,
+           [config colorForOption:[prefix append:@"/hilited_text_color"]]);
+    update(
+        &hilitedCandidateBackColor,
         [config
-            getStringForOption:[prefix stringByAppendingString:@"/color_space"]]
-            ?: config.colorSpace;
-    backColor =
+            colorForOption:[prefix append:@"/hilited_candidate_back_color"]]);
+    update(
+        &hilitedTextForeColor,
         [config
-            getColorForOption:[prefix stringByAppendingString:@"/back_color"]]
-            ?: backColor;
-    borderColor =
-        [config
-            getColorForOption:[prefix stringByAppendingString:@"/border_color"]]
-            ?: borderColor;
-    preeditBackColor =
-        [config getColorForOption:
-                    [prefix stringByAppendingString:@"/preedit_back_color"]]
-            ?: preeditBackColor;
-    preeditForeColor =
-        [config
-            getColorForOption:[prefix stringByAppendingString:@"/text_color"]]
-            ?: preeditForeColor;
-    candidateBackColor =
-        [config getColorForOption:
-                    [prefix stringByAppendingString:@"/candidate_back_color"]]
-            ?: candidateBackColor;
-    textForeColor =
-        [config getColorForOption:
-                    [prefix stringByAppendingString:@"/candidate_text_color"]]
-            ?: textForeColor;
-    commentForeColor =
-        [config getColorForOption:
-                    [prefix stringByAppendingString:@"/comment_text_color"]]
-            ?: commentForeColor;
-    labelForeColor =
-        [config
-            getColorForOption:[prefix stringByAppendingString:@"/label_color"]]
-            ?: labelForeColor;
-    hilitedPreeditBackColor =
-        [config getColorForOption:
-                    [prefix stringByAppendingString:@"/hilited_back_color"]]
-            ?: hilitedPreeditBackColor;
-    hilitedPreeditForeColor =
-        [config getColorForOption:
-                    [prefix stringByAppendingString:@"/hilited_text_color"]]
-            ?: hilitedPreeditForeColor;
-    hilitedCandidateBackColor =
-        [config getColorForOption:[prefix stringByAppendingString:
-                                              @"/hilited_candidate_back_color"]]
-            ?: hilitedCandidateBackColor;
-    hilitedTextForeColor =
-        [config getColorForOption:[prefix stringByAppendingString:
-                                              @"/hilited_candidate_text_color"]]
-            ?: hilitedTextForeColor;
-    hilitedCommentForeColor =
-        [config getColorForOption:[prefix stringByAppendingString:
-                                              @"/hilited_comment_text_color"]]
-            ?: hilitedCommentForeColor;
+            colorForOption:[prefix append:@"/hilited_candidate_text_color"]]);
+    update(
+        &hilitedCommentForeColor,
+        [config colorForOption:[prefix append:@"/hilited_comment_text_color"]]);
     // for backward compatibility, 'label_hilited_color' and
     // 'hilited_candidate_label_color' are both valid
-    hilitedLabelForeColor =
-        [config getColorForOption:
-                    [prefix stringByAppendingString:@"/label_hilited_color"]
-                            alias:@"hilited_candidate_label_color"]
-            ?: hilitedLabelForeColor;
-    backImage =
-        [config
-            getImageForOption:[prefix stringByAppendingString:@"/back_image"]]
-            ?: backImage;
+    update(&hilitedLabelForeColor,
+           [config colorForOption:[prefix append:@"/label_hilited_color"]
+                            alias:@"hilited_candidate_label_color"]);
+    update(&backImage, [config imageForOption:[prefix append:@"/back_image"]]);
 
     /* the following per-color-scheme configurations, if exist, will
        override configurations with the same name under the global 'style'
@@ -1499,107 +1469,69 @@ static inline double clamp_uni(double param) {
     /*** INTERFACE override ***/
     updateCandidateListLayout(&linear, &tabular, config, prefix);
     updateTextOrientation(&vertical, config, prefix);
-    inlinePreedit =
-        [config getOptionalBoolForOption:
-                    [prefix stringByAppendingString:@"/inline_preedit"]]
-            ?: inlinePreedit;
-    inlineCandidate =
-        [config getOptionalBoolForOption:
-                    [prefix stringByAppendingString:@"/inline_candidate"]]
-            ?: inlineCandidate;
-    showPaging = [config getOptionalBoolForOption:
-                             [prefix stringByAppendingString:@"/show_paging"]]
-                     ?: showPaging;
-    rememberSize =
-        [config getOptionalBoolForOption:
-                    [prefix stringByAppendingString:@"/remember_size"]]
-            ?: rememberSize;
-    statusMessageType =
-        [config getStringForOption:
-                    [prefix stringByAppendingString:@"/status_message_type"]]
-            ?: statusMessageType;
-    candidateFormat =
-        [config getStringForOption:
-                    [prefix stringByAppendingString:@"/candidate_format"]]
-            ?: candidateFormat;
+    update(&inlinePreedit,
+           [config optionalBoolForOption:[prefix append:@"/inline_preedit"]]);
+    update(&inlineCandidate,
+           [config optionalBoolForOption:[prefix append:@"/inline_candidate"]]);
+    update(&showPaging,
+           [config optionalBoolForOption:[prefix append:@"/show_paging"]]);
+    update(&rememberSize,
+           [config optionalBoolForOption:[prefix append:@"/remember_size"]
+                                   alias:@"memorize_size"]);
+    update(&statusMessageType,
+           [config stringForOption:[prefix append:@"/status_message_type"]]);
+    update(&candidateFormat,
+           [config stringForOption:[prefix append:@"/candidate_format"]]);
     /*** TYPOGRAPHY override ***/
-    fontName =
-        [config
-            getStringForOption:[prefix stringByAppendingString:@"/font_face"]]
-            ?: fontName;
-    fontSize = [config getOptionalDoubleForOption:
-                           [prefix stringByAppendingString:@"/font_point"]
-                                  applyConstraint:pos_round]
-                   ?: fontSize;
-    labelFontName =
-        [config
-            getStringForOption:[prefix
-                                   stringByAppendingString:@"/label_font_face"]]
-            ?: labelFontName;
-    labelFontSize =
-        [config getOptionalDoubleForOption:
-                    [prefix stringByAppendingString:@"/label_font_point"]
-                           applyConstraint:pos_round]
-            ?: labelFontSize;
-    commentFontName =
-        [config getStringForOption:
-                    [prefix stringByAppendingString:@"/comment_font_face"]]
-            ?: commentFontName;
-    commentFontSize =
-        [config getOptionalDoubleForOption:
-                    [prefix stringByAppendingString:@"/comment_font_point"]
-                           applyConstraint:pos_round]
-            ?: commentFontSize;
-    opacity =
-        [config
-            getOptionalDoubleForOption:[prefix
-                                           stringByAppendingString:@"/opacity"]
-                                 alias:@"alpha"
-                       applyConstraint:clamp_uni]
-            ?: opacity;
-    translucency = [config getOptionalDoubleForOption:
-                               [prefix stringByAppendingString:@"/translucency"]
-                                      applyConstraint:clamp_uni]
-                       ?: translucency;
-    cornerRadius =
-        [config getOptionalDoubleForOption:
-                    [prefix stringByAppendingString:@"/corner_radius"]
-                           applyConstraint:positive]
-            ?: cornerRadius;
-    hilitedCornerRadius =
-        [config getOptionalDoubleForOption:
-                    [prefix stringByAppendingString:@"/hilited_corner_radius"]
-                           applyConstraint:positive]
-            ?: hilitedCornerRadius;
-    borderHeight =
-        [config getOptionalDoubleForOption:
-                    [prefix stringByAppendingString:@"/border_height"]
-                           applyConstraint:pos_ceil]
-            ?: borderHeight;
-    borderWidth = [config getOptionalDoubleForOption:
-                              [prefix stringByAppendingString:@"/border_width"]
-                                     applyConstraint:pos_ceil]
-                      ?: borderWidth;
-    lineSpacing = [config getOptionalDoubleForOption:
-                              [prefix stringByAppendingString:@"/line_spacing"]
-                                     applyConstraint:pos_round]
-                      ?: lineSpacing;
-    spacing =
-        [config
-            getOptionalDoubleForOption:[prefix
-                                           stringByAppendingString:@"/spacing"]
-                       applyConstraint:pos_round]
-            ?: spacing;
-    baseOffset = [config getOptionalDoubleForOption:
-                             [prefix stringByAppendingString:@"/base_offset"]]
-                     ?: baseOffset;
-    lineLength = [config getOptionalDoubleForOption:
-                             [prefix stringByAppendingString:@"/line_length"]]
-                     ?: lineLength;
-    shadowSize = [config getOptionalDoubleForOption:
-                             [prefix stringByAppendingString:@"/shadow_size"]
-                                    applyConstraint:positive]
-                     ?: shadowSize;
+    update(&fontName, [config stringForOption:[prefix append:@"/font_face"]]);
+    update(&fontSize,
+           [config optionalDoubleForOption:[prefix append:@"/font_point"]
+                                constraint:pos_round]);
+    update(&labelFontName,
+           [config stringForOption:[prefix append:@"/label_font_face"]]);
+    update(&labelFontSize,
+           [config optionalDoubleForOption:[prefix append:@"/label_font_point"]
+                                constraint:pos_round]);
+    update(&commentFontName,
+           [config stringForOption:[prefix append:@"/comment_font_face"]]);
+    update(
+        &commentFontSize,
+        [config optionalDoubleForOption:[prefix append:@"/comment_font_point"]
+                             constraint:pos_round]);
+    update(&opacity, [config optionalDoubleForOption:[prefix append:@"/opacity"]
+                                               alias:@"alpha"
+                                          constraint:clamp_uni]);
+    update(&translucency,
+           [config optionalDoubleForOption:[prefix append:@"/translucency"]
+                                constraint:clamp_uni]);
+    update(&stackColors,
+           [config optionalBoolForOption:[prefix append:@"/stack_colors"]
+                                   alias:@"mutual_exclusive"]);
+    update(&cornerRadius,
+           [config optionalDoubleForOption:[prefix append:@"/corner_radius"]
+                                constraint:positive]);
+    update(&hilitedCornerRadius,
+           [config
+               optionalDoubleForOption:[prefix append:@"/hilited_corner_radius"]
+                            constraint:positive]);
+    update(&borderHeight,
+           [config optionalDoubleForOption:[prefix append:@"/border_height"]
+                                constraint:pos_ceil]);
+    update(&borderWidth,
+           [config optionalDoubleForOption:[prefix append:@"/border_width"]
+                                constraint:pos_ceil]);
+    update(&lineSpacing,
+           [config optionalDoubleForOption:[prefix append:@"/line_spacing"]
+                                constraint:pos_round]);
+    update(&spacing, [config optionalDoubleForOption:[prefix append:@"/spacing"]
+                                          constraint:pos_round]);
+    update(&baseOffset,
+           [config optionalDoubleForOption:[prefix append:@"/base_offset"]]);
+    update(&lineLength,
+           [config optionalDoubleForOption:[prefix append:@"/line_length"]]);
+    update(&shadowSize,
+           [config optionalDoubleForOption:[prefix append:@"/shadow_size"]
+                                constraint:positive]);
   }
 
   /*** TYPOGRAPHY refinement ***/
@@ -1782,8 +1714,8 @@ static inline double clamp_uni(double param) {
   /*** CHROMATICS refinement ***/
   if (@available(macOS 10.14, *)) {
     if (translucency.floatValue > 0.001f && !isNative && backColor != nil &&
-        (_appearance == kDarkAppearance ? backColor.lStarComponent > 0.6
-                                        : backColor.lStarComponent < 0.4)) {
+        (_style == kDarkStyle ? backColor.lStarComponent > 0.6
+                              : backColor.lStarComponent < 0.4)) {
       backColor =
           [backColor colorByInvertingLuminanceToExtent:kStandardColorInversion];
       borderColor = [borderColor
@@ -1868,6 +1800,7 @@ static inline double clamp_uni(double param) {
                     : 0.0;
   _shadowSize = shadowSize.doubleValue;
   _translucency = translucency.floatValue;
+  _stackColors = stackColors.boolValue;
   _showPaging = showPaging.boolValue;
   _rememberSize = rememberSize.boolValue;
   _tabular = tabular;
@@ -2067,10 +2000,7 @@ static inline double clamp_uni(double param) {
 
 @end  // SquirrelTheme
 
-#pragma mark - Typesetting extensions for TextKit 1 (Mac OSX 10.9 to MacOS 11)
-
-__attribute__((objc_direct_members))
-@interface SquirrelLayoutManager : NSLayoutManager<NSLayoutManagerDelegate>
+#pragma mark - Auxiliary structs and views
 
 typedef NS_CLOSED_ENUM(NSUInteger, SquirrelContentBlock) {
   kPreeditBlock,
@@ -2080,11 +2010,88 @@ typedef NS_CLOSED_ENUM(NSUInteger, SquirrelContentBlock) {
   kStatusBlock
 };
 
+typedef struct SquirrelTextPolygon {
+  NSRect head;
+  NSRect body;
+  NSRect tail;
+  inline NSPoint origin() { return (NSIsEmptyRect(head) ? body : head).origin; }
+  inline CGFloat minY() { return NSMinY(NSIsEmptyRect(head) ? body : head); }
+  inline CGFloat maxY() { return NSMaxY(NSIsEmptyRect(tail) ? body : tail); }
+  inline BOOL separated() {
+    return !NSIsEmptyRect(head) && NSIsEmptyRect(body) &&
+           !NSIsEmptyRect(tail) && NSMaxX(tail) < NSMinX(head) - 0.1;
+  }
+  inline BOOL mouseInPolygon(NSPoint point, BOOL flipped) {
+    return (!NSIsEmptyRect(body) && NSMouseInRect(point, body, flipped)) ||
+           (!NSIsEmptyRect(head) && NSMouseInRect(point, head, flipped)) ||
+           (!NSIsEmptyRect(tail) && NSMouseInRect(point, tail, flipped));
+  }
+} SquirrelTextPolygon;
+
+typedef struct SquirrelTabularIndex {
+  NSUInteger index;
+  NSUInteger lineNum;
+  NSUInteger tabNum;
+} SquirrelTabularIndex;
+
+/* location and length (of candidate) are relative to the textStorage
+ text/comment marks the start of text/comment relative to the candidate */
+typedef struct SquirrelCandidateRanges {
+  NSUInteger location;
+  NSUInteger length;
+  NSUInteger text;
+  NSUInteger comment;
+  inline NSUInteger maxRange() { return location + length; }
+  inline NSRange candidateRange() { return NSMakeRange(location, length); }
+  inline NSRange labelRange() { return NSMakeRange(location, text); }
+  inline NSRange textRange() {
+    return NSMakeRange(location + text, comment - text);
+  }
+  inline NSRange commentRange() {
+    return NSMakeRange(location + comment, length - comment);
+  }
+} SquirrelCandidateRanges;
+
+__attribute__((objc_direct_members))
+@interface NSFlippedView : NSView
+@end
+@implementation NSFlippedView
+- (BOOL)isFlipped {
+  return YES;
+}
+@end
+
+__attribute__((objc_direct_members))
+@interface SquirrelTextView : NSTextView
+
 @property(nonatomic) SquirrelContentBlock contentBlock;
+
+- (instancetype)initWithContentBlock:(SquirrelContentBlock)contentBlock
+                             storage:(NSTextStorage* __strong*)textStorage;
+- (NSTextRange*)textRangeFromCharRange:(NSRange)charRange
+    API_AVAILABLE(macos(12.0));
+- (NSRange)charRangeFromTextRange:(NSTextRange*)textRange
+    API_AVAILABLE(macos(12.0));
+- (NSRect)layoutText;
+- (NSRect)blockRectForRange:(NSRange)charRange;
+- (SquirrelTextPolygon)textPolygonForRange:(NSRange)charRange;
+
+@end
+
+#pragma mark - Typesetting extensions for TextKit 1 (Mac OSX 10.9 to MacOS 11)
+
+__attribute__((objc_direct_members))
+@interface SquirrelLayoutManager : NSLayoutManager<NSLayoutManagerDelegate>
+
+@property(nonatomic, readonly) SquirrelContentBlock contentBlock;
 
 @end
 
 @implementation SquirrelLayoutManager
+
+- (SquirrelContentBlock)contentBlock {
+  return ((SquirrelTextView*)self.firstTextView).contentBlock;
+}
 
 - (void)drawGlyphsForGlyphRange:(NSRange)glyphsToShow atPoint:(NSPoint)origin {
   NSRange charRange = [self characterRangeForGlyphRange:glyphsToShow
@@ -2256,8 +2263,9 @@ typedef NS_CLOSED_ENUM(NSUInteger, SquirrelContentBlock) {
   } else {
     unichar charBeforeIndex = [layoutManager.textStorage.mutableString
         characterAtIndex:charIndex - 1];
-    return _contentBlock == kLinearCandidatesBlock ? charBeforeIndex == 0x1D
-                                                   : charBeforeIndex != '\t';
+    return self.contentBlock == kLinearCandidatesBlock
+               ? charBeforeIndex == 0x1D
+               : charBeforeIndex != '\t';
   }
 }
 
@@ -2352,11 +2360,15 @@ __attribute__((objc_direct_members)) API_AVAILABLE(macos(12.0))
     @interface SquirrelTextLayoutManager
     : NSTextLayoutManager<NSTextLayoutManagerDelegate>
 
-@property(nonatomic) SquirrelContentBlock contentBlock;
+@property(nonatomic, readonly) SquirrelContentBlock contentBlock;
 
 @end
 
 @implementation SquirrelTextLayoutManager
+
+- (SquirrelContentBlock)contentBlock {
+  return ((SquirrelTextView*)self.textContainer.textView).contentBlock;
+}
 
 - (BOOL)textLayoutManager:(NSTextLayoutManager*)textLayoutManager
     shouldBreakLineBeforeLocation:(id<NSTextLocation>)location
@@ -2371,8 +2383,9 @@ __attribute__((objc_direct_members)) API_AVAILABLE(macos(12.0))
   } else {
     unichar charBeforeIndex = [contentStorage.textStorage.mutableString
         characterAtIndex:charIndex - 1];
-    return _contentBlock == kLinearCandidatesBlock ? charBeforeIndex == 0x1D
-                                                   : charBeforeIndex != '\t';
+    return self.contentBlock == kLinearCandidatesBlock
+               ? charBeforeIndex == 0x1D
+               : charBeforeIndex != '\t';
   }
 }
 
@@ -2391,189 +2404,16 @@ __attribute__((objc_direct_members)) API_AVAILABLE(macos(12.0))
 
 @end  // SquirrelTextLayoutManager
 
-#pragma mark - Auxiliary structs and views
+@implementation SquirrelTextView
 
-typedef struct SquirrelTextPolygon {
-  NSRect head;
-  NSRect body;
-  NSRect tail;
-  inline NSPoint origin() { return (NSIsEmptyRect(head) ? body : head).origin; }
-  inline CGFloat minY() { return NSMinY(NSIsEmptyRect(head) ? body : head); }
-  inline CGFloat maxY() { return NSMaxY(NSIsEmptyRect(tail) ? body : tail); }
-  inline BOOL separated() {
-    return !NSIsEmptyRect(head) && NSIsEmptyRect(body) &&
-           !NSIsEmptyRect(tail) && NSMaxX(tail) < NSMinX(head);
-  }
-  inline BOOL mouseInPolygon(NSPoint point, BOOL flipped) {
-    return (!NSIsEmptyRect(body) && NSMouseInRect(point, body, flipped)) ||
-           (!NSIsEmptyRect(head) && NSMouseInRect(point, head, flipped)) ||
-           (!NSIsEmptyRect(tail) && NSMouseInRect(point, tail, flipped));
-  }
-} SquirrelTextPolygon;
-
-typedef struct SquirrelTabularIndex {
-  NSUInteger index;
-  NSUInteger lineNum;
-  NSUInteger tabNum;
-} SquirrelTabularIndex;
-
-/* location and length (of candidate) are relative to the textStorage
-   text/comment marks the start of text/comment relative to the candidate */
-typedef struct SquirrelCandidateRanges {
-  NSUInteger location;
-  NSUInteger length;
-  NSUInteger text;
-  NSUInteger comment;
-  inline NSUInteger maxRange() { return location + length; }
-  inline NSRange candidateRange() { return NSMakeRange(location, length); }
-  inline NSRange labelRange() { return NSMakeRange(location, text); }
-  inline NSRange textRange() {
-    return NSMakeRange(location + text, comment - text);
-  }
-  inline NSRange commentRange() {
-    return NSMakeRange(location + comment, length - comment);
-  }
-} SquirrelCandidateRanges;
-
-__attribute__((objc_direct_members))
-@interface NSFlippedView : NSView
-@end
-@implementation NSFlippedView
-- (BOOL)isFlipped {
-  return YES;
-}
-@end
-
-#pragma mark - View behind text, containing drawings of backgrounds and highlights
-
-__attribute__((objc_direct_members))
-@interface SquirrelView : NSView
-
-@property(nonatomic, readonly, strong, nonnull, class)
-    SquirrelTheme* defaultTheme;
-@property(nonatomic, readonly, strong, nonnull, class)
-    API_AVAILABLE(macosx(10.14)) SquirrelTheme* darkTheme;
-@property(nonatomic, readonly, strong, nonnull) SquirrelTheme* theme;
-@property(nonatomic, readonly, strong, nonnull) NSTextView* textView;
-@property(nonatomic, readonly, strong, nonnull) NSTextView* preeditView;
-@property(nonatomic, readonly, strong, nonnull) NSTextView* pagingView;
-@property(nonatomic, readonly, strong, nonnull) NSTextView* statusView;
-@property(nonatomic, readonly, strong, nonnull) NSScrollView* scrollView;
-@property(nonatomic, readonly, strong, nonnull) NSFlippedView* documentView;
-@property(nonatomic, readonly, strong, nonnull) NSTextStorage* contents;
-@property(nonatomic, readonly, strong, nonnull) NSTextStorage* preeditContents;
-@property(nonatomic, readonly, strong, nonnull) NSTextStorage* pagingContents;
-@property(nonatomic, readonly, strong, nonnull) NSTextStorage* statusContents;
-@property(nonatomic, readonly, strong, nonnull) API_AVAILABLE(macos(10.14))
-    CAShapeLayer* shape;
-@property(nonatomic, readonly, strong, nonnull) CALayer* BackLayers;
-@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* backImageLayer;
-@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* backColorLayer;
-@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* borderLayer;
-@property(nonatomic, readonly, strong, nonnull) CALayer* ForeLayers;
-@property(nonatomic, readonly, strong, nonnull)
-    CAShapeLayer* hilitedPreeditLayer;
-@property(nonatomic, readonly, strong, nonnull)
-    CAShapeLayer* functionButtonLayer;
-@property(nonatomic, readonly, strong, nonnull) CALayer* logoLayer;
-@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* documentLayer;
-@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* activePageLayer;
-@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* gridLayer;
-@property(nonatomic, readonly, strong, nonnull)
-    CAShapeLayer* nonHilitedCandidateLayer;
-@property(nonatomic, readonly, strong, nonnull)
-    CAShapeLayer* hilitedCandidateLayer;
-@property(nonatomic, readonly, nullable) SquirrelTabularIndex* tabularIndices;
-@property(nonatomic, readonly, nullable) SquirrelTextPolygon* candidatePolygons;
-@property(nonatomic, readonly, nullable) NSRectArray sectionRects;
-@property(nonatomic, readonly, nullable)
-    SquirrelCandidateRanges* candidateRanges;
-@property(nonatomic, readonly, nullable) BOOL* truncated;
-@property(nonatomic, readonly) NSRect contentRect;
-@property(nonatomic, readonly) NSRect documentRect;
-@property(nonatomic, readonly) NSRect preeditRect;
-@property(nonatomic, readonly) NSRect candidatesRect;
-@property(nonatomic, readonly) NSRect pagingRect;
-@property(nonatomic, readonly) NSRect deleteBackRect;
-@property(nonatomic, readonly) NSRect expanderRect;
-@property(nonatomic, readonly) NSRect pageUpRect;
-@property(nonatomic, readonly) NSRect pageDownRect;
-@property(nonatomic, readonly) CGFloat clippedHeight;
-@property(nonatomic, readonly) SquirrelAppearance appear;
-@property(nonatomic, readonly) SquirrelIndex functionButton;
-@property(nonatomic, readonly) NSUInteger candidateCount;
-@property(nonatomic, readonly) NSUInteger hilitedCandidate;
-@property(nonatomic, readonly) NSRange hilitedPreeditRange;
-@property(nonatomic) BOOL expanded;
-
-- (void)updateColors;
-- (void)estimateBoundsOnScreen:(NSRect)screen
-                   withPreedit:(BOOL)hasPreedit
-                    candidates:(SquirrelCandidateRanges*)candidateRanges
-                    truncation:(BOOL*)truncated
-                         count:(NSUInteger)candidateCount
-                        paging:(BOOL)hasPaging;
-- (void)layoutContents;
-- (NSRect)blockRectForRange:(NSRange)charRange inView:(NSTextView*)view;
-- (SquirrelTextPolygon)textPolygonForRange:(NSRange)charRange
-                                    inView:(NSTextView*)view;
-- (void)drawViewWithHilitedCandidate:(NSUInteger)hilitedCandidate
-                 hilitedPreeditRange:(NSRange)hilitedPreeditRange;
-- (void)setHilitedPreeditRange:(NSRange)hilitedPreeditRange;
-- (void)highlightCandidate:(NSUInteger)hilitedCandidate;
-- (void)highlightFunctionButton:(SquirrelIndex)functionButton;
-- (SquirrelIndex)getIndexFromMouseSpot:(NSPoint)spot;
-
-@end
-
-@implementation SquirrelView
-
-static SquirrelTheme* _defaultTheme =
-    [SquirrelTheme.alloc initWithAppearance:kDefaultAppearance];
-static SquirrelTheme* _darkTheme API_AVAILABLE(macos(10.14)) =
-    [SquirrelTheme.alloc initWithAppearance:kDarkAppearance];
-
-// Need flipped coordinate system, consistent with textView and textContainer
-- (BOOL)isFlipped {
-  return YES;
-}
-
-- (BOOL)wantsUpdateLayer {
-  return YES;
-}
-
-- (void)setAppear:(SquirrelAppearance)appear {
-  if (@available(macOS 10.14, *)) {
-    if (_appear != appear) {
-      _appear = appear;
-      [self setValue:appear == kDarkAppearance ? _darkTheme : _defaultTheme
-              forKey:@"theme"];
-      [self setValue:appear == kDarkAppearance ? @(NSScrollerKnobStyleLight)
-                                               : @(NSScrollerKnobStyleDark)
-          forKeyPath:@"scrollView.scrollerKnobStyle"];
-      [self updateColors];
-    }
-  }
-}
-
-+ (SquirrelTheme*)defaultTheme {
-  return _defaultTheme;
-}
-
-+ (SquirrelTheme*)darkTheme API_AVAILABLE(macos(10.14)) {
-  return _darkTheme;
-}
-
-static NSTextView* setupTextViewForContentBlock(
-    SquirrelContentBlock contentBlock,
-    NSTextStorage* __strong* textStorage) {
+- (instancetype)initWithContentBlock:(SquirrelContentBlock)contentBlock
+                             storage:(NSTextStorage* __strong*)textStorage {
   NSTextContainer* textContainer =
       [NSTextContainer.alloc initWithSize:NSZeroSize];
   textContainer.lineFragmentPadding = 0;
   if (@available(macOS 12.0, *)) {
     SquirrelTextLayoutManager* textLayoutManager =
         SquirrelTextLayoutManager.alloc.init;
-    textLayoutManager.contentBlock = contentBlock;
     textLayoutManager.usesFontLeading = NO;
     textLayoutManager.usesHyphenation = NO;
     textLayoutManager.delegate = textLayoutManager;
@@ -2583,7 +2423,6 @@ static NSTextView* setupTextViewForContentBlock(
     *textStorage = contentStorage.textStorage;
   } else {
     SquirrelLayoutManager* layoutManager = SquirrelLayoutManager.alloc.init;
-    layoutManager.contentBlock = contentBlock;
     layoutManager.backgroundLayoutEnabled = YES;
     layoutManager.usesFontLeading = NO;
     layoutManager.typesetterBehavior = NSTypesetterLatestBehavior;
@@ -2592,149 +2431,22 @@ static NSTextView* setupTextViewForContentBlock(
     *textStorage = NSTextStorage.alloc.init;
     [*textStorage addLayoutManager:layoutManager];
   }
-  NSTextView* textView = [NSTextView.alloc initWithFrame:NSZeroRect
-                                           textContainer:textContainer];
-  textView.drawsBackground = NO;
-  textView.selectable = NO;
-  textView.wantsLayer = NO;
-  textView.clipsToBounds = NO;
-  return textView;
-}
-
-- (instancetype)init {
-  if (self = [super init]) {
-    _textView =
-        setupTextViewForContentBlock(kStackedCandidatesBlock, &_contents);
-    _preeditView =
-        setupTextViewForContentBlock(kPreeditBlock, &_preeditContents);
-    _pagingView = setupTextViewForContentBlock(kPagingBlock, &_pagingContents);
-    _statusView = setupTextViewForContentBlock(kStatusBlock, &_statusContents);
-
-    _documentView = NSFlippedView.alloc.init;
-    _documentView.wantsLayer = YES;
-    _documentView.layer.geometryFlipped = YES;
-    _documentView.layerContentsRedrawPolicy =
-        NSViewLayerContentsRedrawOnSetNeedsDisplay;
-    _documentView.autoresizesSubviews = NO;
-    [_documentView addSubview:_textView];
-    _scrollView = NSScrollView.alloc.init;
-    _scrollView.documentView = _documentView;
-    _scrollView.drawsBackground = NO;
-    _scrollView.automaticallyAdjustsContentInsets = NO;
-    _scrollView.hasVerticalScroller = YES;
-    _scrollView.scrollerStyle = NSScrollerStyleOverlay;
-    _scrollView.scrollerKnobStyle = NSScrollerKnobStyleDark;
-
-    _appear = kDefaultAppearance;
-    _theme = _defaultTheme;
-    if (@available(macOS 10.14, *)) {
-      _shape = CAShapeLayer.alloc.init;
-      _shape.fillColor = CGColorGetConstantColor(kCGColorBlack);
-    }
-    self.wantsLayer = YES;
-    self.layer.geometryFlipped = YES;
-    self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawOnSetNeedsDisplay;
-
-    CAShapeLayer* backMaskLayer = CAShapeLayer.alloc.init;
-    backMaskLayer.fillColor = CGColorGetConstantColor(kCGColorBlack);
-    _BackLayers = CALayer.alloc.init;
-    _BackLayers.mask = backMaskLayer;
-    _backImageLayer = CAShapeLayer.alloc.init;
-    _backImageLayer.actions = @{@"affineTransform" : NSNull.null};
-    _backColorLayer = CAShapeLayer.alloc.init;
-    _borderLayer = CAShapeLayer.alloc.init;
-    _backColorLayer.fillRule = kCAFillRuleEvenOdd;
-    _borderLayer.fillRule = kCAFillRuleEvenOdd;
-    [self.layer addSublayer:_BackLayers];
-    [_BackLayers addSublayer:_backImageLayer];
-    [_BackLayers addSublayer:_backColorLayer];
-    [_BackLayers addSublayer:_borderLayer];
-
-    CAShapeLayer* foreMaskLayer = CAShapeLayer.alloc.init;
-    foreMaskLayer.fillColor = CGColorGetConstantColor(kCGColorBlack);
-    _ForeLayers = CALayer.alloc.init;
-    _ForeLayers.mask = foreMaskLayer;
-    _hilitedPreeditLayer = CAShapeLayer.alloc.init;
-    _functionButtonLayer = CAShapeLayer.alloc.init;
-    _logoLayer = CALayer.alloc.init;
-    _logoLayer.actions = @{@"affineTransform" : NSNull.null};
-    [self.layer addSublayer:_ForeLayers];
-    [_ForeLayers addSublayer:_hilitedPreeditLayer];
-    [_ForeLayers addSublayer:_functionButtonLayer];
-    [_ForeLayers addSublayer:_logoLayer];
-
-    _documentLayer = CAShapeLayer.alloc.init;
-    _activePageLayer = CAShapeLayer.alloc.init;
-    _gridLayer = CAShapeLayer.alloc.init;
-    _nonHilitedCandidateLayer = CAShapeLayer.alloc.init;
-    _hilitedCandidateLayer = CAShapeLayer.alloc.init;
-    _documentLayer.fillRule = kCAFillRuleEvenOdd;
-    _gridLayer.lineWidth = 1.0;
-    [_documentView.layer addSublayer:_documentLayer];
-    [_documentLayer addSublayer:_activePageLayer];
-    [_documentView.layer addSublayer:_gridLayer];
-    [_documentView.layer addSublayer:_nonHilitedCandidateLayer];
-    [_documentView.layer addSublayer:_hilitedCandidateLayer];
+  if (self = [super initWithFrame:NSZeroRect textContainer:textContainer]) {
+    self.contentBlock = contentBlock;
+    self.drawsBackground = NO;
+    self.selectable = NO;
+    self.wantsLayer = NO;
+    self.clipsToBounds = NO;
   }
   return self;
 }
 
-- (void)updateColors {
-  _backColorLayer.fillColor =
-      (_theme.preeditBackColor ?: _theme.backColor).CGColor;
-  _borderLayer.fillColor = (_theme.borderColor ?: _theme.backColor).CGColor;
-  _documentLayer.fillColor = _theme.backColor.CGColor;
-  if (_theme.backImage.valid) {
-    _backImageLayer.fillColor =
-        [NSColor colorWithPatternImage:_theme.backImage].CGColor;
-  } else {
-    _backImageLayer.hidden = YES;
-    _backImageLayer.hidden = NO;
-  }
-  if (_theme.hilitedPreeditBackColor != nil) {
-    _hilitedPreeditLayer.fillColor = _theme.hilitedPreeditBackColor.CGColor;
-  } else {
-    _hilitedPreeditLayer.hidden = YES;
-  }
-  if (_theme.candidateBackColor != nil) {
-    _nonHilitedCandidateLayer.fillColor = _theme.candidateBackColor.CGColor;
-  } else {
-    _nonHilitedCandidateLayer.hidden = YES;
-  }
-  if (_theme.hilitedCandidateBackColor != nil) {
-    _hilitedCandidateLayer.fillColor = _theme.hilitedCandidateBackColor.CGColor;
-    if (_theme.shadowSize > 0.1) {
-      _hilitedCandidateLayer.shadowOffset =
-          CGSizeMake(_theme.shadowSize, _theme.shadowSize);
-      //      _hilitedCandidateLayer.shadowRadius = _theme.shadowSize * 0.3;
-      _hilitedCandidateLayer.shadowOpacity = 1.0;
-      //      _hilitedCandidateLayer.shadowColor =
-      //      [_theme.hilitedCandidateBackColor shadowWithLevel:0.3].CGColor;
-    } else {
-      _hilitedCandidateLayer.shadowOpacity = 0.0;
-    }
-  } else {
-    _hilitedCandidateLayer.hidden = YES;
-  }
-  if (_theme.tabular) {
-    _activePageLayer.fillColor = _theme.backColor.hooverColor.CGColor;
-    _gridLayer.strokeColor =
-        [_theme.commentForeColor blendedColorWithFraction:0.8
-                                                  ofColor:_theme.backColor]
-            .CGColor;
-  } else {
-    _activePageLayer.hidden = YES;
-    _gridLayer.hidden = YES;
-  }
-}
-
 - (NSTextRange*)textRangeFromCharRange:(NSRange)charRange
-                                inView:(NSTextView*)view
     API_AVAILABLE(macos(12.0)) {
   if (charRange.location == NSNotFound) {
     return nil;
   } else {
-    NSTextContentStorage* storage = view.textContentStorage;
+    NSTextContentStorage* storage = self.textContentStorage;
     id<NSTextLocation> startLocation =
         [storage locationFromLocation:storage.documentRange.location
                            withOffset:(NSInteger)charRange.location];
@@ -2747,11 +2459,11 @@ static NSTextView* setupTextViewForContentBlock(
 }
 
 - (NSRange)charRangeFromTextRange:(NSTextRange*)textRange
-                           inView:(NSTextView*)view API_AVAILABLE(macos(12.0)) {
+    API_AVAILABLE(macos(12.0)) {
   if (textRange == nil) {
     return NSMakeRange(NSNotFound, 0);
   } else {
-    NSTextContentStorage* storage = view.textContentStorage;
+    NSTextContentStorage* storage = self.textContentStorage;
     NSInteger location =
         [storage offsetFromLocation:storage.documentRange.location
                          toLocation:textRange.location];
@@ -2761,142 +2473,31 @@ static NSTextView* setupTextViewForContentBlock(
   }
 }
 
-static NSRect layoutTextView(NSTextView* view) {
+- (NSRect)layoutText {
+  NSRect rect;
   if (@available(macOS 12.0, *)) {
-    [view.textLayoutManager
-        ensureLayoutForRange:view.textLayoutManager.documentRange];
-    return NSIntegralRect(view.textLayoutManager.usageBoundsForTextContainer);
+    [self.textLayoutManager
+        ensureLayoutForRange:self.textLayoutManager.documentRange];
+    rect = self.textLayoutManager.usageBoundsForTextContainer;
   } else {
-    [view.layoutManager ensureLayoutForTextContainer:view.textContainer];
-    return NSIntegralRect(
-        [view.layoutManager usedRectForTextContainer:view.textContainer]);
+    [self.layoutManager ensureLayoutForTextContainer:self.textContainer];
+    rect = [self.layoutManager usedRectForTextContainer:self.textContainer];
   }
-}
-
-static BOOL any(BOOL* array, NSUInteger count) {
-  for (NSUInteger i = 0; i < count; ++i) {
-    if (array[i])
-      return YES;
-  }
-  return NO;
-}
-
-- (void)estimateBoundsOnScreen:(NSRect)screen
-                   withPreedit:(BOOL)hasPreedit
-                    candidates:(SquirrelCandidateRanges*)candidateRanges
-                    truncation:(BOOL*)truncated
-                         count:(NSUInteger)candidateCount
-                        paging:(BOOL)hasPaging {
-  _candidateRanges = candidateRanges;
-  _truncated = truncated;
-  _candidateCount = candidateCount;
-  _preeditView.hidden = !hasPreedit;
-  _scrollView.hidden = candidateCount == 0;
-  _pagingView.hidden = !hasPaging;
-  _statusView.hidden = hasPreedit || candidateCount > 0;
-
-  // layout textviews and get their sizes
-  _preeditRect = NSZeroRect;
-  _documentRect = NSZeroRect;  // in textView's own coordinates
-  _candidatesRect = NSZeroRect;
-  _pagingRect = NSZeroRect;
-  _clippedHeight = 0.0;
-  if (!hasPreedit && candidateCount == 0) {  // status
-    _contentRect = layoutTextView(_statusView);
-    return;
-  }
-  if (hasPreedit) {
-    _preeditRect = layoutTextView(_preeditView);
-    _contentRect = _preeditRect;
-  }
-  if (candidateCount > 0) {
-    _documentRect = layoutTextView(_textView);
-    if (@available(macOS 12.0, *)) {
-      _documentRect.size.height += _theme.lineSpacing;
-    } else {
-      _documentRect.size.height += _theme.linear ? 0.0 : _theme.lineSpacing;
-    }
-    if (_theme.linear && !any(truncated, candidateCount)) {
-      _documentRect.size.width -= _theme.fullWidth;
-    }
-    _candidatesRect.size = _documentRect.size;
-    _documentRect.size.width += _theme.fullWidth;
-    if (hasPreedit) {
-      _candidatesRect.origin.y = NSMaxY(_preeditRect) + _theme.preeditSpacing;
-      _contentRect = NSUnionRect(_preeditRect, _candidatesRect);
-    } else {
-      _contentRect = _candidatesRect;
-    }
-    if (hasPaging) {
-      _pagingRect = layoutTextView(_pagingView);
-      _pagingRect.origin.y = NSMaxY(_candidatesRect);
-      _contentRect = NSUnionRect(_contentRect, _pagingRect);
-    }
-  } else {
-    return;
-  }
-  // clip candidate block if it has too many lines
-  CGFloat maxHeight =
-      (_theme.vertical ? NSWidth(screen) : NSHeight(screen)) * 0.5 -
-      _theme.borderInsets.height * 2;
-  _clippedHeight = fdim(ceil(NSHeight(_contentRect)), ceil(maxHeight));
-  _contentRect.size.height -= _clippedHeight;
-  _candidatesRect.size.height -= _clippedHeight;
-  _scrollView.verticalScroller.knobProportion =
-      NSHeight(_candidatesRect) / NSHeight(_documentRect);
-}
-
-// Get the rectangle containing entire contents
-- (void)layoutContents {
-  NSPoint origin =
-      NSMakePoint(_theme.borderInsets.width, _theme.borderInsets.height);
-  if (!_statusView.hidden) {  // status
-    _contentRect.origin =
-        NSMakePoint(origin.x + ceil(_theme.fullWidth * 0.5), origin.y);
-    return;
-  }
-  if (!_preeditView.hidden) {
-    _preeditRect = layoutTextView(_preeditView);
-    _preeditRect.size.width += _theme.fullWidth;
-    _preeditRect.origin = origin;
-    _contentRect = _preeditRect;
-  }
-  if (!_scrollView.hidden) {
-    _candidatesRect.size.width = NSWidth(_documentRect);
-    _candidatesRect.size.height = NSHeight(_documentRect) - _clippedHeight;
-    if (!_preeditView.hidden) {
-      _candidatesRect.origin.x = origin.x;
-      _candidatesRect.origin.y = NSMaxY(_preeditRect) + _theme.preeditSpacing;
-      _contentRect = NSUnionRect(_preeditRect, _candidatesRect);
-    } else {
-      _candidatesRect.origin = origin;
-      _contentRect = _candidatesRect;
-    }
-    if (!_pagingView.hidden) {
-      _pagingRect = layoutTextView(_pagingView);
-      _pagingRect.size.width += _theme.fullWidth;
-      _pagingRect.origin.x = origin.x;
-      _pagingRect.origin.y = NSMaxY(_candidatesRect);
-      _contentRect = NSUnionRect(_contentRect, _pagingRect);
-    }
-  }
-  _contentRect.size.width -= _theme.fullWidth;
-  _contentRect.origin.x += ceil(_theme.fullWidth * 0.5);
+  return NSIntegralRectWithOptions(
+      rect, NSAlignMinXNearest | NSAlignMinYNearest | NSAlignWidthOutward |
+                NSAlignHeightOutward);
 }
 
 // Get the rectangle containing the range of text
-- (NSRect)blockRectForRange:(NSRange)charRange inView:(NSTextView*)view {
+- (NSRect)blockRectForRange:(NSRange)charRange {
   if (charRange.location == NSNotFound) {
     return NSZeroRect;
   }
   if (@available(macOS 12.0, *)) {
-    SquirrelTextLayoutManager* layoutManager =
-        (SquirrelTextLayoutManager*)view.textLayoutManager;
-    NSTextRange* textRange = [self textRangeFromCharRange:charRange
-                                                   inView:view];
+    NSTextRange* textRange = [self textRangeFromCharRange:charRange];
     NSRect __block firstLineRect = NSZeroRect;
     NSRect __block finalLineRect = NSZeroRect;
-    [layoutManager
+    [self.textLayoutManager
         enumerateTextSegmentsInRange:textRange
                                 type:NSTextLayoutManagerSegmentTypeStandard
                              options:
@@ -2908,7 +2509,7 @@ static BOOL any(BOOL* array, NSUInteger count) {
                             if (!CGRectIsEmpty(segFrame)) {
                               if (NSIsEmptyRect(firstLineRect) ||
                                   CGRectGetMinY(segFrame) <
-                                      NSMaxY(firstLineRect)) {
+                                      NSMaxY(firstLineRect) - 0.1) {
                                 firstLineRect =
                                     NSUnionRect(segFrame, firstLineRect);
                               } else {
@@ -2919,48 +2520,46 @@ static BOOL any(BOOL* array, NSUInteger count) {
                             return YES;
                           }];
 
-    CGFloat lineSpacing = layoutManager.contentBlock == kLinearCandidatesBlock
-                              ? _theme.lineSpacing
-                              : 0.0;
-    if (lineSpacing > 0.1) {
-      firstLineRect.size.height += lineSpacing;
+    if (_contentBlock == kLinearCandidatesBlock &&
+        self.defaultParagraphStyle.lineSpacing > 0.1) {
+      firstLineRect.size.height += self.defaultParagraphStyle.lineSpacing;
       if (!NSIsEmptyRect(finalLineRect))
-        finalLineRect.size.height += lineSpacing;
+        finalLineRect.size.height += self.defaultParagraphStyle.lineSpacing;
     }
 
     if (NSIsEmptyRect(finalLineRect)) {
       return firstLineRect;
     } else {
       CGFloat containerWidth =
-          NSWidth(layoutManager.usageBoundsForTextContainer);
+          NSWidth(self.textLayoutManager.usageBoundsForTextContainer);
       return NSMakeRect(0.0, NSMinY(firstLineRect), containerWidth,
                         NSMaxY(finalLineRect) - NSMinY(firstLineRect));
     }
   } else {
     NSRange glyphRange =
-        [view.layoutManager glyphRangeForCharacterRange:charRange
+        [self.layoutManager glyphRangeForCharacterRange:charRange
                                    actualCharacterRange:NULL];
     NSRange firstLineRange = NSMakeRange(NSNotFound, 0);
-    NSRect firstLineRect = [view.layoutManager
+    NSRect firstLineRect = [self.layoutManager
         lineFragmentUsedRectForGlyphAtIndex:glyphRange.location
                              effectiveRange:&firstLineRange];
     if (NSMaxRange(glyphRange) <= NSMaxRange(firstLineRange)) {
       CGFloat leading =
-          [view.layoutManager locationForGlyphAtIndex:glyphRange.location].x;
+          [self.layoutManager locationForGlyphAtIndex:glyphRange.location].x;
       CGFloat trailing =
           NSMaxRange(glyphRange) < NSMaxRange(firstLineRange)
-              ? [view.layoutManager
+              ? [self.layoutManager
                     locationForGlyphAtIndex:NSMaxRange(glyphRange)]
                     .x
               : NSMaxX(firstLineRect);
       return NSMakeRect(NSMinX(firstLineRect) + leading, NSMinY(firstLineRect),
                         trailing - leading, NSHeight(firstLineRect));
     } else {
-      NSRect finalLineRect = [view.layoutManager
+      NSRect finalLineRect = [self.layoutManager
           lineFragmentUsedRectForGlyphAtIndex:NSMaxRange(glyphRange) - 1
                                effectiveRange:NULL];
       CGFloat containerWidth = NSWidth(
-          [view.layoutManager usedRectForTextContainer:view.textContainer]);
+          [self.layoutManager usedRectForTextContainer:self.textContainer]);
       return NSMakeRect(0.0, NSMinY(firstLineRect), containerWidth,
                         NSMaxY(finalLineRect) - NSMinY(firstLineRect));
     }
@@ -2968,25 +2567,21 @@ static BOOL any(BOOL* array, NSUInteger count) {
 }
 
 /* Calculate 3 rectangles encloding the text in range. TextPolygon.head & .tail
-   are incomplete line fragments TextPolygon.body is the complete line fragment
-   in the middle if the range spans no less than one full line */
-- (SquirrelTextPolygon)textPolygonForRange:(NSRange)charRange
-                                    inView:(NSTextView*)view {
+ are incomplete line fragments TextPolygon.body is the complete line fragment in
+ the middle if the range spans no less than one full line */
+- (SquirrelTextPolygon)textPolygonForRange:(NSRange)charRange {
   SquirrelTextPolygon textPolygon = {
       .head = NSZeroRect, .body = NSZeroRect, .tail = NSZeroRect};
   if (charRange.location == NSNotFound) {
     return textPolygon;
   }
   if (@available(macOS 12.0, *)) {
-    SquirrelTextLayoutManager* layoutManager =
-        (SquirrelTextLayoutManager*)view.textLayoutManager;
-    NSTextRange* textRange = [self textRangeFromCharRange:charRange
-                                                   inView:view];
+    NSTextRange* textRange = [self textRangeFromCharRange:charRange];
     NSRect __block headLineRect = NSZeroRect;
     NSRect __block tailLineRect = NSZeroRect;
     NSTextRange* __block headLineRange;
     NSTextRange* __block tailLineRange;
-    [layoutManager
+    [self.textLayoutManager
         enumerateTextSegmentsInRange:textRange
                                 type:NSTextLayoutManagerSegmentTypeStandard
                              options:
@@ -2998,7 +2593,7 @@ static BOOL any(BOOL* array, NSUInteger count) {
                             if (!CGRectIsEmpty(segFrame)) {
                               if (NSIsEmptyRect(headLineRect) ||
                                   CGRectGetMinY(segFrame) <
-                                      NSMaxY(headLineRect)) {
+                                      NSMaxY(headLineRect) - 0.1) {
                                 headLineRect =
                                     NSUnionRect(segFrame, headLineRect);
                                 headLineRange = [headLineRange
@@ -3014,20 +2609,18 @@ static BOOL any(BOOL* array, NSUInteger count) {
                             }
                             return YES;
                           }];
-    CGFloat lineSpacing = layoutManager.contentBlock == kLinearCandidatesBlock
-                              ? _theme.lineSpacing
-                              : 0.0;
-    if (lineSpacing > 0.1) {
-      headLineRect.size.height += lineSpacing;
+    if (_contentBlock == kLinearCandidatesBlock &&
+        self.defaultParagraphStyle.lineSpacing > 0.1) {
+      headLineRect.size.height += self.defaultParagraphStyle.lineSpacing;
       if (!NSIsEmptyRect(tailLineRect))
-        tailLineRect.size.height += lineSpacing;
+        tailLineRect.size.height += self.defaultParagraphStyle.lineSpacing;
     }
 
     if (NSIsEmptyRect(tailLineRect)) {
       textPolygon.body = headLineRect;
     } else {
       CGFloat containerWidth =
-          NSWidth(layoutManager.usageBoundsForTextContainer);
+          NSWidth(self.textLayoutManager.usageBoundsForTextContainer);
       headLineRect.size.width = containerWidth - NSMinX(headLineRect);
       if (fabs(NSMaxX(tailLineRect) - NSMaxX(headLineRect)) < 1) {
         if (fabs(NSMinX(headLineRect) - NSMinX(tailLineRect)) < 1) {
@@ -3055,18 +2648,18 @@ static BOOL any(BOOL* array, NSUInteger count) {
     }
   } else {
     NSRange glyphRange =
-        [view.layoutManager glyphRangeForCharacterRange:charRange
+        [self.layoutManager glyphRangeForCharacterRange:charRange
                                    actualCharacterRange:NULL];
     NSRange headLineRange = NSMakeRange(NSNotFound, 0);
-    NSRect headLineRect = [view.layoutManager
+    NSRect headLineRect = [self.layoutManager
         lineFragmentUsedRectForGlyphAtIndex:glyphRange.location
                              effectiveRange:&headLineRange];
     CGFloat leading =
-        [view.layoutManager locationForGlyphAtIndex:glyphRange.location].x;
+        [self.layoutManager locationForGlyphAtIndex:glyphRange.location].x;
     if (NSMaxRange(headLineRange) >= NSMaxRange(glyphRange)) {
       CGFloat trailing =
           NSMaxRange(glyphRange) < NSMaxRange(headLineRange)
-              ? [view.layoutManager
+              ? [self.layoutManager
                     locationForGlyphAtIndex:NSMaxRange(glyphRange)]
                     .x
               : NSMaxX(headLineRect);
@@ -3074,14 +2667,14 @@ static BOOL any(BOOL* array, NSUInteger count) {
                                     trailing - leading, NSHeight(headLineRect));
     } else {
       CGFloat containerWidth = NSWidth(
-          [view.layoutManager usedRectForTextContainer:view.textContainer]);
+          [self.layoutManager usedRectForTextContainer:self.textContainer]);
       NSRange tailLineRange = NSMakeRange(NSNotFound, 0);
-      NSRect tailLineRect = [view.layoutManager
+      NSRect tailLineRect = [self.layoutManager
           lineFragmentUsedRectForGlyphAtIndex:NSMaxRange(glyphRange) - 1
                                effectiveRange:&tailLineRange];
       CGFloat trailing =
           NSMaxRange(glyphRange) < NSMaxRange(tailLineRange)
-              ? [view.layoutManager
+              ? [self.layoutManager
                     locationForGlyphAtIndex:NSMaxRange(glyphRange)]
                     .x
               : NSMaxX(tailLineRect);
@@ -3118,6 +2711,357 @@ static BOOL any(BOOL* array, NSUInteger count) {
     }
   }
   return textPolygon;
+}
+
+@end  // SquirrelTextView
+
+#pragma mark - View behind text, containing drawings of backgrounds and highlights
+
+__attribute__((objc_direct_members))
+@interface SquirrelView : NSView
+
+@property(nonatomic, readonly, strong, nonnull, class)
+    SquirrelTheme* defaultTheme;
+@property(nonatomic, readonly, strong, nonnull, class)
+    API_AVAILABLE(macosx(10.14)) SquirrelTheme* darkTheme;
+@property(nonatomic, readonly, strong, nonnull) SquirrelTheme* theme;
+@property(nonatomic, readonly, strong, nonnull) SquirrelTextView* textView;
+@property(nonatomic, readonly, strong, nonnull) SquirrelTextView* preeditView;
+@property(nonatomic, readonly, strong, nonnull) SquirrelTextView* pagingView;
+@property(nonatomic, readonly, strong, nonnull) SquirrelTextView* statusView;
+@property(nonatomic, readonly, strong, nonnull) NSScrollView* scrollView;
+@property(nonatomic, readonly, strong, nonnull) NSFlippedView* documentView;
+@property(nonatomic, readonly, strong, nonnull) NSTextStorage* contents;
+@property(nonatomic, readonly, strong, nonnull) NSTextStorage* preeditContents;
+@property(nonatomic, readonly, strong, nonnull) NSTextStorage* pagingContents;
+@property(nonatomic, readonly, strong, nonnull) NSTextStorage* statusContents;
+@property(nonatomic, readonly, strong, nonnull) API_AVAILABLE(macos(10.14))
+    CAShapeLayer* shape;
+@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* backImageLayer;
+@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* backColorLayer;
+@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* borderLayer;
+@property(nonatomic, readonly, strong, nonnull)
+    CAShapeLayer* hilitedPreeditLayer;
+@property(nonatomic, readonly, strong, nonnull)
+    CAShapeLayer* functionButtonLayer;
+@property(nonatomic, readonly, strong, nonnull) CALayer* logoLayer;
+@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* documentLayer;
+@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* activePageLayer;
+@property(nonatomic, readonly, strong, nonnull) CAShapeLayer* gridLayer;
+@property(nonatomic, readonly, strong, nonnull)
+    CAShapeLayer* nonHilitedCandidateLayer;
+@property(nonatomic, readonly, strong, nonnull)
+    CAShapeLayer* hilitedCandidateLayer;
+@property(nonatomic, readonly, nullable) SquirrelTabularIndex* tabularIndices;
+@property(nonatomic, readonly, nullable) SquirrelTextPolygon* candidatePolygons;
+@property(nonatomic, readonly, nullable) NSRectArray sectionRects;
+@property(nonatomic, readonly, nullable)
+    SquirrelCandidateRanges* candidateRanges;
+@property(nonatomic, readonly, nullable) BOOL* truncated;
+@property(nonatomic, readonly) NSRect contentRect;
+@property(nonatomic, readonly) NSRect documentRect;
+@property(nonatomic, readonly) NSRect preeditRect;
+@property(nonatomic, readonly) NSRect candidatesRect;
+@property(nonatomic, readonly) NSRect pagingRect;
+@property(nonatomic, readonly) NSRect deleteBackRect;
+@property(nonatomic, readonly) NSRect expanderRect;
+@property(nonatomic, readonly) NSRect pageUpRect;
+@property(nonatomic, readonly) NSRect pageDownRect;
+@property(nonatomic, readonly) CGFloat clippedHeight;
+@property(nonatomic, readonly) SquirrelStyle style;
+@property(nonatomic, readonly) SquirrelIndex functionButton;
+@property(nonatomic, readonly) NSUInteger candidateCount;
+@property(nonatomic, readonly) NSUInteger hilitedCandidate;
+@property(nonatomic, readonly) NSRange hilitedPreeditRange;
+@property(nonatomic) BOOL expanded;
+
+- (void)updateColors;
+- (void)estimateBoundsOnScreen:(NSRect)screen
+                   withPreedit:(BOOL)hasPreedit
+                    candidates:(SquirrelCandidateRanges*)candidateRanges
+                    truncation:(BOOL*)truncated
+                         count:(NSUInteger)candidateCount
+                        paging:(BOOL)hasPaging;
+- (void)layoutContents;
+- (void)drawViewWithHilitedCandidate:(NSUInteger)hilitedCandidate
+                 hilitedPreeditRange:(NSRange)hilitedPreeditRange;
+- (void)setHilitedPreeditRange:(NSRange)hilitedPreeditRange;
+- (void)highlightCandidate:(NSUInteger)hilitedCandidate;
+- (void)highlightFunctionButton:(SquirrelIndex)functionButton;
+- (SquirrelIndex)getIndexFromMouseSpot:(NSPoint)spot;
+
+@end
+
+@implementation SquirrelView
+
+static SquirrelTheme* _defaultTheme =
+    [SquirrelTheme.alloc initWithStyle:kDefaultStyle];
+static SquirrelTheme* _darkTheme API_AVAILABLE(macos(10.14)) =
+    [SquirrelTheme.alloc initWithStyle:kDarkStyle];
+
+// Need flipped coordinate system, consistent with textView and textContainer
+- (BOOL)isFlipped {
+  return YES;
+}
+
+- (BOOL)wantsUpdateLayer {
+  return YES;
+}
+
+- (void)setStyle:(SquirrelStyle)style {
+  if (@available(macOS 10.14, *)) {
+    if (_style != style) {
+      _style = style;
+      [self setValue:style == kDarkStyle ? _darkTheme : _defaultTheme
+              forKey:@"theme"];
+      [self setValue:style == kDarkStyle ? @(NSScrollerKnobStyleLight)
+                                         : @(NSScrollerKnobStyleDark)
+          forKeyPath:@"scrollView.scrollerKnobStyle"];
+      [self updateColors];
+    }
+  }
+}
+
++ (SquirrelTheme*)defaultTheme {
+  return _defaultTheme;
+}
+
++ (SquirrelTheme*)darkTheme API_AVAILABLE(macos(10.14)) {
+  return _darkTheme;
+}
+
+- (instancetype)init {
+  if (self = [super init]) {
+    _textView =
+        [SquirrelTextView.alloc initWithContentBlock:kStackedCandidatesBlock
+                                             storage:&_contents];
+    _preeditView =
+        [SquirrelTextView.alloc initWithContentBlock:kPreeditBlock
+                                             storage:&_preeditContents];
+    _pagingView =
+        [SquirrelTextView.alloc initWithContentBlock:kPagingBlock
+                                             storage:&_pagingContents];
+    _statusView =
+        [SquirrelTextView.alloc initWithContentBlock:kStatusBlock
+                                             storage:&_statusContents];
+
+    _documentView = NSFlippedView.alloc.init;
+    _documentView.wantsLayer = YES;
+    _documentView.layer.geometryFlipped = YES;
+    _documentView.layerContentsRedrawPolicy =
+        NSViewLayerContentsRedrawOnSetNeedsDisplay;
+    _documentView.autoresizesSubviews = NO;
+    [_documentView addSubview:_textView];
+    _scrollView = NSScrollView.alloc.init;
+    _scrollView.documentView = _documentView;
+    _scrollView.drawsBackground = NO;
+    _scrollView.automaticallyAdjustsContentInsets = NO;
+    _scrollView.hasVerticalScroller = YES;
+    _scrollView.scrollerStyle = NSScrollerStyleOverlay;
+    _scrollView.scrollerKnobStyle = NSScrollerKnobStyleDark;
+
+    _style = kDefaultStyle;
+    _theme = _defaultTheme;
+    if (@available(macOS 10.14, *)) {
+      _shape = CAShapeLayer.alloc.init;
+      _shape.fillColor = CGColorGetConstantColor(kCGColorWhite);
+    }
+    self.wantsLayer = YES;
+    self.layer.geometryFlipped = YES;
+    self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawOnSetNeedsDisplay;
+    self.layer.actions = @{@"bounds" : NSNull.null};
+
+    _backImageLayer = CAShapeLayer.alloc.init;
+    _backColorLayer = CAShapeLayer.alloc.init;
+    _backImageLayer.actions = @{@"affineTransform" : NSNull.null};
+    _backColorLayer.fillRule = kCAFillRuleEvenOdd;
+    [self.layer addSublayer:_backImageLayer];
+    [self.layer addSublayer:_backColorLayer];
+
+    _hilitedPreeditLayer = CAShapeLayer.alloc.init;
+    _functionButtonLayer = CAShapeLayer.alloc.init;
+    _logoLayer = CALayer.alloc.init;
+    _borderLayer = CAShapeLayer.alloc.init;
+    _logoLayer.actions = @{@"affineTransform" : NSNull.null};
+    _borderLayer.fillRule = kCAFillRuleEvenOdd;
+    [self.layer addSublayer:_hilitedPreeditLayer];
+    [self.layer addSublayer:_functionButtonLayer];
+    [self.layer addSublayer:_logoLayer];
+    [self.layer addSublayer:_borderLayer];
+
+    _documentLayer = CAShapeLayer.alloc.init;
+    _activePageLayer = CAShapeLayer.alloc.init;
+    _gridLayer = CAShapeLayer.alloc.init;
+    _nonHilitedCandidateLayer = CAShapeLayer.alloc.init;
+    _hilitedCandidateLayer = CAShapeLayer.alloc.init;
+    _documentLayer.fillRule = kCAFillRuleEvenOdd;
+    _documentLayer.allowsGroupOpacity = YES;
+    _activePageLayer.fillRule = kCAFillRuleEvenOdd;
+    _gridLayer.lineWidth = 1.0;
+    [_documentView.layer addSublayer:_documentLayer];
+    [_documentLayer addSublayer:_activePageLayer];
+    [_documentView.layer addSublayer:_gridLayer];
+    [_documentView.layer addSublayer:_nonHilitedCandidateLayer];
+    [_documentView.layer addSublayer:_hilitedCandidateLayer];
+  }
+  return self;
+}
+
+- (void)updateColors {
+  _backColorLayer.fillColor =
+      (_theme.preeditBackColor ?: _theme.backColor).CGColor;
+  _borderLayer.fillColor = (_theme.borderColor ?: _theme.backColor).CGColor;
+  _documentLayer.fillColor = _theme.backColor.CGColor;
+  if (_theme.backImage.valid) {
+    _backImageLayer.fillColor =
+        [NSColor colorWithPatternImage:_theme.backImage].CGColor;
+    _backImageLayer.hidden = NO;
+  } else {
+    _backImageLayer.hidden = YES;
+  }
+  if (_theme.hilitedPreeditBackColor != nil) {
+    _hilitedPreeditLayer.fillColor = _theme.hilitedPreeditBackColor.CGColor;
+  } else {
+    _hilitedPreeditLayer.hidden = YES;
+  }
+  if (_theme.candidateBackColor != nil) {
+    _nonHilitedCandidateLayer.fillColor = _theme.candidateBackColor.CGColor;
+  } else {
+    _nonHilitedCandidateLayer.hidden = YES;
+  }
+  if (_theme.hilitedCandidateBackColor != nil) {
+    _hilitedCandidateLayer.fillColor = _theme.hilitedCandidateBackColor.CGColor;
+    if (_theme.shadowSize > 0.1) {
+      _hilitedCandidateLayer.shadowOffset =
+          CGSizeMake(_theme.shadowSize, _theme.shadowSize);
+      _hilitedCandidateLayer.shadowOpacity = 1.0;
+    } else {
+      _hilitedCandidateLayer.shadowOpacity = 0.0;
+    }
+  } else {
+    _hilitedCandidateLayer.hidden = YES;
+  }
+  if (_theme.tabular) {
+    _activePageLayer.fillColor = _theme.backColor.hooverColor.CGColor;
+    _gridLayer.strokeColor =
+        [_theme.commentForeColor blendedColorWithFraction:0.8
+                                                  ofColor:_theme.backColor]
+            .CGColor;
+  } else {
+    _activePageLayer.hidden = YES;
+    _gridLayer.hidden = YES;
+  }
+}
+
+static BOOL any(BOOL* array, NSUInteger count) {
+  for (NSUInteger i = 0; i < count; ++i) {
+    if (array[i])
+      return YES;
+  }
+  return NO;
+}
+
+- (void)estimateBoundsOnScreen:(NSRect)screen
+                   withPreedit:(BOOL)hasPreedit
+                    candidates:(SquirrelCandidateRanges*)candidateRanges
+                    truncation:(BOOL*)truncated
+                         count:(NSUInteger)candidateCount
+                        paging:(BOOL)hasPaging {
+  _candidateRanges = candidateRanges;
+  _truncated = truncated;
+  _candidateCount = candidateCount;
+  _preeditView.hidden = !hasPreedit;
+  _scrollView.hidden = candidateCount == 0;
+  _pagingView.hidden = !hasPaging;
+  _statusView.hidden = hasPreedit || candidateCount > 0;
+
+  // layout textviews and get their sizes
+  _preeditRect = NSZeroRect;
+  _documentRect = NSZeroRect;  // in textView's own coordinates
+  _candidatesRect = NSZeroRect;
+  _pagingRect = NSZeroRect;
+  _clippedHeight = 0.0;
+  if (!hasPreedit && candidateCount == 0) {  // status
+    _contentRect = _statusView.layoutText;
+    return;
+  }
+  if (hasPreedit) {
+    _preeditRect = _preeditView.layoutText;
+    _contentRect = _preeditRect;
+  }
+  if (candidateCount > 0) {
+    _documentRect = _textView.layoutText;
+    if (@available(macOS 12.0, *)) {
+      _documentRect.size.height += _theme.lineSpacing;
+    } else {
+      _documentRect.size.height += _theme.linear ? 0.0 : _theme.lineSpacing;
+    }
+    if (_theme.linear && !any(truncated, candidateCount)) {
+      _documentRect.size.width -= _theme.fullWidth;
+    }
+    _candidatesRect.size = _documentRect.size;
+    _documentRect.size.width += _theme.fullWidth;
+    if (hasPreedit) {
+      _candidatesRect.origin.y = NSMaxY(_preeditRect) + _theme.preeditSpacing;
+      _contentRect = NSUnionRect(_preeditRect, _candidatesRect);
+    } else {
+      _contentRect = _candidatesRect;
+    }
+    if (hasPaging) {
+      _pagingRect = _pagingView.layoutText;
+      _pagingRect.origin.y = NSMaxY(_candidatesRect);
+      _contentRect = NSUnionRect(_contentRect, _pagingRect);
+    }
+  } else {
+    return;
+  }
+  // clip candidate block if it has too many lines
+  CGFloat maxHeight =
+      (_theme.vertical ? NSWidth(screen) : NSHeight(screen)) * 0.5 -
+      _theme.borderInsets.height * 2;
+  _clippedHeight = fdim(ceil(NSHeight(_contentRect)), ceil(maxHeight));
+  _contentRect.size.height -= _clippedHeight;
+  _candidatesRect.size.height -= _clippedHeight;
+  _scrollView.verticalScroller.knobProportion =
+      NSHeight(_candidatesRect) / NSHeight(_documentRect);
+}
+
+// Get the rectangle containing entire contents
+- (void)layoutContents {
+  NSPoint origin =
+      NSMakePoint(_theme.borderInsets.width, _theme.borderInsets.height);
+  if (!_statusView.hidden) {  // status
+    _contentRect.origin =
+        NSMakePoint(origin.x + ceil(_theme.fullWidth * 0.5), origin.y);
+    return;
+  }
+  if (!_preeditView.hidden) {
+    _preeditRect = _preeditView.layoutText;
+    _preeditRect.size.width += _theme.fullWidth;
+    _preeditRect.origin = origin;
+    _contentRect = _preeditRect;
+  }
+  if (!_scrollView.hidden) {
+    _candidatesRect.size.width = NSWidth(_documentRect);
+    _candidatesRect.size.height = NSHeight(_documentRect) - _clippedHeight;
+    if (!_preeditView.hidden) {
+      _candidatesRect.origin.x = origin.x;
+      _candidatesRect.origin.y = NSMaxY(_preeditRect) + _theme.preeditSpacing;
+      _contentRect = NSUnionRect(_preeditRect, _candidatesRect);
+    } else {
+      _candidatesRect.origin = origin;
+      _contentRect = _candidatesRect;
+    }
+    if (!_pagingView.hidden) {
+      _pagingRect = _pagingView.layoutText;
+      _pagingRect.size.width += _theme.fullWidth;
+      _pagingRect.origin.x = origin.x;
+      _pagingRect.origin.y = NSMaxY(_candidatesRect);
+      _contentRect = NSUnionRect(_contentRect, _pagingRect);
+    }
+  }
+  _contentRect.size.width -= _theme.fullWidth;
+  _contentRect.origin.x += ceil(_theme.fullWidth * 0.5);
 }
 
 // Will triger `- (void)updateLayer`
@@ -3467,7 +3411,7 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
   return path;
 }
 
-- (void)updateFunctionButtonLayer {
+- (NSBezierPath*)updateFunctionButtonLayer {
   NSColor* buttonColor;
   NSRect buttonRect = NSZeroRect;
   switch (_functionButton) {
@@ -3511,8 +3455,10 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
     _functionButtonLayer.path = buttonPath.quartzPath;
     _functionButtonLayer.fillColor = buttonColor.CGColor;
     _functionButtonLayer.hidden = NO;
+    return buttonPath;
   } else {
     _functionButtonLayer.hidden = YES;
+    return nil;
   }
 }
 
@@ -3523,6 +3469,9 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
                                       _theme.borderInsets.height);
   backgroundRect = [self backingAlignedRect:backgroundRect
                                     options:NSAlignAllEdgesNearest];
+  CGFloat hilitedCornerRadius =
+      fmin(_theme.hilitedCornerRadius,
+           _theme.candidateParagraphStyle.minimumLineHeight * 0.5);
 
   /*** Preedit Rects **/
   _deleteBackRect = NSZeroRect;
@@ -3542,7 +3491,7 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
       innerBox = [self backingAlignedRect:innerBox
                                   options:NSAlignAllEdgesNearest];
       SquirrelTextPolygon textPolygon =
-          [self textPolygonForRange:_hilitedPreeditRange inView:_preeditView];
+          [_preeditView textPolygonForRange:_hilitedPreeditRange];
       if (!NSIsEmptyRect(textPolygon.head)) {
         textPolygon.head.origin.x +=
             _theme.borderInsets.width + ceil(_theme.fullWidth * 0.5) - padding;
@@ -3577,14 +3526,10 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
             backingAlignedRect:NSIntersectionRect(textPolygon.tail, innerBox)
                        options:NSAlignAllEdgesNearest];
       }
-      CGFloat cornerRadius =
-          fmin(_theme.hilitedCornerRadius,
-               _theme.preeditParagraphStyle.minimumLineHeight * 0.5);
-      hilitedPreeditPath = squirclePath(textPolygon, cornerRadius);
+      hilitedPreeditPath = squirclePath(textPolygon, hilitedCornerRadius);
     }
-    _deleteBackRect =
-        [self blockRectForRange:NSMakeRange(_preeditContents.length - 1, 1)
-                         inView:_preeditView];
+    _deleteBackRect = [_preeditView
+        blockRectForRange:NSMakeRange(_preeditContents.length - 1, 1)];
     _deleteBackRect.size.width += _theme.fullWidth;
     _deleteBackRect.origin.x =
         NSMaxX(backgroundRect) - NSWidth(_deleteBackRect);
@@ -3610,10 +3555,8 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
     _documentRect.size.width = NSWidth(backgroundRect);
     _documentRect = [_documentView backingAlignedRect:_documentRect
                                               options:NSAlignAllEdgesNearest];
-    CGFloat blockCornerRadius =
-        fmin(_theme.hilitedCornerRadius, NSHeight(_candidatesRect) * 0.5);
-    candidatesPath = squirclePath(_candidatesRect, blockCornerRadius);
-    documentPath = squirclePath(_documentRect, blockCornerRadius);
+    candidatesPath = squirclePath(_candidatesRect, hilitedCornerRadius);
+    documentPath = squirclePath(_documentRect, hilitedCornerRadius);
     // Store candidate enclosing polygons and draw the ones highlighted
     _candidatePolygons = new SquirrelTextPolygon[_candidateCount];
     if (_theme.linear) {  // linear layout
@@ -3630,9 +3573,8 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
         sectionRect.size.height = 0;
       }
       for (NSUInteger i = 0; i < _candidateCount; ++i) {
-        SquirrelTextPolygon candidatePolygon =
-            [self textPolygonForRange:_candidateRanges[i].candidateRange()
-                               inView:_textView];
+        SquirrelTextPolygon candidatePolygon = [_textView
+            textPolygonForRange:_candidateRanges[i].candidateRange()];
         if (!NSIsEmptyRect(candidatePolygon.head)) {
           candidatePolygon.head.size.width += _theme.fullWidth;
           candidatePolygon.head = [_documentView
@@ -3708,8 +3650,7 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
     } else {  // stacked layout
       for (NSUInteger i = 0; i < _candidateCount; ++i) {
         NSRect candidateRect =
-            [self blockRectForRange:_candidateRanges[i].candidateRange()
-                             inView:_textView];
+            [_textView blockRectForRange:_candidateRanges[i].candidateRange()];
         candidateRect.size.width = NSWidth(_documentRect);
         candidateRect.size.height += _theme.lineSpacing;
         candidateRect = [_documentView
@@ -3735,11 +3676,9 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
         [self backingAlignedRect:NSIntersectionRect(_pagingRect, backgroundRect)
                          options:NSAlignAllEdgesNearest];
     if (_theme.showPaging) {
-      _pageUpRect = [self blockRectForRange:NSMakeRange(0, 1)
-                                     inView:_pagingView];
-      _pageDownRect =
-          [self blockRectForRange:NSMakeRange(_pagingContents.length - 1, 1)
-                           inView:_pagingView];
+      _pageUpRect = [_pagingView blockRectForRange:NSMakeRange(0, 1)];
+      _pageDownRect = [_pagingView
+          blockRectForRange:NSMakeRange(_pagingContents.length - 1, 1)];
       _pageDownRect.origin.x += NSMinX(_pagingRect);
       _pageDownRect.size.width += _theme.fullWidth;
       _pageDownRect.origin.y += NSMinY(_pagingRect);
@@ -3755,9 +3694,8 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
                      options:NSAlignAllEdgesNearest];
     }
     if (_theme.tabular) {
-      _expanderRect =
-          [self blockRectForRange:NSMakeRange(_pagingContents.length / 2, 1)
-                           inView:_pagingView];
+      _expanderRect = [_pagingView
+          blockRectForRange:NSMakeRange(_pagingContents.length / 2, 1)];
       _expanderRect.origin.x += NSMinX(_pagingRect);
       _expanderRect.size.width += _theme.fullWidth;
       _expanderRect.origin.y += NSMinY(_pagingRect);
@@ -3805,10 +3743,95 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
 
   /*** Draw into layers ***/
   _shape.path = shapePath.quartzPath;
-  // BackLayers: large background elements
-  ((CAShapeLayer*)_BackLayers.mask).path = panelPath.quartzPath;
+  // highlighted preedit layer
+  if (hilitedPreeditPath != nil && _theme.hilitedPreeditBackColor != nil) {
+    _hilitedPreeditLayer.path = hilitedPreeditPath.quartzPath;
+    _hilitedPreeditLayer.hidden = NO;
+  } else {
+    _hilitedPreeditLayer.hidden = YES;
+  }
+  // highlighted candidate layer
+  if (!_scrollView.hidden) {
+    NSBezierPath* activePagePath;
+    BOOL expanded = _candidateCount > _theme.pageSize;
+    if (expanded) {
+      NSRect activePageRect =
+          _sectionRects[_hilitedCandidate / _theme.pageSize];
+      activePagePath = squirclePath(activePageRect, hilitedCornerRadius);
+      [documentPath appendBezierPath:activePagePath];
+    }
+    if (_theme.candidateBackColor != nil) {
+      NSBezierPath* nonHilitedCandidatePath = NSBezierPath.bezierPath;
+      BOOL stackColors = _theme.stackColors &&
+                         _theme.candidateBackColor.alphaComponent < 0.999;
+      for (NSUInteger i = 0; i < _candidateCount; ++i) {
+        if (i != _hilitedCandidate) {
+          NSBezierPath* candidatePath =
+              _theme.linear
+                  ? squirclePath(_candidatePolygons[i], hilitedCornerRadius)
+                  : squirclePath(_candidatePolygons[i].body,
+                                 hilitedCornerRadius);
+          [nonHilitedCandidatePath appendBezierPath:candidatePath];
+          if (stackColors)
+            [(expanded &&
+                      i / _theme.pageSize == _hilitedCandidate / _theme.pageSize
+                  ? activePagePath
+                  : documentPath) appendBezierPath:candidatePath];
+        }
+      }
+      _nonHilitedCandidateLayer.path = nonHilitedCandidatePath.quartzPath;
+      _nonHilitedCandidateLayer.hidden = NO;
+    } else {
+      _nonHilitedCandidateLayer.hidden = YES;
+    }
+    if (_hilitedCandidate != NSNotFound &&
+        _theme.hilitedCandidateBackColor != nil) {
+      NSBezierPath* hilitedCandidatePath =
+          _theme.linear
+              ? squirclePath(_candidatePolygons[_hilitedCandidate],
+                             hilitedCornerRadius)
+              : squirclePath(_candidatePolygons[_hilitedCandidate].body,
+                             hilitedCornerRadius);
+      if (_theme.stackColors &&
+          _theme.hilitedCandidateBackColor.alphaComponent < 0.999)
+        [(expanded ? activePagePath
+                   : documentPath) appendBezierPath:hilitedCandidatePath];
+      _hilitedCandidateLayer.path = hilitedCandidatePath.quartzPath;
+      _hilitedCandidateLayer.hidden = NO;
+    } else {
+      _hilitedCandidateLayer.hidden = YES;
+    }
+    if (expanded) {
+      _activePageLayer.path = activePagePath.quartzPath;
+      _activePageLayer.hidden = NO;
+    } else {
+      _activePageLayer.hidden = YES;
+    }
+    _documentLayer.path = documentPath.quartzPath;
+    if (gridPath != nil) {
+      _gridLayer.path = gridPath.quartzPath;
+      _gridLayer.hidden = NO;
+    } else {
+      _gridLayer.hidden = YES;
+    }
+  }
+  // function buttons (page up, page down, backspace) layer
+  NSBezierPath* functionButtonPath;
+  if (_functionButton != kVoidSymbol) {
+    functionButtonPath = [self updateFunctionButtonLayer];
+  } else {
+    _functionButtonLayer.hidden = YES;
+  }
+  // logo at the beginning for status message
+  if (!_statusView.hidden) {
+    _logoLayer.contentsScale = [_logoLayer.contents
+        recommendedLayerContentsScale:self.window.backingScaleFactor];
+    _logoLayer.hidden = NO;
+  } else {
+    _logoLayer.hidden = YES;
+  }
+  // background image (pattern style) layer
   if (_theme.backImage != nil) {
-    // background image (pattern style) layer
     CGAffineTransform transform = _theme.vertical
                                       ? CGAffineTransformMakeRotation(M_PI_2)
                                       : CGAffineTransformIdentity;
@@ -3824,6 +3847,13 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
     if (candidatesPath != nil) {
       NSBezierPath* nonCandidatePath = backgroundPath.copy;
       [nonCandidatePath appendBezierPath:candidatesPath];
+      if (_theme.stackColors && _theme.hilitedPreeditBackColor != nil &&
+          _theme.hilitedPreeditBackColor.alphaComponent < 0.999) {
+        if (hilitedPreeditPath != nil)
+          [nonCandidatePath appendBezierPath:hilitedPreeditPath];
+        if (functionButtonPath != nil)
+          [nonCandidatePath appendBezierPath:functionButtonPath];
+      }
       _backColorLayer.path = nonCandidatePath.quartzPath;
     } else {
       _backColorLayer.path = backgroundPath.quartzPath;
@@ -3834,86 +3864,6 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
   }
   // border layer
   _borderLayer.path = borderPath.quartzPath;
-  // ForeLayers: small highlighting elements
-  ((CAShapeLayer*)_ForeLayers.mask).path = backgroundPath.quartzPath;
-  // highlighted preedit layer
-  if (hilitedPreeditPath != nil && _theme.hilitedPreeditBackColor != nil) {
-    _hilitedPreeditLayer.path = hilitedPreeditPath.quartzPath;
-    _hilitedPreeditLayer.hidden = NO;
-  } else {
-    _hilitedPreeditLayer.hidden = YES;
-  }
-  // highlighted candidate layer
-  if (!_scrollView.hidden) {
-    if (_candidateCount > _theme.pageSize) {
-      NSRect activePageRect =
-          _sectionRects[_hilitedCandidate / _theme.pageSize];
-      CGFloat pageCornerRadius =
-          fmin(_theme.hilitedCornerRadius, NSHeight(activePageRect) * 0.5);
-      NSBezierPath* activePagePath =
-          squirclePath(activePageRect, pageCornerRadius);
-      NSBezierPath* nonActivePagesPath = documentPath.copy;
-      [nonActivePagesPath appendBezierPath:activePagePath];
-      _documentLayer.path = nonActivePagesPath.quartzPath;
-      _activePageLayer.path = activePagePath.quartzPath;
-      _activePageLayer.hidden = NO;
-    } else {
-      _activePageLayer.hidden = YES;
-      _documentLayer.path = documentPath.quartzPath;
-    }
-    if (gridPath != nil) {
-      _gridLayer.path = gridPath.quartzPath;
-      _gridLayer.hidden = NO;
-    } else {
-      _gridLayer.hidden = YES;
-    }
-    CGFloat cornerRadius =
-        fmin(_theme.hilitedCornerRadius,
-             _theme.candidateParagraphStyle.minimumLineHeight * 0.5);
-    if (_theme.candidateBackColor != nil) {
-      NSBezierPath* nonHilitedCandidatePath = NSBezierPath.bezierPath;
-      for (NSUInteger i = 0; i < _candidateCount; ++i) {
-        if (i != _hilitedCandidate)
-          [nonHilitedCandidatePath
-              appendBezierPath:_theme.linear
-                                   ? squirclePath(_candidatePolygons[i],
-                                                  cornerRadius)
-                                   : squirclePath(_candidatePolygons[i].body,
-                                                  cornerRadius)];
-      }
-      _nonHilitedCandidateLayer.path = nonHilitedCandidatePath.quartzPath;
-      _nonHilitedCandidateLayer.hidden = NO;
-    } else {
-      _nonHilitedCandidateLayer.hidden = YES;
-    }
-    if (_hilitedCandidate != NSNotFound &&
-        _theme.hilitedCandidateBackColor != nil) {
-      NSBezierPath* hilitedCandidatePath =
-          _theme.linear
-              ? squirclePath(_candidatePolygons[_hilitedCandidate],
-                             cornerRadius)
-              : squirclePath(_candidatePolygons[_hilitedCandidate].body,
-                             cornerRadius);
-      _hilitedCandidateLayer.path = hilitedCandidatePath.quartzPath;
-      _hilitedCandidateLayer.hidden = NO;
-    } else {
-      _hilitedCandidateLayer.hidden = YES;
-    }
-  }
-  // function buttons (page up, page down, backspace) layer
-  if (_functionButton != kVoidSymbol) {
-    [self updateFunctionButtonLayer];
-  } else {
-    _functionButtonLayer.hidden = YES;
-  }
-  // logo at the beginning for status message
-  if (!_statusView.hidden) {
-    _logoLayer.contentsScale = [_logoLayer.contents
-        recommendedLayerContentsScale:self.window.backingScaleFactor];
-    _logoLayer.hidden = NO;
-  } else {
-    _logoLayer.hidden = YES;
-  }
 }
 
 - (SquirrelIndex)getIndexFromMouseSpot:(NSPoint)spot {
@@ -4007,10 +3957,10 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
                                  contentSize.width, contentSize.height);
 
   NSRect screenRect = panel.screen.visibleFrame;
-  if (NSMaxX(windowRect) > NSMaxX(screenRect)) {
+  if (NSMaxX(windowRect) > NSMaxX(screenRect) - 0.1) {
     windowRect.origin.x = NSMaxX(screenRect) - NSWidth(windowRect);
   }
-  if (NSMinY(windowRect) < NSMinY(screenRect)) {
+  if (NSMinY(windowRect) < NSMinY(screenRect) + 0.1) {
     windowRect.origin.y = NSMinY(screenRect);
   }
   [self setFrame:[panel.screen backingAlignedRect:windowRect
@@ -4078,7 +4028,7 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
   SquirrelView* _view;
   NSScreen* _screen;
   NSTimer* _statusTimer;
-  NSSize _maxSize;
+  NSSize _maxSizeAttained;
   CGFloat _textWidthLimit;
   CGFloat _anchorOffset;
   BOOL _initPosition;
@@ -4147,10 +4097,10 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
   if (_view.theme.tabular) {
     SquirrelConfig* userConfig = SquirrelConfig.alloc.init;
     if ([userConfig openUserConfig:@"user"]) {
-      _locked = [userConfig getBoolForOption:@"var/option/_lock_tabular"];
+      _locked = [userConfig boolValueForOption:@"var/option/_lock_tabular"];
       if (_locked) {
         _view.expanded =
-            [userConfig getBoolForOption:@"var/option/_expand_tabular"];
+            [userConfig boolValueForOption:@"var/option/_expand_tabular"];
       }
     }
     [userConfig close];
@@ -4189,12 +4139,11 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
           [clientAppearance bestMatchFromAppearancesWithNames:@[
             NSAppearanceNameAqua, NSAppearanceNameDarkAqua
           ]];
-      SquirrelAppearance appear =
-          [appearName isEqualToString:NSAppearanceNameDarkAqua]
-              ? kDarkAppearance
-              : kDefaultAppearance;
-      if (appear != _view.appear) {
-        _view.appear = appear;
+      SquirrelStyle appear =
+          [appearName isEqualToString:NSAppearanceNameDarkAqua] ? kDarkStyle
+                                                                : kDefaultStyle;
+      if (appear != _view.style) {
+        _view.style = appear;
         self.appearance = [NSAppearance appearanceNamed:appearName];
         _view.needsDisplay = YES;
         _view.textView.needsDisplay = YES;
@@ -4439,7 +4388,7 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
       break;
     case NSEventTypeLeftMouseDragged:
       // reset the `remember_size` references after moving the panel
-      _maxSize = NSZeroSize;
+      _maxSizeAttained = NSZeroSize;
       [self performWindowDragWithEvent:event];
       break;
     case NSEventTypeScrollWheel: {
@@ -4701,7 +4650,7 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
 - (void)updateDisplayParameters __attribute__((objc_direct)) {
   // repositioning the panel window
   _initPosition = YES;
-  _maxSize = NSZeroSize;
+  _maxSizeAttained = NSZeroSize;
 
   _view.textView.layoutOrientation =
       (NSTextLayoutOrientation)_view.theme.vertical;
@@ -4724,15 +4673,12 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
 
   _view.scrollView.lineScroll =
       _view.theme.candidateParagraphStyle.minimumLineHeight;
-  if (@available(macOS 12.0, *)) {
-    ((SquirrelTextLayoutManager*)_view.textView.textLayoutManager)
-        .contentBlock =
-        _view.theme.linear ? kLinearCandidatesBlock : kStackedCandidatesBlock;
-  } else {
-    ((SquirrelLayoutManager*)_view.textView.layoutManager).contentBlock =
-        _view.theme.linear ? kLinearCandidatesBlock : kStackedCandidatesBlock;
-    ;
-  }
+  _view.textView.contentBlock =
+      _view.theme.linear ? kLinearCandidatesBlock : kStackedCandidatesBlock;
+  _view.textView.defaultParagraphStyle = _view.theme.candidateParagraphStyle;
+  _view.preeditView.defaultParagraphStyle = _view.theme.preeditParagraphStyle;
+  _view.pagingView.defaultParagraphStyle = _view.theme.pagingParagraphStyle;
+  _view.statusView.defaultParagraphStyle = _view.theme.statusParagraphStyle;
 
   // size limits on textContainer
   NSRect screenRect = _screen.visibleFrame;
@@ -4765,10 +4711,10 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
   self.alphaValue = _view.theme.opacity;
   if (@available(macOS 10.14, *)) {
     _back.hidden = _view.theme.translucency < 0.001f;
-    _view.BackLayers.opacity = 1.0f - _view.theme.translucency;
-    _view.BackLayers.allowsGroupOpacity = YES;
+    _view.backImageLayer.opacity = 1.0f - _view.theme.translucency;
+    _view.backColorLayer.opacity = 1.0f - _view.theme.translucency;
+    _view.borderLayer.opacity = 1.0f - _view.theme.translucency;
     _view.documentLayer.opacity = 1.0f - _view.theme.translucency;
-    _view.documentLayer.allowsGroupOpacity = YES;
   }
 
   // resize logo and background image, if any
@@ -4839,39 +4785,40 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
     if (_view.theme.lineLength < 0.1 && _view.theme.vertical
             ? sweepVertical
                   ? (NSMinY(_IbeamRect) -
-                         fmax(NSWidth(contentRect), _maxSize.width) -
+                         fmax(NSWidth(contentRect), _maxSizeAttained.width) -
                          border.width - floor(_view.theme.fullWidth * 0.5) <
-                     NSMinY(screenRect))
+                     NSMinY(screenRect) + 0.1)
                   : (NSMinY(_IbeamRect) - kOffsetGap -
                          NSHeight(screenRect) * textWidthRatio -
                          border.width * 2 - _view.theme.fullWidth <
-                     NSMinY(screenRect))
+                     NSMinY(screenRect) + 0.1)
         : sweepVertical
             ? (NSMinX(_IbeamRect) - kOffsetGap -
                    NSWidth(screenRect) * textWidthRatio - border.width * 2 -
-                   _view.theme.fullWidth >=
-               NSMinX(screenRect))
-            : (NSMaxX(_IbeamRect) + fmax(NSWidth(contentRect), _maxSize.width) +
+                   _view.theme.fullWidth >
+               NSMinX(screenRect) + 0.1)
+            : (NSMaxX(_IbeamRect) +
+                   fmax(NSWidth(contentRect), _maxSizeAttained.width) +
                    border.width + floor(_view.theme.fullWidth * 0.5) >
-               NSMaxX(screenRect))) {
-      if (NSWidth(contentRect) >= _maxSize.width) {
-        _maxSize.width = NSWidth(contentRect);
+               NSMaxX(screenRect) - 0.1)) {
+      if (NSWidth(contentRect) > _maxSizeAttained.width + 0.1) {
+        _maxSizeAttained.width = NSWidth(contentRect);
       } else {
-        contentRect.size.width = _maxSize.width;
+        contentRect.size.width = _maxSizeAttained.width;
       }
     }
-    CGFloat textHeight =
-        fmax(NSHeight(contentRect), _maxSize.height) + border.height * 2;
+    CGFloat textHeight = fmax(NSHeight(contentRect), _maxSizeAttained.height) +
+                         border.height * 2;
     if (_view.theme.vertical ? (NSMinX(_IbeamRect) - textHeight -
                                     (sweepVertical ? kOffsetGap : 0) <
-                                NSMinX(screenRect))
+                                NSMinX(screenRect) + 0.1)
                              : (NSMinY(_IbeamRect) - textHeight -
                                     (sweepVertical ? 0 : kOffsetGap) <
-                                NSMinY(screenRect))) {
-      if (NSHeight(contentRect) >= _maxSize.height) {
-        _maxSize.height = NSHeight(contentRect);
+                                NSMinY(screenRect) + 0.1)) {
+      if (NSHeight(contentRect) > _maxSizeAttained.height + 0.1) {
+        _maxSizeAttained.height = NSHeight(contentRect);
       } else {
-        contentRect.size.height = _maxSize.height;
+        contentRect.size.height = _maxSizeAttained.height;
       }
     }
   }
@@ -4918,7 +4865,7 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
           if (NSMinY(_IbeamRect) - kOffsetGap -
                   NSHeight(screenRect) * textWidthRatio - border.width * 2 -
                   _view.theme.fullWidth <
-              NSMinY(screenRect)) {
+              NSMinY(screenRect) + 0.1) {
             windowRect.origin.y = NSMaxY(_IbeamRect) + kOffsetGap;
           } else {
             windowRect.origin.y =
@@ -4929,7 +4876,7 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
               NSMinX(_IbeamRect) + border.height - NSWidth(windowRect);
         } else {
           if (NSMinX(_IbeamRect) - kOffsetGap - NSWidth(windowRect) <
-              NSMinX(screenRect)) {
+              NSMinX(screenRect) + 0.1) {
             windowRect.origin.x = NSMaxX(_IbeamRect) + kOffsetGap;
           } else {
             windowRect.origin.x =
@@ -4955,8 +4902,8 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
           // when typing on righter, and vice versa
           if (NSMinX(_IbeamRect) - kOffsetGap -
                   NSWidth(screenRect) * textWidthRatio - border.width * 2 -
-                  _view.theme.fullWidth >=
-              NSMinX(screenRect)) {
+                  _view.theme.fullWidth >
+              NSMinX(screenRect) + 0.1) {
             windowRect.origin.x =
                 NSMinX(_IbeamRect) - kOffsetGap - NSWidth(windowRect);
           } else {
@@ -4966,7 +4913,7 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
               NSMinY(_IbeamRect) + border.height - NSHeight(windowRect);
         } else {
           if (NSMinY(_IbeamRect) - kOffsetGap - NSHeight(windowRect) <
-              NSMinY(screenRect)) {
+              NSMinY(screenRect) + 0.1) {
             windowRect.origin.y = NSMaxY(_IbeamRect) + kOffsetGap;
           } else {
             windowRect.origin.y =
@@ -4994,26 +4941,26 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
     }
   }
 
-  if (NSMaxX(windowRect) > NSMaxX(screenRect)) {
+  if (NSMaxX(windowRect) > NSMaxX(screenRect) - 0.1) {
     windowRect.origin.x =
         (_initPosition && sweepVertical
              ? fmin(NSMinX(_IbeamRect) - kOffsetGap, NSMaxX(screenRect))
              : NSMaxX(screenRect)) -
         NSWidth(windowRect);
   }
-  if (NSMinX(windowRect) < NSMinX(screenRect)) {
+  if (NSMinX(windowRect) < NSMinX(screenRect) + 0.1) {
     windowRect.origin.x =
         _initPosition && sweepVertical
             ? fmax(NSMaxX(_IbeamRect) + kOffsetGap, NSMinX(screenRect))
             : NSMinX(screenRect);
   }
-  if (NSMinY(windowRect) < NSMinY(screenRect)) {
+  if (NSMinY(windowRect) < NSMinY(screenRect) + 0.1) {
     windowRect.origin.y =
         _initPosition && !sweepVertical
             ? fmax(NSMaxY(_IbeamRect) + kOffsetGap, NSMinY(screenRect))
             : NSMinY(screenRect);
   }
-  if (NSMaxY(windowRect) > NSMaxY(screenRect)) {
+  if (NSMaxY(windowRect) > NSMaxY(screenRect) - 0.1) {
     windowRect.origin.y =
         (_initPosition && !sweepVertical
              ? fmin(NSMinY(_IbeamRect) - kOffsetGap, NSMaxY(screenRect))
@@ -5107,7 +5054,7 @@ static NSBezierPath* squirclePath(SquirrelTextPolygon polygon,
   }
   [_toolTip hide];
   [self orderOut:nil];
-  _maxSize = NSZeroSize;
+  _maxSizeAttained = NSZeroSize;
   _initPosition = YES;
   self.expanded = NO;
   self.sectionNum = 0;
@@ -5176,7 +5123,7 @@ static CGFloat textWidth(NSAttributedString* string, BOOL vertical) {
     [_view.contents
         deleteCharactersInRange:NSMakeRange(0, _view.contents.length)];
     if (_view.theme.lineLength > 0.1) {
-      _maxSize.width = fmin(_view.theme.lineLength, _textWidthLimit);
+      _maxSizeAttained.width = fmin(_view.theme.lineLength, _textWidthLimit);
     }
     _indexRange = indexRange;
     _hilitedCandidate = hilitedCandidate;
@@ -5272,9 +5219,8 @@ static CGFloat textWidth(NSAttributedString* string, BOOL vertical) {
     NSString* comment =
         _inputController.candidateComments[idx + indexRange.location];
     if (comment.length > 0) {
-      [candidate
-          replaceCharactersInRange:commentRange
-                        withString:[@"\u00A0" stringByAppendingString:comment]];
+      [candidate replaceCharactersInRange:commentRange
+                               withString:[@"\u00A0" append:comment]];
     } else {
       [candidate deleteCharactersInRange:commentRange];
     }
@@ -5401,8 +5347,8 @@ AdjustAlignment:
                        count:indexRange.length
                       paging:indexRange.length > 0 &&
                              (_view.theme.tabular || _view.theme.showPaging)];
-  CGFloat textWidth =
-      clamp(NSWidth(_view.contentRect), _maxSize.width, _textWidthLimit);
+  CGFloat textWidth = clamp(NSWidth(_view.contentRect), _maxSizeAttained.width,
+                            _textWidthLimit);
   // right-align the backward delete symbol
   if (preedit.length > 0 && rulerAttrsPreedit == nil) {
     [_view.preeditContents
@@ -5495,7 +5441,7 @@ AdjustAlignment:
 
   // disable remember_size and fixed line_length for status messages
   _initPosition = YES;
-  _maxSize = NSZeroSize;
+  _maxSizeAttained = NSZeroSize;
   if (_statusTimer.valid) {
     [_statusTimer invalidate];
   }
@@ -5521,6 +5467,7 @@ AdjustAlignment:
   if (@available(macOS 10.14, *)) {
     [SquirrelView.darkTheme setAnnotationHeight:height];
   }
+  _view.textView.defaultParagraphStyle = _view.theme.candidateParagraphStyle;
 }
 
 - (void)loadLabelConfig:(SquirrelConfig*)config directUpdate:(BOOL)update {
