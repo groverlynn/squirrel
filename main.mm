@@ -73,28 +73,27 @@ int main(int argc, char* argv[]) {
 
   @autoreleasepool {
     // find the bundle identifier and then initialize the input method server
-    NSBundle* main = NSBundle.mainBundle;
     IMKServer* server __unused =
-      [IMKServer.alloc initWithName:kConnectionName
-                   bundleIdentifier:main.bundleIdentifier];
+      [IMKServer.alloc initWithName:NSBundle.mainBundle.infoDictionary[@"InputMethodConnectionName"]
+                   bundleIdentifier:NSBundle.mainBundle.bundleIdentifier];
 
     // load the bundle explicitly because in this case the input method is a
     // background only application
-    [main loadNibNamed:@"MainMenu"
-                 owner:NSApplication.sharedApplication
-       topLevelObjects:nil];
+    [NSBundle.mainBundle loadNibNamed:@"MainMenu"
+                                owner:NSApplication.sharedApplication
+                      topLevelObjects:nil];
 
     // opencc will be configured with relative dictionary paths
     [NSFileManager.defaultManager
-     changeCurrentDirectoryPath:main.sharedSupportPath];
+     changeCurrentDirectoryPath:NSBundle.mainBundle.sharedSupportPath];
 
     if (NSApp.squirrelAppDelegate.problematicLaunchDetected) {
       NSLog(@"Problematic launch detected!");
       NSArray<NSString*>* args = @[@"-v", NSLocalizedString(@"say_voice", nil),
                                           NSLocalizedString(@"problematic_launch", nil)];
       if (@available(macOS 10.13, *)) {
-        [NSTask launchedTaskWithExecutableURL:[NSURL fileURLWithPath:@"/usr/bin/say"
-                                                         isDirectory:NO]
+        NSURL* say = [NSURL fileURLWithPath:@"/usr/bin/say" isDirectory:NO];
+        [NSTask launchedTaskWithExecutableURL:say
                                     arguments:args
                                         error:nil
                            terminationHandler:nil];
@@ -110,7 +109,7 @@ int main(int argc, char* argv[]) {
     }
 
     // finally run everything
-    [NSApplication.sharedApplication run];
+    [NSApp run];
 
     NSLog(@"Squirrel is quitting...");
     rime_get_api_stdbool()->finalize();

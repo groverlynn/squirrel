@@ -9,16 +9,15 @@ typedef uintptr_t RimeSessionId;
 @interface SquirrelApplicationDelegate : NSObject <NSApplicationDelegate>
 
 typedef NS_CLOSED_ENUM(NSUInteger, SquirrelNotificationPolicy) {
-  kShowNotificationsNever = 0,
-  kShowNotificationsWhenAppropriate = 1,
-  kShowNotificationsAlways = 2
+  kShowNotificationsNever,
+  kShowNotificationsWhenAppropriate,
+  kShowNotificationsAlways
 };
 
 @property(nonatomic, weak, nullable) IBOutlet NSMenu* menu;
 @property(nonatomic, weak, nullable) IBOutlet SquirrelPanel* panel;
 @property(nonatomic, weak, nullable) IBOutlet id updater;
 
-@property(nonatomic, readonly, strong, nullable, direct) SquirrelConfig* config;
 @property(nonatomic, readonly, direct) SquirrelNotificationPolicy showNotifications;
 @property(nonatomic, readonly, direct) BOOL problematicLaunchDetected;
 @property(nonatomic, direct) BOOL isCurrentInputMethod;

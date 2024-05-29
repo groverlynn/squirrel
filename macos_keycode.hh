@@ -20,13 +20,14 @@ enum {
 //  kVK_PC_PrintScreen   = 0x69, // = F13
 //  kVK_PC_ScrollLock    = 0x6b, // = F14
 };
+
 // conversion functions
 
-int rime_modifiers_from_mac_modifiers(NSEventModifierFlags modifiers);
-int rime_keycode_from_mac_keycode(ushort mac_keycode);
-int rime_keycode_from_keychar(unichar keychar, bool shift, bool caps);
+int RimeModifiers(NSEventModifierFlags mac_modifiers);
+int RimeKeycode(ushort mac_keycode);
+int RimeKeycode(unichar keychar, bool shift, bool caps);
 
-int rime_modifiers_from_name(const char* modifier_name);
-int rime_keycode_from_name(const char* key_name);
+int RimeModifiers(const char* modifier_name);
+int RimeKeycode(const char* key_name);
 
 #endif /* _MACOS_KEYCODE_HH_ */

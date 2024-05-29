@@ -86,7 +86,7 @@ static int _asciiMode = -1;
       }
     }
     NSEventModifierFlags modifiers = event.modifierFlags;
-    int rime_modifiers = rime_modifiers_from_mac_modifiers(modifiers);
+    int rime_modifiers = RimeModifiers(modifiers);
     ushort keyCode = (ushort)CGEventGetIntegerValueField(event.CGEvent, kCGKeyboardEventKeycode);
 
     switch (event.type) {
@@ -96,7 +96,7 @@ static int _asciiMode = -1;
         }
         // NSLog(@"FLAGSCHANGED client: %@, modifiers: 0x%lx", sender, modifiers);
         int release_mask = 0;
-        int rime_keycode = rime_keycode_from_mac_keycode(keyCode);
+        int rime_keycode = RimeKeycode(keyCode);
         uint eventCount = CGEventSourceCounterForEventType(kCGEventSourceStateCombinedSessionState, kCGEventFlagsChanged) +
                           CGEventSourceCounterForEventType(kCGEventSourceStateCombinedSessionState, kCGEventKeyDown) +
                           CGEventSourceCounterForEventType(kCGEventSourceStateCombinedSessionState, kCGEventLeftMouseDown) +
@@ -128,6 +128,10 @@ static int _asciiMode = -1;
             break;
           case kVK_Option:
           case kVK_RightOption:
+            if (modifiers == NSEventModifierFlagOption && NSApp.squirrelAppDelegate.panel.showToolTip) {
+              _lastEventCount = eventCount;
+              return YES;
+            }
             release_mask = modifiers & NSEventModifierFlagOption ? 0 :
                            kReleaseMask | (eventCount - _lastEventCount == 1 ? 0 : kIgnoredMask);
             handled = [self processKey:rime_keycode modifiers:(rime_modifiers | release_mask)];
@@ -153,17 +157,17 @@ static int _asciiMode = -1;
       case NSEventTypeKeyDown: {
         // NSLog(@"KEYDOWN client: %@, modifiers: 0x%lx, keyCode: %d", sender, modifiers, keyCode);
         // translate mac keydown events to rime keyevents
-        int rime_keycode = rime_keycode_from_mac_keycode(keyCode);
+        int rime_keycode = RimeKeycode(keyCode);
         if (rime_keycode == 0) {
           NSString* keyChars = ((modifiers & NSEventModifierFlagShift) &&
                                 !(modifiers & (NSEventModifierFlagControl | NSEventModifierFlagOption))) ?
                                event.characters : event.charactersIgnoringModifiers;
           keyChars = keyChars.precomposedStringWithCanonicalMapping;
-          rime_keycode = rime_keycode_from_keychar([keyChars characterAtIndex:0],
-                                                   (modifiers & NSEventModifierFlagShift) != 0,
-                                                   (modifiers & NSEventModifierFlagCapsLock) != 0);
-        } else if ((keyCode <= 0xff && keyCode >= 0x60) || keyCode == 0x50 ||
-                   keyCode == 0x4f || keyCode == 0x47 || keyCode == 0x40) {
+          rime_keycode = RimeKeycode([keyChars characterAtIndex:0],
+                                     (modifiers & NSEventModifierFlagShift) != 0,
+                                     (modifiers & NSEventModifierFlagCapsLock) != 0);
+        } else if ((0x60 <= keyCode && keyCode <= 0xFF) || keyCode == 0x50 ||
+                   keyCode == 0x4F || keyCode == 0x47 || keyCode == 0x40) {
           // revert non-modifier function keys' FunctionKeyMask (FwdDel, Navigations, F1..F19)
           rime_modifiers &= ~kHyperMask;
         }
@@ -250,11 +254,12 @@ static void set_CapsLock_LED_state(bool target_state) {
     rime_get_api_stdbool()->set_option(_session, "_vertical", is_vertical);
   }
 
-  if (panel.tabular && !rime_modifiers && panel.visible &&
-      (is_vertical ? rime_keycode == XK_Left || rime_keycode == XK_KP_Left ||
-                     rime_keycode == XK_Right || rime_keycode == XK_KP_Right
-                   : rime_keycode == XK_Up || rime_keycode == XK_KP_Up ||
-                     rime_keycode == XK_Down || rime_keycode == XK_KP_Down)) {
+  BOOL is_navigator_in_tabular = panel.tabular && !rime_modifiers && panel.visible &&
+          (is_vertical ? rime_keycode == XK_Left || rime_keycode == XK_KP_Left ||
+                         rime_keycode == XK_Right || rime_keycode == XK_KP_Right
+                       : rime_keycode == XK_Up || rime_keycode == XK_KP_Up ||
+                         rime_keycode == XK_Down || rime_keycode == XK_KP_Down);
+  if (is_navigator_in_tabular) {
     if (rime_keycode >= XK_KP_Left && rime_keycode <= XK_KP_Down) {
       rime_keycode = rime_keycode - XK_KP_Left + XK_Left;
     }
@@ -278,10 +283,10 @@ static void set_CapsLock_LED_state(bool target_state) {
   // TODO add special key event postprocessing here
 
   if (!handled) {
-    BOOL isVimBackInCommandMode = rime_keycode == XK_Escape ||
+    BOOL is_vim_back_in_command_mode = rime_keycode == XK_Escape ||
           ((rime_modifiers & kControlMask) && (rime_keycode == XK_c ||
             rime_keycode == XK_C || rime_keycode == XK_bracketleft));
-    if (isVimBackInCommandMode && rime_get_api_stdbool()->get_option(_session, "vim_mode") &&
+    if (is_vim_back_in_command_mode && rime_get_api_stdbool()->get_option(_session, "vim_mode") &&
         !rime_get_api_stdbool()->get_option(_session, "ascii_mode")) {
       [self cancelComposition];
       rime_get_api_stdbool()->set_option(_session, "ascii_mode", True);
@@ -373,7 +378,7 @@ static void set_CapsLock_LED_state(bool target_state) {
   bool handled = false;
   switch (action) {
     case kPROCESS:
-      if (index >= 0xff08 && index <= 0xffff) {
+      if (index >= 0xFF08 && index <= 0xFFFF) {
         handled = rime_get_api_stdbool()->process_key(_session, (int)index, 0);
       } else if (index >= kExpandButton && index <= kLockButton) {
         handled = true;
@@ -432,12 +437,6 @@ static void set_CapsLock_LED_state(bool target_state) {
   // reset timer
   if (_chordTimer.valid) {
     [_chordTimer invalidate];
-  }
-  _chordDuration = 0.1;
-  NSNumber* duration = [NSApp.squirrelAppDelegate.config
-                        optionalDoubleForOption:@"chord_duration"];
-  if (duration.doubleValue > 0) {
-    _chordDuration = duration.doubleValue;
   }
   _chordTimer = [NSTimer scheduledTimerWithTimeInterval:_chordDuration
                                                  target:self
@@ -506,8 +505,8 @@ static NSString* getOptionLabel(RimeSessionId session, const char* option, bool 
             options:NSKeyValueObservingOptionNew | NSKeyValueObservingOptionInitial
             context:nil];
 
-  NSString* keyboardLayout = [NSApp.squirrelAppDelegate.config
-                              stringForOption:@"keyboard_layout"];
+  SquirrelConfig* baseConfig = [SquirrelConfig.alloc initWithArg:@"squirrel"];
+  NSString* keyboardLayout = [baseConfig stringForOption:@"keyboard_layout"];
   if ([@"last" caseInsensitiveCompare:keyboardLayout] == NSOrderedSame ||
       [keyboardLayout isEqualToString:@""]) {
     keyboardLayout = nil;
@@ -519,10 +518,10 @@ static NSString* getOptionLabel(RimeSessionId session, const char* option, bool 
   if (keyboardLayout != nil) {
     [sender overrideKeyboardWithKeyboardNamed:keyboardLayout];
   }
+  [baseConfig close];
 
-  SquirrelConfig* defaultConfig = SquirrelConfig.alloc.init;
-  if ([defaultConfig openWithConfigId:@"default"] &&
-      [defaultConfig hasSection:@"ascii_composer"]) {
+  SquirrelConfig* defaultConfig = [SquirrelConfig.alloc initWithArg:@"default"];
+  if ([defaultConfig hasSection:@"ascii_composer"]) {
     _goodOldCapsLock = [defaultConfig boolValueForOption:
                         @"ascii_composer/good_old_caps_lock"];
   }
@@ -811,7 +810,11 @@ static NSString* getOptionLabel(RimeSessionId session, const char* option, bool 
   _session = rime_get_api_stdbool()->create_session();
   _schemaId = nil;
   if (_session != 0) {
-    _appOptions = [NSApp.squirrelAppDelegate.config getAppOptions:app];
+    SquirrelConfig* config = [SquirrelConfig.alloc initWithArg:@"squirrel"];
+    _appOptions = [config appOptionsForApp:app];
+    CGFloat chordDuration = [[config nullableDoubleForOption:@"chord_duration"] doubleValue];
+    _chordDuration = chordDuration > 0 ? chordDuration : 0.1;
+    [config close];
     _panellessCommitFix = [_appOptions boolValueForKey:@"panelless_commit_fix"];
     _inlinePlaceholder = [_appOptions boolValueForKey:@"inline_placeholder"];
     _inlineOffset = [_appOptions intValueForKey:@"inline_offset"];
@@ -935,9 +938,8 @@ static inline NSUInteger fmax(NSUInteger x, NSUInteger y) {
                                stringByReplacingOccurrencesOfString:@" " withString:@""].length;
     NSUInteger selLength = [[preeditText substringWithRange:NSMakeRange(start, end - start)]
                             stringByReplacingOccurrencesOfString:@" " withString:@""].length;
-    if (!_inlinePreedit && caretPos >= end) { // subtract length of soft cursor
+    if (!_inlinePreedit && caretPos < length && caretPos >= end) { // subtract length of soft cursor
       suffixLength -= 1;
-      selLength -= 1;
     }
     NSRange selSegment = NSMakeRange(originalString.length - suffixLength - selLength, selLength);
     didCompose |= _selSegment.location != selSegment.location ||

@@ -1,8 +1,5 @@
 #import <Carbon/Carbon.h>
 
-static const char kInstallPath[] =
-  "/Library/Input Methods/Squirrel.app";
-
 static const CFStringRef kHansInputModeID =
   CFSTR("im.rime.inputmethod.Squirrel.Hans");
 static const CFStringRef kHantInputModeID =
@@ -19,29 +16,51 @@ typedef CF_OPTIONS(CFIndex, RimeInputMode) {
 
 RimeInputMode GetEnabledInputModes(void);
 
+CFArrayRef GetPreferredLocale(void) {
+  CFTypeRef locales[] = {CFSTR("zh-Hans"), CFSTR("zh-Hant"), CFSTR("zh-HK")};
+  CFArrayRef localizations = CFArrayCreate(NULL, locales, 3, &kCFTypeArrayCallBacks);
+  CFArrayRef preferred = CFBundleCopyLocalizationsForPreferences(localizations, NULL);
+  CFRelease(localizations);
+  return preferred;
+}
+
+CFArrayRef GetInputSourceList(Boolean includeAllInstalled) {
+  CFTypeRef keys[] = {kTISPropertyBundleID};
+  CFTypeRef values[] = {CFBundleGetIdentifier(CFBundleGetMainBundle())};
+  CFDictionaryRef property = CFDictionaryCreate(NULL, keys, values, 1,
+    &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+  CFArrayRef sourceList = TISCreateInputSourceList(property, includeAllInstalled);
+  CFRelease(property);
+  return sourceList;
+}
+
 void RegisterInputSource(void) {
   if (GetEnabledInputModes() != 0) { // Already registered
+    NSLog(@"Squirrel is already registered.");
     return;
   }
-  CFURLRef installPathURL = CFURLCreateFromFileSystemRepresentation
-    (NULL, (UInt8*)kInstallPath, (CFIndex)strlen(kInstallPath), false);
-  if (installPathURL != NULL) {
-    TISRegisterInputSource((CFURLRef)CFAutorelease(installPathURL));
-    NSLog(@"Registered input source from %s", kInstallPath);
+  CFStringRef installPath = CFSTR("/Library/Input Methods/Squirrel.app");
+  if (CFURLRef installURL = CFURLCreateWithFileSystemPath
+      (NULL, installPath, kCFURLPOSIXPathStyle, false)) {
+    OSStatus registerError = TISRegisterInputSource((CFURLRef)CFAutorelease(installURL));
+    if (registerError == noErr) {
+      NSLog(@"Squirrel has been successfully registered at %@", installPath);
+    } else {
+      NSLog(@"Squirrel failed to register at %@ (%@)", installPath,
+            [NSError errorWithDomain:NSOSStatusErrorDomain
+                                code:registerError userInfo:nil]);
+    }
   }
 }
 
 void EnableInputSource(void) {
   if (GetEnabledInputModes() != 0) {
     // keep user's manually enabled input modes
+    NSLog(@"Squirrel input method(s) is already enabled.");
     return;
   }
   RimeInputMode input_modes_to_enable = 0;
-  CFArrayRef localizations = CFArrayCreate
-      (NULL, (CFTypeRef[]){CFSTR("zh-Hans"), CFSTR("zh-Hant"), CFSTR("zh-HK")},
-       3, &kCFTypeArrayCallBacks);
-  CFArrayRef preferred = CFBundleCopyLocalizationsForPreferences
-    ((CFArrayRef)CFAutorelease(localizations), NULL);
+  CFArrayRef preferred = GetPreferredLocale();
   if (CFArrayGetCount(preferred) > 0) {
     CFStringRef language = (CFStringRef)CFArrayGetValueAtIndex(preferred, 0);
     if (CFStringCompare(language, CFSTR("zh-Hans"),
@@ -58,12 +77,7 @@ void EnableInputSource(void) {
     input_modes_to_enable = HANS_INPUT_MODE;
   }
   CFRelease(preferred);
-  CFDictionaryRef property = CFDictionaryCreate
-    (NULL, (CFTypeRef[]){kTISPropertyBundleID},
-     (CFTypeRef[]){CFBundleGetIdentifier(CFBundleGetMainBundle())},
-     1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-  CFArrayRef sourceList = TISCreateInputSourceList
-    ((CFDictionaryRef)CFAutorelease(property), true);
+  CFArrayRef sourceList = GetInputSourceList(true);
   for (CFIndex i = 0; i < CFArrayGetCount(sourceList); ++i) {
     TISInputSourceRef inputSource = (TISInputSourceRef)
       CFArrayGetValueAtIndex(sourceList, i);
@@ -79,7 +93,7 @@ void EnableInputSource(void) {
       CFBooleanRef isEnabled = (CFBooleanRef)TISGetInputSourceProperty
         (inputSource, kTISPropertyInputSourceIsEnabled);
       if (!CFBooleanGetValue(isEnabled)) {
-        if (OSStatus enableError = TISEnableInputSource(inputSource) != 0) {
+        if (OSStatus enableError = TISEnableInputSource(inputSource) != noErr) {
           NSLog(@"Failed to enable input source: %@ (%@)", sourceID,
                 [NSError errorWithDomain:NSOSStatusErrorDomain
                                     code:enableError userInfo:nil]);
@@ -95,11 +109,7 @@ void EnableInputSource(void) {
 void SelectInputSource(void) {
   RimeInputMode enabled_input_modes = GetEnabledInputModes();
   RimeInputMode input_mode_to_select = 0;
-  CFArrayRef localizations = CFArrayCreate
-      (NULL, (CFTypeRef[]){CFSTR("zh-Hans"), CFSTR("zh-Hant"), CFSTR("zh-HK")},
-       3, &kCFTypeArrayCallBacks);
-  CFArrayRef preferred = CFBundleCopyLocalizationsForPreferences
-                          ((CFArrayRef)CFAutorelease(localizations), NULL);
+  CFArrayRef preferred = GetPreferredLocale();
   for (CFIndex i = 0; i < CFArrayGetCount(preferred); ++i) {
     CFStringRef language = (CFStringRef)CFArrayGetValueAtIndex(preferred, i);
     if (CFStringCompare(language, CFSTR("zh-Hans"), kCFCompareCaseInsensitive)
@@ -121,12 +131,7 @@ void SelectInputSource(void) {
     NSLog(@"No enabled input sources.");
     return;
   }
-  CFDictionaryRef property = CFDictionaryCreate
-    (NULL, (CFTypeRef[]){kTISPropertyBundleID},
-     (CFTypeRef[]){CFBundleGetIdentifier(CFBundleGetMainBundle())},
-     1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-  CFArrayRef sourceList = TISCreateInputSourceList
-    ((CFDictionaryRef)CFAutorelease(property), false);
+  CFArrayRef sourceList = GetInputSourceList(false);
   for (CFIndex i = 0; i < CFArrayGetCount(sourceList); ++i) {
     TISInputSourceRef inputSource = (TISInputSourceRef)
       CFArrayGetValueAtIndex(sourceList, i);
@@ -160,12 +165,7 @@ void SelectInputSource(void) {
 }
 
 void DisableInputSource(void) {
-  CFDictionaryRef property = CFDictionaryCreate
-    (NULL, (CFTypeRef[]){kTISPropertyBundleID},
-     (CFTypeRef[]){CFBundleGetIdentifier(CFBundleGetMainBundle())},
-     1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-  CFArrayRef sourceList = TISCreateInputSourceList
-    ((CFDictionaryRef)CFAutorelease(property), false);
+  CFArrayRef sourceList = GetInputSourceList(false);
   for (CFIndex i = CFArrayGetCount(sourceList); i > 0; --i) {
     TISInputSourceRef inputSource = (TISInputSourceRef)
       CFArrayGetValueAtIndex(sourceList, i - 1);
@@ -189,12 +189,7 @@ void DisableInputSource(void) {
 
 RimeInputMode GetEnabledInputModes(void) {
   RimeInputMode input_modes = 0;
-  CFDictionaryRef property = CFDictionaryCreate
-    (NULL, (CFTypeRef[]){kTISPropertyBundleID},
-     (CFTypeRef[]){CFBundleGetIdentifier(CFBundleGetMainBundle())},
-     1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-  CFArrayRef sourceList = TISCreateInputSourceList
-    ((CFDictionaryRef)CFAutorelease(property), false);
+  CFArrayRef sourceList = GetInputSourceList(false);
   for (CFIndex i = 0; i < CFArrayGetCount(sourceList); ++i) {
     TISInputSourceRef inputSource = (TISInputSourceRef)
       CFArrayGetValueAtIndex(sourceList, i);

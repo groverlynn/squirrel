@@ -34,6 +34,7 @@
 - (void)updateStatusLong:(NSString* _Nullable)messageLong
              statusShort:(NSString* _Nullable)messageShort __attribute__((objc_direct));
 // display
+- (BOOL)showToolTip;
 - (void)showPreedit:(NSString* _Nullable)preedit
            selRange:(NSRange)selRange
            caretPos:(NSUInteger)caretPos

@@ -3,7 +3,7 @@
 #import <rime/key_table.h>
 #import <Carbon/Carbon.h>
 
-int rime_modifiers_from_mac_modifiers(NSEventModifierFlags modifiers) {
+int RimeModifiers(NSEventModifierFlags modifiers) {
   int ret = 0;
 
   if ((modifiers & NSEventModifierFlagCapsLock) != 0) {
@@ -28,7 +28,7 @@ int rime_modifiers_from_mac_modifiers(NSEventModifierFlags modifiers) {
   return ret;
 }
 
-int rime_keycode_from_mac_keycode(ushort mac_keycode) {
+int RimeKeycode(ushort mac_keycode) {
   switch (mac_keycode) {
     case kVK_CapsLock:            return XK_Caps_Lock;
     case kVK_Command:             return XK_Super_L; // XK_Meta_L?
@@ -110,14 +110,14 @@ int rime_keycode_from_mac_keycode(ushort mac_keycode) {
   }
 }
 
-int rime_keycode_from_keychar(unichar keychar, bool shift, bool caps) {
+int RimeKeycode(unichar keychar, bool shift, bool caps) {
   // NOTE: IBus/Rime use different keycodes for uppercase/lowercase letters.
   if (keychar >= 'a' && keychar <= 'z' && (shift != caps)) {
     // lowercase -> Uppercase
     return keychar - 'a' + 'A';
   }
 
-  if (keychar >= 0x20 && keychar <= 0x7e) {
+  if (keychar >= ' ' && keychar <= '~') {
     return keychar;
   }
 
@@ -174,7 +174,7 @@ static const char* rime_modidifers[] = {
   "Meta",    // 1 << 28
 };
 
-int rime_modifiers_from_name(const char* modifier_name) {
+int RimeModifiers(const char* modifier_name) {
   if (modifier_name == NULL) {
     return 0;
   }
@@ -186,7 +186,7 @@ int rime_modifiers_from_name(const char* modifier_name) {
   return 0;
 }
 
-int rime_keycode_from_name(const char* key_name) {
+int RimeKeycode(const char* key_name) {
   int keycode = RimeGetKeycodeByName(key_name);
   return keycode == XK_VoidSymbol ? 0 : keycode;
 }

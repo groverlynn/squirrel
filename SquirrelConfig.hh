@@ -46,6 +46,7 @@ __attribute__((objc_direct_members))
 @property(nonatomic, strong, readonly, nullable) NSString* schemaId;
 @property(nonatomic, strong, nonnull) NSString* colorSpace;
 
+- (instancetype _Nonnull)initWithArg:(NSString* _Nonnull)arg;
 - (BOOL)openBaseConfig;
 - (BOOL)openWithSchemaId:(NSString* _Nonnull)schemaId
               baseConfig:(SquirrelConfig* _Nullable)config;
@@ -62,23 +63,23 @@ __attribute__((objc_direct_members))
 
 - (bool)boolValueForOption:(NSString* _Nonnull)option;
 - (int)intValueForOption:(NSString* _Nonnull)option;
-- (double)doubleForOption:(NSString* _Nonnull)option;
-- (double)doubleForOption:(NSString* _Nonnull)option
-               constraint:(double(* _Nonnull)(double param))func;
+- (double)doubleValueForOption:(NSString* _Nonnull)option;
+- (double)doubleValueForOption:(NSString* _Nonnull)option
+                    constraint:(double(* _Nonnull)(double param))func;
 
-- (NSNumber* _Nullable)optionalBoolForOption:(NSString* _Nonnull)option;
-- (NSNumber* _Nullable)optionalIntForOption:(NSString* _Nonnull)option;
-- (NSNumber* _Nullable)optionalDoubleForOption:(NSString* _Nonnull)option;
-- (NSNumber* _Nullable)optionalDoubleForOption:(NSString* _Nonnull)option
+- (NSNumber* _Nullable)nullableBoolForOption:(NSString* _Nonnull)option;
+- (NSNumber* _Nullable)nullableIntForOption:(NSString* _Nonnull)option;
+- (NSNumber* _Nullable)nullableDoubleForOption:(NSString* _Nonnull)option;
+- (NSNumber* _Nullable)nullableDoubleForOption:(NSString* _Nonnull)option
                                     constraint:(double(* _Nonnull)(double param))func;
 
-- (NSNumber* _Nullable)optionalBoolForOption:(NSString* _Nonnull)option
+- (NSNumber* _Nullable)nullableBoolForOption:(NSString* _Nonnull)option
                                        alias:(NSString* _Nullable)alias;
-- (NSNumber* _Nullable)optionalIntForOption:(NSString* _Nonnull)option
+- (NSNumber* _Nullable)nullableIntForOption:(NSString* _Nonnull)option
                                       alias:(NSString* _Nullable)alias;
-- (NSNumber* _Nullable)optionalDoubleForOption:(NSString* _Nonnull)option
+- (NSNumber* _Nullable)nullableDoubleForOption:(NSString* _Nonnull)option
                                          alias:(NSString* _Nullable)alias;
-- (NSNumber* _Nullable)optionalDoubleForOption:(NSString* _Nonnull)option
+- (NSNumber* _Nullable)nullableDoubleForOption:(NSString* _Nonnull)option
                                          alias:(NSString* _Nullable)alias
                                     constraint:(double(* _Nonnull)(double param))func;
 
@@ -98,8 +99,8 @@ __attribute__((objc_direct_members))
 - (NSUInteger)listSizeForOption:(NSString* _Nonnull)option;
 - (NSArray<NSString*>* _Nullable)listForOption:(NSString* _Nonnull)option;
 
-- (SquirrelOptionSwitcher* _Nonnull)getOptionSwitcher;
-- (SquirrelAppOptions* _Nonnull)getAppOptions:(NSString* _Nonnull)appName;
+- (SquirrelOptionSwitcher* _Nonnull)optionSwitcherForSchema;
+- (SquirrelAppOptions* _Nonnull)appOptionsForApp:(NSString* _Nonnull)bundleId;
 
 @end  // SquirrelConfig
 
@@ -108,5 +109,6 @@ __attribute__((objc_direct_members))
 @interface NSString (NSStringAppendString)
 
 - (NSString* _Nonnull)append:(NSString* _Nonnull)string;
+- (NSString* _Nonnull)keyPathByReplacingLastComponentWith:(NSString* _Nonnull)replacement;
 
 @end

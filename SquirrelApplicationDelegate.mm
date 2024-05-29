@@ -94,16 +94,6 @@ extern void show_notification(const char* msg_text) {
   }
 }
 
-static void show_status(const char* msg_text_long,
-                        const char* msg_text_short) {
-  NSString* msgLong = msg_text_long != NULL ? @(msg_text_long) : nil;
-  NSString* msgShort = msg_text_short != NULL ? @(msg_text_short) :
-                       [msgLong substringWithRange:
-                        [msgLong rangeOfComposedCharacterSequenceAtIndex:0]];
-  [NSApp.squirrelAppDelegate.panel updateStatusLong:msgLong
-                                        statusShort:msgShort];
-}
-
 static void notification_handler(void* context_object,
                                  RimeSessionId session_id,
                                  const char* message_type,
@@ -125,7 +115,7 @@ static void notification_handler(void* context_object,
     const char* schema_name = strchr(message_value, '/');
     if (schema_name != NULL) {
       ++schema_name;
-      show_status(schema_name, schema_name);
+      [app_delegate.panel updateStatusLong:@(schema_name) statusShort:@(schema_name)];
     }
     return;
   }
@@ -148,14 +138,14 @@ static void notification_handler(void* context_object,
       [app_delegate.panel updateScriptVariant];
     }
     if (app_delegate.showNotifications != kShowNotificationsNever) {
-      RimeStringSlice state_label_long =
-        rime_get_api_stdbool()->get_state_label_abbreviated(session_id, option_name, state, false);
-      RimeStringSlice state_label_short =
-        rime_get_api_stdbool()->get_state_label_abbreviated(session_id, option_name, state, true);
-      if (state_label_long.str != NULL || state_label_short.str != NULL) {
-        const char* short_message =
-          state_label_short.length < strlen(state_label_short.str) ? NULL : state_label_short.str;
-        show_status(state_label_long.str, short_message);
+      RimeStringSlice long_label = rime_get_api_stdbool()->
+        get_state_label_abbreviated(session_id, option_name, state, false);
+      RimeStringSlice short_label = rime_get_api_stdbool()->
+        get_state_label_abbreviated(session_id, option_name, state, true);
+      if (long_label.str != NULL || short_label.str != NULL) {
+        NSString* long_message = long_label.str == NULL ? nil : @(long_label.str);
+        NSString* short_message = short_label.length < strlen(short_label.str) ? nil : @(short_label.str);
+        [app_delegate.panel updateStatusLong:long_message statusShort:short_message];
       }
     }
   }
@@ -197,8 +187,6 @@ static void notification_handler(void* context_object,
 }
 
 - (void)shutdownRime {
-  [_config close];
-  _config = nil;
   rime_get_api_stdbool()->finalize();
 }
 
@@ -211,29 +199,27 @@ static void notification_handler(void* context_object,
     if (hotkey != nil) {
       NSArray<NSString*>* keys = [hotkey componentsSeparatedByString:@"+"];
       for (NSUInteger i = 0; i < keys.count - 1; ++i) {
-        _switcherKeyModifierMask |= rime_modifiers_from_name(keys[i].UTF8String);
+        _switcherKeyModifierMask |= RimeModifiers(keys[i].UTF8String);
       }
-      _switcherKeyEquivalent = rime_keycode_from_name(keys.lastObject.UTF8String);
+      _switcherKeyEquivalent = RimeKeycode(keys.lastObject.UTF8String);
     }
   }
   [defaultConfig close];
 
-  _config = SquirrelConfig.alloc.init;
-  if (!_config.openBaseConfig) {
+  SquirrelConfig* config = SquirrelConfig.alloc.init;
+  if (!config.openBaseConfig) {
     return;
   }
-  NSString* showNotificationsWhen = [_config stringForOption:
+  NSString* showNotificationsWhen = [config stringForOption:
                                      @"show_notifications_when"];
-  if ([@"never" caseInsensitiveCompare:
-       showNotificationsWhen] == NSOrderedSame) {
+  if ([@"never" caseInsensitiveCompare:showNotificationsWhen] == NSOrderedSame) {
     _showNotifications = kShowNotificationsNever;
-  } else if ([@"appropriate" caseInsensitiveCompare:
-              showNotificationsWhen] == NSOrderedSame) {
-    _showNotifications = kShowNotificationsWhenAppropriate;
-  } else {
+  } else if ([@"always" caseInsensitiveCompare:showNotificationsWhen] == NSOrderedSame) {
     _showNotifications = kShowNotificationsAlways;
+  } else {
+    _showNotifications = kShowNotificationsWhenAppropriate;
   }
-  [_panel loadConfig:_config];
+  [_panel loadConfig:config];
 }
 
 - (void)loadSchemaSpecificSettings:(NSString*)schemaId
@@ -242,16 +228,18 @@ static void notification_handler(void* context_object,
     return;
   }
   // update the list of switchers that change styles and color-themes
+  SquirrelConfig* baseConfig = [SquirrelConfig.alloc initWithArg:@"squirrel"];
   SquirrelConfig* schema = SquirrelConfig.alloc.init;
-  if ([schema openWithSchemaId:schemaId baseConfig:_config]) {
-    _panel.optionSwitcher = schema.getOptionSwitcher;
+  if ([schema openWithSchemaId:schemaId baseConfig:baseConfig]) {
+    _panel.optionSwitcher = schema.optionSwitcherForSchema;
     [_panel.optionSwitcher updateWithRimeSession:sessionId];
     if ([schema hasSection:@"style"]) {
       [_panel loadConfig:schema];
     } else {
-      [_panel loadConfig:_config];
+      [_panel loadConfig:baseConfig];
     }
     [schema close];
+    [baseConfig close];
   }
 }
 
@@ -315,7 +303,6 @@ static void notification_handler(void* context_object,
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender {
   NSLog(@"Squirrel is quitting.");
-  [_config close];
   rime_get_api_stdbool()->cleanup_all_sessions();
   return NSTerminateNow;
 }
