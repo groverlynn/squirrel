@@ -138,6 +138,8 @@
 	<string>ukvWq2dKOWn3B9AsdsQIwOptiDdDKdUjAVNgFxSvB2o=</string>
 	<key>TICapsLockLanguageSwitchCapable</key>
 	<true/>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
 	<key>SUEnableInstallerLauncherService</key>
 	<true/>
 	<key>TISIconIsTemplate</key>

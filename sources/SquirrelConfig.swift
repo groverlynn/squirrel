@@ -33,9 +33,7 @@ final class SquirrelOptionSwitcher: NSObject {
 
   // return whether switcher options has been successfully updated
   func updateSwitcher(_ switcher: [String: String]!) -> Bool {
-    if self.switcher.isEmpty || switcher?.count != self.switcher.count {
-      return false
-    }
+    guard !self.switcher.isEmpty && switcher?.count == self.switcher.count else { return false }
     let optionNames: Set<String> = Set(switcher.keys)
     if optionNames == self.optionNames {
       self.switcher = switcher
@@ -46,126 +44,63 @@ final class SquirrelOptionSwitcher: NSObject {
   }
 
   func updateGroupState(_ optionState: String, ofOption optionName: String) -> Bool {
-    if let optionGroup = optionGroups[optionName] {
-      if optionGroup.count == 1 {
-        if optionName != (optionState.hasPrefix("!") ? String(optionState.dropFirst()) : optionState) {
-          return false
-        }
-        switcher[optionName] = optionState
-      } else if optionGroup.contains(optionState) {
-        for option in optionGroup {
-          switcher[option] = optionState
-        }
+    guard let optionGroup = optionGroups[optionName] else { return false }
+    if optionGroup.count == 1 {
+      if optionName != (optionState.hasPrefix("!") ? String(optionState.dropFirst()) : optionState) {
+        return false
       }
-      optionStates = Set(switcher.values)
-      return true
-    } else {
-      return false
+      switcher[optionName] = optionState
+    } else if optionGroup.contains(optionState) {
+      optionGroup.forEach{ switcher[$0] = optionState }
     }
+    optionStates = Set(switcher.values)
+    return true
   }
 
   func updateCurrentScriptVariant(_ scriptVariant: String) -> Bool {
-    if scriptVariantOptions.isEmpty {
-      return false
-    }
-    if let scriptVariantCode = scriptVariantOptions[scriptVariant] {
-      currentScriptVariant = scriptVariantCode
-      return true
-    } else {
-      return false
-    }
+    guard !scriptVariantOptions.isEmpty else { return false }
+    guard let scriptVariantCode = scriptVariantOptions[scriptVariant] else { return false }
+    currentScriptVariant = scriptVariantCode
+    return true
   }
 
   func update(withRimeSession session: RimeSessionId) {
-    if switcher.isEmpty || session == 0 { return }
+    guard !switcher.isEmpty && session != 0 else { return }
     for state in optionStates {
       var updatedState: String?
       let optionGroup: [String] = Array(switcher.filter { (key, value) in value == state }.keys)
-      for option in optionGroup {
-        if RimeApi.get_option(session, option) {
-          updatedState = option; break
-        }
-      }
+      _ = optionGroup.first(where: { if RimeApi.get_option(session, $0) { updatedState = $0; return true } else { return false } })
       updatedState ?= "!" + optionGroup[0]
       if updatedState != state {
         _ = updateGroupState(updatedState!, ofOption: state)
       }
     }
     // update script variant
-    for (option, _) in scriptVariantOptions {
-      if option.hasPrefix("!") ? !RimeApi.get_option(session, option.suffix(option.count - 1).withCString { $0 }) : RimeApi.get_option(session, option.withCString { $0 }) {
-        _ = updateCurrentScriptVariant(option); break
-      }
-    }
+    _ = scriptVariantOptions.first(where: { if $0.key.hasPrefix("!") ? !RimeApi.get_option(session, String($0.key.dropFirst())) : RimeApi.get_option(session, $0.key) { _ = updateCurrentScriptVariant($0.key); return true } else { return false } })
   }
-} // SquirrelOptionSwitcher
+}  // SquirrelOptionSwitcher
 
-struct SquirrelAppOptions {
-  private var appOptions: [String: Any]
+final class SquirrelAppOptions: NSObject {
+  private var appOptions: [String: Any] = [:]
 
-  init() { appOptions = [:] }
-
-  subscript(key: String) -> Any? {
-    get {
-      if let value = appOptions[key] {
-        if value is Bool.Type {
-          return value as! Bool
-        } else if value is Int.Type {
-          return value as! Int
-        } else if value is Double.Type {
-          return value as! Double
-        }
-      }
-      return nil
-    }
-    set (newValue) {
-      if newValue is Bool.Type || newValue is Int.Type || newValue is Double.Type {
-        appOptions[key] = newValue
-      }
-    }
+  subscript<T: Any>(option: String) -> T? {
+    get { appOptions[option] as? T }
+    set { appOptions[option] = newValue }
   }
 
-  mutating func setValue(_ value: Bool, forKey key: String) {
-    appOptions[key] = value
+  func boolValue(forOption option: String) -> Bool {
+    if let value = appOptions[option] as? Bool { return value } else { return false }
   }
-
-  mutating func setValue(_ value: Int, forKey key: String) {
-    appOptions[key] = value
+  func intValue(forOption option: String) -> Int {
+    if let value = appOptions[option] as? Int { return value } else { return 0 }
   }
-
-  mutating func setValue(_ value: Double, forKey key: String) {
-    appOptions[key] = value
+  func doubleValue(forOption option: String) -> Double {
+    if let value = appOptions[option] as? Double { return value } else { return 0.0 }
   }
-
-  func boolValue(forKey key: String) -> Bool {
-    if let value = appOptions[key], value is Bool.Type {
-      return value as! Bool
-    }
-    return false
-  }
-
-  func intValue(forKey key: String) -> Int {
-    if let value = appOptions[key], value is Int.Type {
-      return value as! Int
-    }
-    return 0
-  }
-
-  func doubleValue(forKey key: String) -> Double {
-    if let value = appOptions[key], value is Double.Type {
-      return value as! Double
-    }
-    return 0.0
-  }
-}
+}  // SquirrelAppOptions
 
 final class SquirrelConfig: NSObject {
-  static let colorSpaceMap: [String: NSColorSpace] = ["deviceRGB": .deviceRGB,
-                                                      "genericRGB": .genericRGB,
-                                                      "sRGB": .sRGB,
-                                                      "displayP3": .displayP3,
-                                                      "adobeRGB": .adobeRGB1998,
-                                                      "extendedSRGB": .extendedSRGB]
+  static let colorSpaceMap: [String: NSColorSpace] = ["deviceRGB": .deviceRGB, "genericRGB": .genericRGB, "sRGB": .sRGB, "displayP3": .displayP3, "adobeRGB": .adobeRGB1998, "extendedSRGB": .extendedSRGB]
 
   private var cache: [String: Any]
   private var config: RimeConfig = RimeConfig()
@@ -176,16 +111,10 @@ final class SquirrelConfig: NSObject {
   private var colorSpaceName: String
   var colorSpace: String {
     get { return colorSpaceName }
-    set (newValue) {
+    set {
       let name: String = newValue.replacingOccurrences(of: "_", with: "")
       if name == colorSpaceName { return }
-      for (csName, csObject) in Self.colorSpaceMap {
-        if csName.caseInsensitiveCompare(name) == .orderedSame {
-          colorSpaceName = csName
-          colorSpaceObject = csObject
-          return
-        }
-      }
+      Self.colorSpaceMap.forEach{ if $0.key.caseInsensitiveCompare(name) == .orderedSame { colorSpaceName = $0.key; colorSpaceObject = $0.value; return } }
     }
   }
 
@@ -222,11 +151,7 @@ final class SquirrelConfig: NSObject {
     isOpen = RimeApi.schema_open(schemaId, &config)
     if isOpen {
       self.schemaId = schemaId
-      if baseConfig == nil {
-        self.baseConfig = SquirrelConfig("squirrel")
-      } else {
-        self.baseConfig = baseConfig
-      }
+      self.baseConfig = baseConfig ?? SquirrelConfig("squirrel")
     }
     return isOpen
   }
@@ -245,10 +170,10 @@ final class SquirrelConfig: NSObject {
 
   func close() {
     if isOpen && RimeApi.config_close(&config) {
-      baseConfig = nil
-      schemaId = nil
       isOpen = false
     }
+    baseConfig = nil
+    schemaId = nil
   }
 
   deinit {
@@ -276,7 +201,7 @@ final class SquirrelConfig: NSObject {
   }
 
   func setOption(_ option: String, withDouble value: Double) -> Bool {
-    return RimeApi.config_set_double(&config, option, CDouble(value))
+    return RimeApi.config_set_double(&config, option, value)
   }
 
   func setOption(_ option: String, withString value: String) -> Bool {
@@ -303,15 +228,14 @@ final class SquirrelConfig: NSObject {
     if let cachedValue = cachedValue(ofType: Bool.self, forKey: option) {
       return cachedValue
     }
-    var value: CBool = false
+    var value: Bool = false
     if isOpen && RimeApi.config_get_bool(&config, option, &value) {
-      cache[option] = Bool(value)
-      return Bool(value)
+      cache[option] = value
+      return value
     }
-    if let aliasOption = option.replaceLastPathComponent(with: alias),
-       isOpen && RimeApi.config_get_bool(&config, aliasOption, &value) {
-      cache[option] = Bool(value)
-      return Bool(value)
+    if let aliasOption = option.replaceLastPathComponent(with: alias), isOpen && RimeApi.config_get_bool(&config, aliasOption, &value) {
+      cache[option] = value
+      return value
     }
     return baseConfig?.nullableBool(forOption: option, alias: alias)
   }
@@ -325,8 +249,7 @@ final class SquirrelConfig: NSObject {
       cache[option] = Int(value)
       return Int(value)
     }
-    if let aliasOption = option.replaceLastPathComponent(with: alias),
-       isOpen && RimeApi.config_get_int(&config, aliasOption, &value) {
+    if let aliasOption = option.replaceLastPathComponent(with: alias), isOpen && RimeApi.config_get_int(&config, aliasOption, &value) {
       cache[option] = Int(value)
       return Int(value)
     }
@@ -337,20 +260,19 @@ final class SquirrelConfig: NSObject {
     if let cachedValue = cachedValue(ofType: Double.self, forKey: option) {
       return cachedValue
     }
-    var value: CDouble = 0
+    var value: Double = 0
     if isOpen && RimeApi.config_get_double(&config, option, &value) {
-      cache[option] = Double(value)
-      return Double(value)
+      cache[option] = value
+      return value
     }
-    if let aliasOption = option.replaceLastPathComponent(with: alias),
-       isOpen && RimeApi.config_get_double(&config, aliasOption, &value) {
-      cache[option] = Double(value)
-      return Double(value)
+    if let aliasOption = option.replaceLastPathComponent(with: alias), isOpen && RimeApi.config_get_double(&config, aliasOption, &value) {
+      cache[option] = value
+      return value
     }
     return baseConfig?.nullableDouble(forOption: option, alias: alias)
   }
 
-  func nullableDouble(forOption option: String, alias: String?, constraint function: (CDouble) -> CDouble) -> Double? {
+  func nullableDouble(forOption option: String, alias: String?, constraint function: (Double) -> Double) -> Double? {
     if let value = nullableDouble(forOption: option, alias: alias) {
       return function(value)
     }
@@ -369,8 +291,7 @@ final class SquirrelConfig: NSObject {
     return nullableDouble(forOption: option, alias: nil)
   }
 
-  func nullableDouble(forOption option: String,
-                      constraint function: (CDouble) -> CDouble) -> Double? {
+  func nullableDouble(forOption option: String, constraint function: (Double) -> Double) -> Double? {
     if let value = nullableDouble(forOption: option, alias: nil) {
       return function(value)
     }
@@ -382,15 +303,14 @@ final class SquirrelConfig: NSObject {
       return cachedValue
     }
     if isOpen, let value = RimeApi.config_get_cstring(&config, option) {
-      let str = String(cString: value).trimmingCharacters(in: .whitespaces)
-      cache[option] = str
-      return str
+      let string = String(cString: value).trimmingCharacters(in: .whitespaces)
+      cache[option] = string
+      return string
     }
-    if let aliasOption: String = option.replaceLastPathComponent(with: alias), isOpen,
-       let value = RimeApi.config_get_cstring(&config, aliasOption) {
-      let str = String(cString: value).trimmingCharacters(in: .whitespaces)
-      cache[option] = str
-      return str
+    if let aliasOption: String = option.replaceLastPathComponent(with: alias), isOpen, let value = RimeApi.config_get_cstring(&config, aliasOption) {
+      let string = String(cString: value).trimmingCharacters(in: .whitespaces)
+      cache[option] = string
+      return string
     }
     return baseConfig?.string(forOption: option, alias: alias)
   }
@@ -435,9 +355,7 @@ final class SquirrelConfig: NSObject {
 
   func list(forOption option: String) -> [String]? {
     var iterator = RimeConfigIterator()
-    if !RimeApi.config_begin_list(&iterator, &config, option) {
-      return nil
-    }
+    guard RimeApi.config_begin_list(&iterator, &config, option) else { return nil }
     var strList: [String] = []
     while RimeApi.config_next(&iterator) {
       strList.append(string(forOption: String(cString: iterator.path!))!)
@@ -446,39 +364,19 @@ final class SquirrelConfig: NSObject {
     return strList.count == 0 ? nil : strList
   }
 
-  static let localeScript: [String: String] = ["simplification": "zh-Hans",
-                                               "simplified": "zh-Hans",
-                                               "!traditional": "zh-Hans",
-                                               "traditional": "zh-Hant",
-                                               "!simplification": "zh-Hant",
-                                               "!simplified": "zh-Hant"]
-  static let localeRegion: [String: String] = ["tw": "zh-TW", "taiwan": "zh-TW",
-                                               "hk": "zh-HK", "hongkong": "zh-HK",
-                                               "hong_kong": "zh-HK", "mo": "zh-MO",
-                                               "macau": "zh-MO", "macao": "zh-MO",
-                                               "sg": "zh-SG", "singapore": "zh-SG",
-                                               "cn": "zh-CN", "china": "zh-CN"]
+  static let localeScript: [String: String] = ["simplification": "zh-Hans", "simplified": "zh-Hans", "!traditional": "zh-Hans", "traditional": "zh-Hant", "!simplification": "zh-Hant", "!simplified": "zh-Hant"]
+  static let localeRegion: [String: String] = ["tw": "zh-TW", "taiwan": "zh-TW", "hk": "zh-HK", "hongkong": "zh-HK", "hong_kong": "zh-HK", "mo": "zh-MO", "macau": "zh-MO", "macao": "zh-MO", "sg": "zh-SG", "singapore": "zh-SG", "cn": "zh-CN", "china": "zh-CN"]
 
   static func code(scriptVariant: String) -> String {
-    for (script, locale) in localeScript {
-      if script.caseInsensitiveCompare(scriptVariant) == .orderedSame {
-        return locale
-      }
-    }
-    for (region, locale) in localeRegion {
-      if scriptVariant.range(of: region, options: [.caseInsensitive]) != nil {
-        return locale
-      }
-    }
-    return "zh"
+    return localeScript.first(where: { return $0.key.caseInsensitiveCompare(scriptVariant) == .orderedSame })?.value ?? localeRegion.first(where: { return scriptVariant.range(of: $0.key, options: [.caseInsensitive]) != nil })?.value ?? "zh"
   }
 
   func optionSwitcherForSchema() -> SquirrelOptionSwitcher {
-    if schemaId == nil || schemaId!.isEmpty || schemaId == "." {
+    guard let schemaId = schemaId, !schemaId.isEmpty && schemaId != "." else {
       return SquirrelOptionSwitcher()
     }
     var switchIter = RimeConfigIterator()
-    if !RimeApi.config_begin_list(&switchIter, &config, "switches") {
+    guard RimeApi.config_begin_list(&switchIter, &config, "switches") else {
       return SquirrelOptionSwitcher(schemaId: schemaId)
     }
     var switcher: [String: String] = [:]
@@ -492,40 +390,29 @@ final class SquirrelConfig: NSObject {
           switcher[name] = reset != 0 ? name : "!" + name
           optionGroups[name] = [name]
         }
-        if defaultScriptVariant == nil && (name.caseInsensitiveCompare("simplification") == .orderedSame ||
-          name.caseInsensitiveCompare("simplified") == .orderedSame ||
-          name.caseInsensitiveCompare("traditional") == .orderedSame) {
+        if defaultScriptVariant == nil && (name.caseInsensitiveCompare("simplification") == .orderedSame || name.caseInsensitiveCompare("simplified") == .orderedSame || name.caseInsensitiveCompare("traditional") == .orderedSame) {
           defaultScriptVariant = reset != 0 ? name : "!" + name
           scriptVariantOptions[name] = Self.code(scriptVariant: name)
           scriptVariantOptions["!" + name] = Self.code(scriptVariant: "!" + name)
         }
       } else {
         var optionIter = RimeConfigIterator()
-        if !RimeApi.config_begin_list(&optionIter, &config, String(cString: switchIter.path!) + "/options") {
-          continue
-        }
+        guard RimeApi.config_begin_list(&optionIter, &config, String(cString: switchIter.path!) + "/options") else { continue }
         var optGroup: [String] = []
         var hasStyleSection: Bool = false
         var hasScriptVariant = defaultScriptVariant != nil
         while RimeApi.config_next(&optionIter) {
           let option: String = string(forOption: String(cString: optionIter.path!))!
           optGroup.append(option)
-          hasStyleSection = hasStyleSection || hasSection("style/" + option)
-          hasScriptVariant = hasScriptVariant || option.caseInsensitiveCompare("simplification") == .orderedSame ||
-            option.caseInsensitiveCompare("simplified") == .orderedSame ||
-            option.caseInsensitiveCompare("traditional") == .orderedSame
+          hasStyleSection |= hasSection("style/" + option)
+          hasScriptVariant |= option.caseInsensitiveCompare("simplification") == .orderedSame || option.caseInsensitiveCompare("simplified") == .orderedSame || option.caseInsensitiveCompare("traditional") == .orderedSame
         }
         RimeApi.config_end(&optionIter)
         if hasStyleSection {
-          for i in 0 ..< optGroup.count {
-            switcher[optGroup[i]] = optGroup[reset]
-            optionGroups[optGroup[i]] = Set(optGroup)
-          }
+          optGroup.forEach { switcher[$0] = optGroup[reset]; optionGroups[$0] = Set(optGroup) }
         }
         if defaultScriptVariant == nil && hasScriptVariant {
-          for opt in optGroup {
-            scriptVariantOptions[opt] = Self.code(scriptVariant: opt)
-          }
+          optGroup.forEach{ scriptVariantOptions[$0] = Self.code(scriptVariant: $0) }
           defaultScriptVariant = scriptVariantOptions[optGroup[reset]]
         }
       }
@@ -535,67 +422,59 @@ final class SquirrelConfig: NSObject {
   }
 
   func appOptions(forApp bundleId: String) -> SquirrelAppOptions {
-    if let cachedValue = cachedValue(ofType: SquirrelAppOptions.self, forKey: bundleId) {
+    let rootKey = "app_options/" + bundleId
+    if let cachedValue = cachedValue(ofType: SquirrelAppOptions.self, forKey: rootKey) {
       return cachedValue
     }
-    let rootKey = "app_options/" + bundleId
-    var appOptions = SquirrelAppOptions()
+    let appOptions = SquirrelAppOptions()
     var iterator = RimeConfigIterator()
     if !RimeApi.config_begin_map(&iterator, &config, rootKey) {
-      cache[bundleId] = appOptions
+      cache[rootKey] = appOptions
       return appOptions
     }
     while RimeApi.config_next(&iterator) {
       // print("DEBUG option[\(iterator.index)]: \(iterator.key) (\(iterator.path))")
-      if let value: Any = nullableBool(forOption: String(cString: iterator.path!)) ??
-        nullableInt(forOption: String(cString: iterator.path!)) ??
-        nullableDouble(forOption: String(cString: iterator.path!)) {
-        appOptions[String(cString: iterator.key!)] = value
+      let path = String(cString: iterator.path!), key = String(cString: iterator.key!)
+      if let boolValue = nullableBool(forOption: path) {
+        appOptions[key] = boolValue
+      } else if let intValue = nullableInt(forOption: path) {
+        appOptions[key] = intValue
+      } else if let doubleValue = nullableDouble(forOption: path) {
+        appOptions[key] = doubleValue
       }
     }
     RimeApi.config_end(&iterator)
-    cache[bundleId] = appOptions
+    cache[rootKey] = appOptions
     return appOptions
   }
 
   // MARK: Private functions
 
   private func cachedValue<T>(ofType: T.Type, forKey key: String) -> T? {
-    if let value = cache[key], value is T.Type {
-      return value as? T
-    }
-    return nil
+    if let value = cache[key] as? T { return value } else { return nil }
   }
 
   private func color(hexCode: String?) -> NSColor? {
-    if hexCode == nil || (hexCode!.count != 8 && hexCode!.count != 10) || (!hexCode!.hasPrefix("0x") && !hexCode!.hasPrefix("0X")) {
-      return nil
-    }
-    let hexScanner = Scanner(string: hexCode!)
+    guard let hexCode = hexCode, (hexCode.count == 8 || hexCode.count == 10) && (hexCode.hasPrefix("0x") || hexCode.hasPrefix("0X")) else { return nil }
+    let hexScanner = Scanner(string: hexCode)
     var hex: UInt32 = 0x0
-    if hexScanner.scanHexInt32(&hex) && hexScanner.isAtEnd {
-      let r = hex % 0x100
-      let g = hex / 0x100 % 0x100
-      let b = hex / 0x10000 % 0x100
-      // 0xaaBBGGRR or 0xBBGGRR
-      let a = hexCode!.count == 10 ? hex / 0x1000000 : 0xFF
-      let components: [CGFloat] = [CGFloat(r) / 255.0, CGFloat(g) / 255.0, CGFloat(b) / 255.0, CGFloat(a) / 255.0]
-      return NSColor(colorSpace: colorSpaceObject, components: components, count: 4)
-    }
-    return nil
+    guard hexScanner.scanHexInt32(&hex) && hexScanner.isAtEnd else { return nil }
+    let r = CGFloat(hex % 0x100)
+    let g = CGFloat(hex / 0x100 % 0x100)
+    let b = CGFloat(hex / 0x10000 % 0x100)
+    // 0xaaBBGGRR or 0xBBGGRR
+    let a = hexCode.count == 10 ? CGFloat(hex / 0x1000000) : 255.0
+    let components: [CGFloat] = [r / 255.0, g / 255.0, b / 255.0, a / 255.0]
+    return NSColor(colorSpace: colorSpaceObject, components: components, count: 4)
   }
 
   private func image(filePath: String?) -> NSImage? {
-    if filePath == nil {
-      return nil
-    }
-    let imageFile = URL(fileURLWithPath: filePath!, isDirectory: false, relativeTo: SquirrelApplicationDelegate.userDataDir).standardizedFileURL
-    if FileManager.default.fileExists(atPath: imageFile.path) {
-      return NSImage(byReferencing: imageFile)
-    }
-    return nil
+    guard let filePath = filePath else { return nil }
+    let imageFile = URL(fileURLWithPath: filePath, isDirectory: false, relativeTo: SquirrelApplicationDelegate.userDataDir).standardizedFileURL
+    guard FileManager.default.fileExists(atPath: imageFile.path) else { return nil }
+    return NSImage(byReferencing: imageFile)
   }
-} // SquirrelConfig
+}  // SquirrelConfig
 
 extension String {
   func unicharIndex(charIndex offset: CInt) -> Int {
@@ -603,9 +482,7 @@ extension String {
   }
 
   func replaceLastPathComponent(with replacement: String?) -> String? {
-    if let replacement = replacement, let sep = range(of: "/", options: .backwards) {
-      return String(self[..<sep.upperBound]) + replacement
-    }
-    return replacement
+    guard let replacement = replacement, let sep = range(of: "/", options: .backwards) else { return replacement }
+    return String(self[..<sep.upperBound]) + replacement
   }
 }

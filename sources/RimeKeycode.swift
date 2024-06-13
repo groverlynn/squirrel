@@ -16,54 +16,32 @@ struct RimeModifiers: OptionSet, Sendable {
   static let Release = RimeModifiers(rawValue: 1 << 30)
   static let ModifierMask = RimeModifiers(rawValue: 0x5F001FFF)
 
-  init(rawValue: CInt) {
-    self.rawValue = rawValue
-  }
+  init(rawValue: CInt) { self.rawValue = rawValue }
 
   init(macModifiers: NSEvent.ModifierFlags) {
     var modifiers: RimeModifiers = []
-    if macModifiers.contains(.shift) {
-      modifiers.insert(.Shift)
-    }
-    if macModifiers.contains(.capsLock) {
-      modifiers.insert(.Lock)
-    }
-    if macModifiers.contains(.control) {
-      modifiers.insert(.Control)
-    }
-    if macModifiers.contains(.option) {
-      modifiers.insert(.Alt)
-    }
-    if macModifiers.contains(.command) {
-      modifiers.insert(.Super)
-    }
-    if macModifiers.contains(.function) {
-      modifiers.insert(.Hyper)
-    }
+    if macModifiers.contains(.shift) { modifiers.insert(.Shift) }
+    if macModifiers.contains(.capsLock) { modifiers.insert(.Lock) }
+    if macModifiers.contains(.control) { modifiers.insert(.Control) }
+    if macModifiers.contains(.option) { modifiers.insert(.Alt) }
+    if macModifiers.contains(.command) { modifiers.insert(.Super) }
+    if macModifiers.contains(.function) { modifiers.insert(.Hyper) }
     self = modifiers
   }
 
   init?(name: String) {
     switch name {
-    case "Shift":
-      self = .Shift
-    case "Lock":
-      self = .Lock
-    case "Control":
-      self = .Control
-    case "Alt":
-      self = .Alt
-    case "Super":
-      self = .Super
-    case "Hyper":
-      self = .Hyper
-    case "Meta":
-      self = .Meta
-    default:
-      return nil
+    case "Shift": self = .Shift
+    case "Lock": self = .Lock
+    case "Control": self = .Control
+    case "Alt": self = .Alt
+    case "Super": self = .Super
+    case "Hyper": self = .Hyper
+    case "Meta": self = .Meta
+    default: return nil
     }
   }
-}
+}  // RimeModifiers
 
 // powerbook
 let kVK_Enter_Powerbook: Int = 0x34
@@ -588,41 +566,16 @@ enum RimeKeycode: CInt, Sendable {
     }
   }
 
-  init(name: String) {
-    self.init(rawValue: Self.nameToRawValue(name))!
-  }
+  init(name: String) { self.init(rawValue: Self.nameToRawValue(name))! }
 
-  static func < (left: Self, right: Self) -> Bool {
-    return left.rawValue < right.rawValue
-  }
-
-  static func > (left: Self, right: Self) -> Bool {
-    return left.rawValue > right.rawValue
-  }
-
-  static func == (left: Self, right: Self) -> Bool {
-    return left.rawValue == right.rawValue
-  }
-
-  static func <= (left: Self, right: Self) -> Bool {
-    return left.rawValue <= right.rawValue
-  }
-
-  static func >= (left: Self, right: Self) -> Bool {
-    return left.rawValue >= right.rawValue
-  }
-
-  static func != (left: Self, right: Self) -> Bool {
-    return left.rawValue != right.rawValue
-  }
-
-  static func + (left: Self, right: Self) -> Self {
-    return Self(rawValue: left.rawValue + right.rawValue) ?? XK_VoidSymbol
-  }
-
-  static func - (left: Self, right: Self) -> Self {
-    return Self(rawValue: left.rawValue - right.rawValue) ?? XK_VoidSymbol
-  }
+  @inlinable static func < (lhs: Self, rhs: Self) -> Bool { lhs.rawValue < rhs.rawValue }
+  @inlinable static func > (lhs: Self, rhs: Self) -> Bool { lhs.rawValue > rhs.rawValue }
+  @inlinable static func == (lhs: Self, rhs: Self) -> Bool { lhs.rawValue == rhs.rawValue }
+  @inlinable static func <= (lhs: Self, rhs: Self) -> Bool { lhs.rawValue <= rhs.rawValue }
+  @inlinable static func >= (lhs: Self, rhs: Self) -> Bool { lhs.rawValue >= rhs.rawValue }
+  @inlinable static func != (lhs: Self, rhs: Self) -> Bool { lhs.rawValue != rhs.rawValue }
+  @inlinable static func + (lhs: Self, rhs: Self) -> Self { Self(rawValue: lhs.rawValue + rhs.rawValue) ?? XK_VoidSymbol }
+  @inlinable static func - (lhs: Self, rhs: Self) -> Self { Self(rawValue: lhs.rawValue - rhs.rawValue) ?? XK_VoidSymbol }
 
   private static func nameToRawValue(_ name: String) -> CInt {
     switch name {
@@ -1938,4 +1891,4 @@ enum RimeKeycode: CInt, Sendable {
     default: return 0xFFFFFF
     }
   }
-}
+}  // RimeKeycode
