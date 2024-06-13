@@ -68,17 +68,19 @@
 		A4B8E1B30F645B870094E08B /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4B8E1B20F645B870094E08B /* Carbon.framework */; };
 		E93074B70A5C264700470842 /* InputMethodKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E93074B60A5C264700470842 /* InputMethodKit.framework */; };
 		F40501D62C01743A008BD25B /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F40501D32C01743A008BD25B /* InfoPlist.xcstrings */; };
-		F40501D82C01743A008BD25B /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F40501D52C01743A008BD25B /* Localizable.xcstrings */; };
+		F40501D82C01743A008BD25B /* Notifications.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F40501D52C01743A008BD25B /* Notifications.xcstrings */; };
 		F40501E02C01745C008BD25B /* SquirrelConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40501D92C01745C008BD25B /* SquirrelConfig.swift */; };
 		F40501E12C01745C008BD25B /* SquirrelPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40501DA2C01745C008BD25B /* SquirrelPanel.swift */; };
 		F40501E22C01745C008BD25B /* SquirrelInputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40501DB2C01745C008BD25B /* SquirrelInputSource.swift */; };
 		F40501E32C01745C008BD25B /* SquirrelInputController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40501DC2C01745C008BD25B /* SquirrelInputController.swift */; };
 		F40501E42C01745C008BD25B /* SquirrelApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40501DD2C01745C008BD25B /* SquirrelApplicationDelegate.swift */; };
-		F40501E52C01745C008BD25B /* RimeKeycode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40501DF2C01745C008BD25B /* RimeKeycode.swift */; };
+		F40501E52C01745C008BD25B /* RimeKeyCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40501DF2C01745C008BD25B /* RimeKeyCode.swift */; };
 		F40501E62C017661008BD25B /* Squirrel-Bridging-Header.h in Sources */ = {isa = PBXBuildFile; fileRef = F40501DE2C01745C008BD25B /* Squirrel-Bridging-Header.h */; };
 		F43A1B4C2C08387200AC8DB4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F43A1B4B2C08386D00AC8DB4 /* Foundation.framework */; };
 		F43A1B502C08388500AC8DB4 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F43A1B4F2C08387F00AC8DB4 /* QuartzCore.framework */; };
 		F43EFA3C2C10239D00A785D5 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F43EFA3B2C10239600A785D5 /* Cocoa.framework */; };
+		F45E9F0A2C1B335200B0A052 /* MainMenu.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F45E9F082C1B335200B0A052 /* MainMenu.xcstrings */; };
+		F45E9F0B2C1B335200B0A052 /* Tooltips.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F45E9F092C1B335200B0A052 /* Tooltips.xcstrings */; };
 		F48CFB6B2B327A2E00DB9CF9 /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 447765C725C30E6B002415AF /* Sparkle.framework */; };
 		F492C3D42BDE2D2A0031987C /* librime-lua.dylib in Copy Rime plugins */ = {isa = PBXBuildFile; fileRef = F492C3CF2BDE2D040031987C /* librime-lua.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		F492C3D52BDE2D2A0031987C /* librime-octagram.dylib in Copy Rime plugins */ = {isa = PBXBuildFile; fileRef = F492C3CE2BDE2D040031987C /* librime-octagram.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -250,8 +252,8 @@
 		447765C725C30E6B002415AF /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = Frameworks/Sparkle.framework; sourceTree = "<group>"; };
 		448363D925BDBBBF0022C7BA /* pinyin.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; name = pinyin.yaml; path = data/plum/pinyin.yaml; sourceTree = "<group>"; };
 		448363DA25BDBBBF0022C7BA /* zhuyin.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; name = zhuyin.yaml; path = data/plum/zhuyin.yaml; sourceTree = "<group>"; };
-		44986A93184B421700B3278D /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
-		44986A94184B421700B3278D /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		44986A93184B421700B3278D /* LICENSE.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; lineEnding = 0; path = LICENSE.txt; sourceTree = "<group>"; };
+		44986A94184B421700B3278D /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; lineEnding = 0; path = README.md; sourceTree = "<group>"; };
 		44AEBC7121F569CF00344375 /* punctuation.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = punctuation.yaml; path = data/plum/punctuation.yaml; sourceTree = "<group>"; };
 		44AEBC7221F569CF00344375 /* key_bindings.yaml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = key_bindings.yaml; path = data/plum/key_bindings.yaml; sourceTree = "<group>"; };
 		44CD640915E2633D0021234E /* librime.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librime.1.dylib; path = lib/librime.1.dylib; sourceTree = "<group>"; };
@@ -297,17 +299,19 @@
 		E93074B60A5C264700470842 /* InputMethodKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = InputMethodKit.framework; path = System/Library/Frameworks/InputMethodKit.framework; sourceTree = SDKROOT; };
 		F40501D32C01743A008BD25B /* InfoPlist.xcstrings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json.xcstrings; lineEnding = 0; name = InfoPlist.xcstrings; path = resources/InfoPlist.xcstrings; sourceTree = "<group>"; };
 		F40501D42C01743A008BD25B /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = resources/Info.plist; sourceTree = "<group>"; };
-		F40501D52C01743A008BD25B /* Localizable.xcstrings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json.xcstrings; lineEnding = 0; name = Localizable.xcstrings; path = resources/Localizable.xcstrings; sourceTree = "<group>"; };
+		F40501D52C01743A008BD25B /* Notifications.xcstrings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json.xcstrings; lineEnding = 0; name = Notifications.xcstrings; path = resources/Notifications.xcstrings; sourceTree = "<group>"; };
 		F40501D92C01745C008BD25B /* SquirrelConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = SquirrelConfig.swift; path = sources/SquirrelConfig.swift; sourceTree = "<group>"; };
 		F40501DA2C01745C008BD25B /* SquirrelPanel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = SquirrelPanel.swift; path = sources/SquirrelPanel.swift; sourceTree = "<group>"; };
 		F40501DB2C01745C008BD25B /* SquirrelInputSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = SquirrelInputSource.swift; path = sources/SquirrelInputSource.swift; sourceTree = "<group>"; };
 		F40501DC2C01745C008BD25B /* SquirrelInputController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = SquirrelInputController.swift; path = sources/SquirrelInputController.swift; sourceTree = "<group>"; };
 		F40501DD2C01745C008BD25B /* SquirrelApplicationDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = SquirrelApplicationDelegate.swift; path = sources/SquirrelApplicationDelegate.swift; sourceTree = "<group>"; };
 		F40501DE2C01745C008BD25B /* Squirrel-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = "Squirrel-Bridging-Header.h"; path = "sources/Squirrel-Bridging-Header.h"; sourceTree = "<group>"; };
-		F40501DF2C01745C008BD25B /* RimeKeycode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = RimeKeycode.swift; path = sources/RimeKeycode.swift; sourceTree = "<group>"; };
+		F40501DF2C01745C008BD25B /* RimeKeyCode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; name = RimeKeyCode.swift; path = sources/RimeKeyCode.swift; sourceTree = "<group>"; };
 		F43A1B4B2C08386D00AC8DB4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		F43A1B4F2C08387F00AC8DB4 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		F43EFA3B2C10239600A785D5 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		F45E9F082C1B335200B0A052 /* MainMenu.xcstrings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json.xcstrings; name = MainMenu.xcstrings; path = resources/MainMenu.xcstrings; sourceTree = "<group>"; };
+		F45E9F092C1B335200B0A052 /* Tooltips.xcstrings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json.xcstrings; name = Tooltips.xcstrings; path = resources/Tooltips.xcstrings; sourceTree = "<group>"; };
 		F492C3CD2BDE2D040031987C /* librime-predict.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "librime-predict.dylib"; path = "lib/rime-plugins/librime-predict.dylib"; sourceTree = "<group>"; };
 		F492C3CE2BDE2D040031987C /* librime-octagram.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "librime-octagram.dylib"; path = "lib/rime-plugins/librime-octagram.dylib"; sourceTree = "<group>"; };
 		F492C3CF2BDE2D040031987C /* librime-lua.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "librime-lua.dylib"; path = "lib/rime-plugins/librime-lua.dylib"; sourceTree = "<group>"; };
@@ -359,7 +363,7 @@
 				F40501DD2C01745C008BD25B /* SquirrelApplicationDelegate.swift */,
 				F40501DC2C01745C008BD25B /* SquirrelInputController.swift */,
 				F40501DB2C01745C008BD25B /* SquirrelInputSource.swift */,
-				F40501DF2C01745C008BD25B /* RimeKeycode.swift */,
+				F40501DF2C01745C008BD25B /* RimeKeyCode.swift */,
 				F40501DA2C01745C008BD25B /* SquirrelPanel.swift */,
 				F40501D92C01745C008BD25B /* SquirrelConfig.swift */,
 			);
@@ -421,7 +425,9 @@
 				44986A94184B421700B3278D /* README.md */,
 				F40501D42C01743A008BD25B /* Info.plist */,
 				F40501D32C01743A008BD25B /* InfoPlist.xcstrings */,
-				F40501D52C01743A008BD25B /* Localizable.xcstrings */,
+				F45E9F082C1B335200B0A052 /* MainMenu.xcstrings */,
+				F45E9F092C1B335200B0A052 /* Tooltips.xcstrings */,
+				F40501D52C01743A008BD25B /* Notifications.xcstrings */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -582,7 +588,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					8D1107260486CEB800E47090 = {
 						LastSwiftMigration = 1530;
@@ -616,10 +622,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F45E9F0A2C1B335200B0A052 /* MainMenu.xcstrings in Resources */,
 				F40501D62C01743A008BD25B /* InfoPlist.xcstrings in Resources */,
 				446C01D71F767BD400A6C23E /* Assets.xcassets in Resources */,
-				F40501D82C01743A008BD25B /* Localizable.xcstrings in Resources */,
+				F40501D82C01743A008BD25B /* Notifications.xcstrings in Resources */,
 				44986A95184B421700B3278D /* LICENSE.txt in Resources */,
+				F45E9F0B2C1B335200B0A052 /* Tooltips.xcstrings in Resources */,
 				44986A96184B421700B3278D /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -632,7 +640,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F40501E62C017661008BD25B /* Squirrel-Bridging-Header.h in Sources */,
-				F40501E52C01745C008BD25B /* RimeKeycode.swift in Sources */,
+				F40501E52C01745C008BD25B /* RimeKeyCode.swift in Sources */,
 				F40501E42C01745C008BD25B /* SquirrelApplicationDelegate.swift in Sources */,
 				F40501E22C01745C008BD25B /* SquirrelInputSource.swift in Sources */,
 				F40501E12C01745C008BD25B /* SquirrelPanel.swift in Sources */,
@@ -647,14 +655,13 @@
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOL_FRAMEWORKS = AppKit;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOL_FRAMEWORKS = "SwiftUI UIKit AppKit";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_RAND = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_STRCPY = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_LINK_OBJC_RUNTIME = YES;
 				CLANG_TIDY_BUGPRONE_REDUNDANT_BRANCH_CONDITION = YES;
@@ -664,12 +671,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Manual;
-				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 0.18.0s;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
@@ -679,13 +683,11 @@
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)\"";
-				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
 				INFOPLIST_FILE = resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Squirrel Input Method";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INSTALL_PATH = "\"/Library/Input Methods\"";
+				INSTALL_PATH = "/Library/Input Methods/";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -706,16 +708,14 @@
 				OTHER_LDFLAGS = "-lrime.1";
 				PRODUCT_BUNDLE_IDENTIFIER = im.rime.inputmethod.Squirrel;
 				PRODUCT_NAME = Squirrel;
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "sources/Squirrel-Bridging-Header.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(SWIFT_MODULE_NAME)-Swift.h";
 				SWIFT_OBJC_INTEROP_MODE = objc;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -723,14 +723,13 @@
 		C01FCF4C08A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOL_FRAMEWORKS = AppKit;
+				ASSETCATALOG_COMPILER_GENERATE_ASSET_SYMBOL_FRAMEWORKS = "SwiftUI UIKit AppKit";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_RAND = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_STRCPY = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_LINK_OBJC_RUNTIME = YES;
 				CLANG_TIDY_BUGPRONE_REDUNDANT_BRANCH_CONDITION = YES;
@@ -740,11 +739,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES;
 				CODE_SIGN_STYLE = Manual;
-				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 0.18.0s;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
@@ -754,12 +751,11 @@
 				);
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\"$(SRCROOT)\"";
 				FRAMEWORK_SEARCH_PATHS_QUOTED_FOR_TARGET_2 = "\"$(SRCROOT)\"";
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_MODEL_TUNING = G5;
 				INFOPLIST_FILE = resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Squirrel Input Method";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INSTALL_PATH = "\"/Library/Input Methods\"";
+				INSTALL_PATH = "/Library/Input Methods/";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -780,15 +776,14 @@
 				OTHER_LDFLAGS = "-lrime.1";
 				PRODUCT_BUNDLE_IDENTIFIER = im.rime.inputmethod.Squirrel;
 				PRODUCT_NAME = Squirrel;
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "sources/Squirrel-Bridging-Header.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(SWIFT_MODULE_NAME)-Swift.h";
 				SWIFT_OBJC_INTEROP_MODE = objc;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -796,7 +791,6 @@
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = RimeIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -806,7 +800,7 @@
 				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_RAND = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_STRCPY = YES;
-				CLANG_ENABLE_MODULES = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_ARC_EXCEPTIONS = YES;
 				CLANG_TIDY_BUGPRONE_REDUNDANT_BRANCH_CONDITION = YES;
@@ -839,13 +833,11 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = resources/Squirrel.entitlements;
 				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
-				DEFINES_MODULE = NO;
-				ENABLE_HARDENED_RUNTIME = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_INPUT_FILETYPE = automatic;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = NO;
@@ -870,9 +862,8 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Squirrel Input Method";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSMainNibFile = "";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
-				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
+				INSTALL_PATH = "/Library/Input Methods/";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@loader_path/../Frameworks",
 					"@loader_path/../Library/OpenSource",
@@ -885,15 +876,16 @@
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MODULE_NAME = Squirrel;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_MODULE_NAME = "$(PRODUCT_NAME)";
+				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
 				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INCLUDE_PATHS = /Library/Developer/Toolchains;
 				SWIFT_OBJC_BRIDGING_HEADER = "sources/Squirrel-Bridging-Header.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(SWIFT_MODULE_NAME)-Swift.h";
 				SWIFT_OBJC_INTEROP_MODE = objc;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
 				SYSTEM_HEADER_SEARCH_PATHS = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Tk.framework/Headers;
 			};
 			name = Debug;
@@ -901,7 +893,6 @@
 		C01FCF5008A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = RimeIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -911,7 +902,7 @@
 				CLANG_ANALYZER_SECURITY_FLOATLOOPCOUNTER = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_RAND = YES;
 				CLANG_ANALYZER_SECURITY_INSECUREAPI_STRCPY = YES;
-				CLANG_ENABLE_MODULES = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_ARC_EXCEPTIONS = YES;
 				CLANG_TIDY_BUGPRONE_REDUNDANT_BRANCH_CONDITION = YES;
@@ -945,12 +936,10 @@
 				CODE_SIGN_ENTITLEMENTS = resources/Squirrel.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/Release";
+				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
-				DEFINES_MODULE = NO;
-				ENABLE_HARDENED_RUNTIME = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_INPUT_FILETYPE = automatic;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = NO;
@@ -975,9 +964,8 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "Squirrel Input Method";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSMainNibFile = "";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
-				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
+				INSTALL_PATH = "/Library/Input Methods/";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"@loader_path/../Frameworks\n\n@loader_path/../Library/OpenSource\n\n@loader_path/../Library/Frameworks",
 					/usr/lib,
@@ -987,16 +975,17 @@
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MODULE_NAME = Squirrel;
 				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_MODULE_NAME = "$(PRODUCT_NAME)";
+				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
 				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
-				SWIFT_COMPILATION_MODE = singlefile;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_INCLUDE_PATHS = /Library/Developer/Toolchains;
 				SWIFT_OBJC_BRIDGING_HEADER = "sources/Squirrel-Bridging-Header.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(SWIFT_MODULE_NAME)-Swift.h";
 				SWIFT_OBJC_INTEROP_MODE = objc;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
 				SYSTEM_HEADER_SEARCH_PATHS = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/Tk.framework/Headers;
 			};
 			name = Release;

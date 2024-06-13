@@ -3,8 +3,10 @@ import Cocoa
 import InputMethodKit
 import Sparkle
 import UserNotifications
+import Combine
 
-@main final class SquirrelApp: NSApplication {
+@main final class SquirrelApp: NSObject, Sendable {
+  static let delegate: SquirrelApplicationDelegate = .init()
   static let bundleId: String = Bundle.main.bundleIdentifier!
 
   static func main() {
@@ -12,70 +14,59 @@ import UserNotifications
     if args.count > 1 {
       switch args[1] {
       case "--quit":
-        let runningSquirrels: [NSRunningApplication] = NSRunningApplication.runningApplications(withBundleIdentifier: bundleId)
-        runningSquirrels.forEach { $0.terminate() }
+        NSRunningApplication.runningApplications(withBundleIdentifier: bundleId).forEach { $0.terminate() }
         return
       case "--reload":
-        DistributedNotificationCenter.default().postNotificationName(.init("SquirrelReloadNotification"), object: nil)
+        DistributedNotificationCenter.default().postNotificationName(SquirrelApplicationDelegate.willReloadNotification, object: nil)
         return
       case "--register-input-source", "--install":
-        SquirrelInputSource.RegisterInputSource()
+        RegisterInputSource()
         return
       case "--enable-input-source":
-        var inputModes: RimeInputModes = []
-        if args.count > 2 {
-          args[2...].forEach { if let mode = RimeInputModes(code: $0) { inputModes.insert(mode) } }
-        }
-        SquirrelInputSource.EnableInputSource(inputModes)
+        let inputModes: RimeInputModes = args.dropFirst(2).reduce(RimeInputModes(), { $0.union(RimeInputModes(code: $1) ?? []) })
+        EnableInputSource(inputModes)
         return
       case "--disable-input-source":
-        SquirrelInputSource.DisableInputSource()
+        DisableInputSource()
         return
       case "--select-input-source":
-        var inputModes: RimeInputModes = []
-        if args.count > 2 {
-          args[2...].forEach { if let mode = RimeInputModes(code: $0) { inputModes.insert(mode) } }
-        }
-        SquirrelInputSource.SelectInputSource(inputModes)
+        let inputModes: RimeInputModes = args.dropFirst(2).reduce(RimeInputModes(), { $0.union(RimeInputModes(code: $1) ?? []) })
+        SelectInputSource(inputModes)
         return
       case "--build":
-        // notification
-        showNotification(message: "deploy_update")
+        ShowNotification(message: "deploy_update")
         // build all schemas in current directory
         var builderTraits: RimeTraits = RimeStructInit()
-        builderTraits.app_name = ("rime.squirrel-builder" as NSString).utf8String
+        builderTraits.app_name = "rime.squirrel-builder".utf8CString.withUnsafeBufferPointer(\.baseAddress)
         RimeApi.setup(&builderTraits)
         RimeApi.deployer_initialize(nil)
         _ = RimeApi.deploy()
         return
       case "--sync":
-        DistributedNotificationCenter.default().postNotificationName(.init("SquirrelSyncNotification"), object: nil)
+        DistributedNotificationCenter.default().postNotificationName(SquirrelApplicationDelegate.willSyncNotification, object: nil)
         return
       default:
         break
       }
     }
+
     autoreleasepool {
       // find the bundle identifier and then initialize the input method server
-      let connectionName = Bundle.main.object(forInfoDictionaryKey: "InputMethodConnectionName")
-      _ = IMKServer(name: connectionName as? String, bundleIdentifier: bundleId)
-
+      _ = IMKServer(name: Bundle.main.object(forInfoDictionaryKey: "InputMethodConnectionName") as? String, bundleIdentifier: bundleId)
       // load the bundle explicitly because in this case the input method is a background only application
-      let delegate = SquirrelApplicationDelegate()
       NSApplication.shared.delegate = delegate
       NSApplication.shared.setActivationPolicy(.accessory)
-
       // opencc will be configured with relative dictionary paths
       FileManager.default.changeCurrentDirectoryPath(Bundle.main.sharedSupportPath!)
 
       if delegate.problematicLaunchDetected() {
         print("Problematic launch detected!")
-        let args: [String] = ["-v", NSLocalizedString("say_voice", comment: ""), NSLocalizedString("problematic_launch", comment: "")]
+        let args: [String] = ["-v", Bundle.main.localizedString(forKey: "say_voice", value: nil, table: "Notifications"), Bundle.main.localizedString(forKey: "problematic_launch", value: nil, table: "Notifications")]
         if #available(macOS 10.13, *) {
           do {
             try Process.run(URL(fileURLWithPath: "/usr/bin/say", isDirectory: false), arguments: args, terminationHandler: nil)
           } catch {
-            print("Error message cannot be communicated through audio:\n", NSLocalizedString("problematic_launch", comment: ""))
+            print(args[2])
           }
         } else {
           Process.launchedProcess(launchPath: "/usr/bin/say", arguments: args)
@@ -96,101 +87,110 @@ import UserNotifications
   }
 }
 
-final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegate, UNUserNotificationCenterDelegate {
-  @frozen enum SquirrelNotificationPolicy {
-    case never, whenAppropriate, always
-  }
-  private(set) var showNotifications: SquirrelNotificationPolicy = .never
-  private var switcherKeyEquivalent: RimeKeycode = .XK_VoidSymbol
-  private var switcherKeyModifierMask: RimeModifiers = []
-  var isCurrentInputMethod: Bool = false
-  lazy var panel = SquirrelPanel()
-  let menu = NSMenu()
-  private let updateController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+enum SquirrelNotificationPolicy: Sendable {
+  case never, whenAppropriate, always
+}
+
+final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUStandardUserDriverDelegate, UNUserNotificationCenterDelegate, Sendable {
+  static let userDataDir: URL = .init(fileURLWithPath: "Library/Rime/", isDirectory: true, relativeTo: FileManager.default.homeDirectoryForCurrentUser).standardizedFileURL
+  static private let RimeWiki: URL = .init(string: "https://github.com/rime/home/wiki")!
+  static let willReloadNotification: Notification.Name = .init("SquirrelWillReload")
+  static let willSyncNotification: Notification.Name = .init("SquirrelWillSync")
+  static let updaterIdentifier: String = "SquirrelUpdateNotification"
+  static let notifIdentifier: String = "SquirrelNotification"
+  private var updateController: SPUStandardUpdaterController { .init(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil) }
   var supportsGentleScheduledUpdateReminders: Bool { true }
 
-  static let userDataDir = URL(fileURLWithPath: "Library/Rime/", isDirectory: true, relativeTo: FileManager.default.homeDirectoryForCurrentUser).standardizedFileURL
-  static let RimeWiki = URL(string: "https://github.com/rime/home/wiki")!
+  nonisolated(unsafe) private(set) var workspaceWillPowerOff: AnyCancellable?
+  nonisolated(unsafe) private(set) var rimeWillReload: AnyCancellable?
+  nonisolated(unsafe) private(set) var rimeWillSync: AnyCancellable?
+  nonisolated(unsafe) private(set) var inputSourceDidChange: AnyCancellable?
 
-  /*** updater ***/
+  nonisolated(unsafe) private(set) var showNotifications: SquirrelNotificationPolicy = .never
+  nonisolated(unsafe) private(set) var switcherKeyEquivalent: RimeKeyCode = .XK_VoidSymbol
+  nonisolated(unsafe) private(set) var switcherKeyModifierMask: RimeModifiers = []
+
+  @MainActor let panel: SquirrelPanel = .init()
+  var menu: NSMenu {
+    let menu: NSMenu = .init()
+    menu.addItem(NSMenuItem(title: Bundle.main.localizedString(forKey: "showSwitcher", value: nil, table: "MainMenu"), action: #selector(showSwitcher(_:)), keyEquivalent: ""))
+    let deploy: NSMenuItem = .init(title: Bundle.main.localizedString(forKey: "deploy", value: nil, table: "MainMenu"), action: #selector(deploy(_:)), keyEquivalent: "`")
+    deploy.keyEquivalentModifierMask = [.control, .option]
+    menu.addItem(deploy)
+    menu.addItem(NSMenuItem(title: Bundle.main.localizedString(forKey: "syncUserData", value: nil, table: "MainMenu"), action: #selector(syncUserData(_:)), keyEquivalent: ""))
+    menu.addItem(NSMenuItem(title: Bundle.main.localizedString(forKey: "configure", value: nil, table: "MainMenu"), action: #selector(configure(_:)), keyEquivalent: ""))
+    menu.addItem(NSMenuItem(title: Bundle.main.localizedString(forKey: "openWiki", value: nil, table: "MainMenu"), action: #selector(openWiki(_:)), keyEquivalent: ""))
+    menu.addItem(NSMenuItem(title: Bundle.main.localizedString(forKey: "checkForUpdates", value: nil, table: "MainMenu"), action: #selector(checkForUpdates(_:)), keyEquivalent: ""))
+    menu.addItem(NSMenuItem(title: Bundle.main.localizedString(forKey: "openLogFolder", value: nil, table: "MainMenu"), action: #selector(openLogFolder(_:)), keyEquivalent: ""))
+    return menu
+  }
+
+  /* updater */
   func standardUserDriverWillHandleShowingUpdate(_ handleShowingUpdate: Bool, forUpdate update: SUAppcastItem, state: SPUUserUpdateState) {
-    NSApp.setActivationPolicy(.regular)
+    _ = MainActor.assumeIsolated { NSApp.setActivationPolicy(.regular) }
     if !state.userInitiated {
-      NSApp.dockTile.badgeLabel = "1"
-      let content = UNMutableNotificationContent()
-      content.title = NSLocalizedString("new_update", comment: "")
-      content.body = String(format: NSLocalizedString("update_version", comment: ""), update.displayVersionString)
-      let request = UNNotificationRequest(identifier: "SquirrelUpdateNotification", content: content, trigger: nil)
+      MainActor.assumeIsolated { NSApp.dockTile.badgeLabel = "1" }
+      let content: UNMutableNotificationContent = .init()
+      content.title = Bundle.main.localizedString(forKey: "new_update", value: nil, table: "Notifications")
+      content.body = String(format: Bundle.main.localizedString(forKey: "update_version", value: nil, table: "Notifications"), update.displayVersionString)
+      let request: UNNotificationRequest = .init(identifier: Self.updaterIdentifier, content: content, trigger: nil)
       UNUserNotificationCenter.current().add(request)
     }
   }
 
   func standardUserDriverDidReceiveUserAttention(forUpdate update: SUAppcastItem) {
-    NSApp.dockTile.badgeLabel = ""
-    UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: ["SquirrelUpdateNotification"])
+    MainActor.assumeIsolated { NSApp.dockTile.badgeLabel = "" }
+    UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [Self.updaterIdentifier])
   }
 
   func standardUserDriverWillFinishUpdateSession() {
-    NSApp.setActivationPolicy(.accessory)
+    MainActor.assumeIsolated { _ = NSApp.setActivationPolicy(.accessory) }
   }
 
   func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-    if response.notification.request.identifier == "SquirrelUpdateNotification" && response.actionIdentifier == UNNotificationDefaultActionIdentifier {
+    if response.notification.request.identifier == Self.updaterIdentifier, response.actionIdentifier == UNNotificationDefaultActionIdentifier {
       updateController.updater.checkForUpdates()
     }
-    completionHandler()
   }
 
-  /*** launching ***/
+  /* launching */
   func applicationWillFinishLaunching(_ notification: Notification) {
-    setupMenu()
-    let center = NSWorkspace.shared.notificationCenter
-    center.addObserver(forName: NSWorkspace.willPowerOffNotification, object: nil, queue: nil, using: workspaceWillPowerOff(_:))
-    let notifCenter = DistributedNotificationCenter.default()
-    notifCenter.addObserver(forName: Notification.Name("SquirrelReloadNotification"), object: nil, queue: nil, using: rimeNeedsReload(_:))
-    notifCenter.addObserver(forName: Notification.Name("SquirrelSyncNotification"), object: nil, queue: nil, using: rimeNeedsSync(_:))
-    isCurrentInputMethod = false
-    notifCenter.addObserver(forName: kTISNotifySelectedKeyboardInputSourceChanged as Notification.Name, object: nil, queue: nil, using: inputSourceChanged(_:))
+    let center: NotificationCenter = NSWorkspace.shared.notificationCenter
+    workspaceWillPowerOff = center.publisher(for: NSWorkspace.willPowerOffNotification).sink { _ in
+      print("Finalizing before logging out.")
+      self.shutdownRime()
+    }
+    let notifCenter: DistributedNotificationCenter = .default()
+    rimeWillReload = notifCenter.publisher(for: Self.willReloadNotification).sink { _ in
+      print("Reloading rime on demand.")
+      self.deploy(nil)
+    }
+    rimeWillSync = notifCenter.publisher(for: Self.willSyncNotification).sink { _ in
+      print("Sync rime on demand.")
+      self.syncUserData(nil)
+    }
+    SquirrelInputController.isCurrentInputMethod = false
+    inputSourceDidChange = notifCenter.publisher(for: kTISNotifySelectedKeyboardInputSourceChanged as Notification.Name).sink { _ in
+      let inputSource: TISInputSource = TISCopyCurrentKeyboardInputSource().takeRetainedValue()
+      if let inputSourceID: String = bridge(ptr: TISGetInputSourceProperty(inputSource, kTISPropertyInputSourceID), as: CFString.self) as? String, !inputSourceID.hasPrefix(SquirrelApp.bundleId) {
+        SquirrelInputController.isCurrentInputMethod = false
+      }
+    }
   }
 
   func applicationWillTerminate(_ notification: Notification) {
-    NSWorkspace.shared.notificationCenter.removeObserver(self)
-    DistributedNotificationCenter.default().removeObserver(self)
+    workspaceWillPowerOff?.cancel()
+    rimeWillReload?.cancel()
+    rimeWillSync?.cancel()
+    inputSourceDidChange?.cancel()
     panel.hide()
   }
 
-  private func setupMenu() {
-    let showSwitcher = NSMenuItem(title: NSLocalizedString("showSwitcher", comment: ""), action: #selector(showSwitcher(_:)), keyEquivalent: "")
-    showSwitcher.target = self
-    menu.addItem(showSwitcher)
-    let deploy = NSMenuItem(title: NSLocalizedString("deploy", comment: ""), action: #selector(deploy(_:)), keyEquivalent: "`")
-    deploy.target = self
-    deploy.keyEquivalentModifierMask = [.control, .option]
-    menu.addItem(deploy)
-    let syncUserData = NSMenuItem(title: NSLocalizedString("syncUserData", comment: ""), action: #selector(syncUserData(_:)), keyEquivalent: "")
-    syncUserData.target = self
-    menu.addItem(syncUserData)
-    let configure = NSMenuItem(title: NSLocalizedString("configure", comment: ""), action: #selector(configure(_:)), keyEquivalent: "")
-    configure.target = self
-    menu.addItem(configure)
-    let openWiki = NSMenuItem(title: NSLocalizedString("openWiki", comment: ""), action: #selector(openWiki(_:)), keyEquivalent: "")
-    openWiki.target = self
-    menu.addItem(openWiki)
-    let checkForUpdates = NSMenuItem(title: NSLocalizedString("checkForUpdates", comment: ""), action: #selector(checkForUpdates(_:)), keyEquivalent: "")
-    checkForUpdates.target = self
-    menu.addItem(checkForUpdates)
-    let openLogFolder = NSMenuItem(title: NSLocalizedString("openLogFolder", comment: ""), action: #selector(openLogFolder(_:)), keyEquivalent: "")
-    openLogFolder.target = self
-    menu.addItem(openLogFolder)
-  }
-
-  /*** menu selectors ***/
+  /* menu selectors */
   @objc func showSwitcher(_ sender: Any?) {
     print("Show Switcher")
-    if switcherKeyEquivalent != .XK_VoidSymbol {
-      let session = RimeSessionId((sender as! NSNumber).uint64Value)
-      _ = RimeApi.process_key(session, switcherKeyEquivalent.rawValue, switcherKeyModifierMask.rawValue)
-    }
+    guard switcherKeyEquivalent != .XK_VoidSymbol, let session: RimeSessionId = sender as? RimeSessionId else { return }
+    _ = RimeApi.process_key(session, switcherKeyEquivalent.rawValue, switcherKeyModifierMask.rawValue)
   }
 
   @objc func deploy(_ sender: Any?) {
@@ -209,6 +209,10 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
     NSWorkspace.shared.open(Self.userDataDir)
   }
 
+  @objc func openWiki(_ sender: Any?) {
+    NSWorkspace.shared.open(Self.RimeWiki)
+  }
+
   @objc func checkForUpdates(_ sender: Any?) {
     if updateController.updater.canCheckForUpdates {
       print("Checking for updates")
@@ -218,12 +222,8 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
     }
   }
 
-  @objc func openWiki(_ sender: Any?) {
-    NSWorkspace.shared.open(Self.RimeWiki)
-  }
-
   @objc func openLogFolder(_ sender: Any?) {
-    let infoLog = URL(fileURLWithPath: "rime.squirrel.INFO", isDirectory: false, relativeTo: FileManager.default.temporaryDirectory).standardizedFileURL
+    let infoLog: URL = .init(fileURLWithPath: "rime.squirrel.INFO", isDirectory: false, relativeTo: FileManager.default.temporaryDirectory).standardizedFileURL
     NSWorkspace.shared.activateFileViewerSelecting([infoLog])
   }
 
@@ -232,17 +232,17 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
       do {
         try FileManager.default.createDirectory(at: Self.userDataDir, withIntermediateDirectories: true)
       } catch {
-        print("Error creating user data directory: \(Self.userDataDir.absoluteString)")
+        print("Error creating user data directory: \(Self.userDataDir.path)")
       }
     }
     RimeApi.set_notification_handler(notificationHandler, bridge(obj: self))
     var squirrelTraits: RimeTraits = RimeStructInit()
-    squirrelTraits.shared_data_dir = (Bundle.main.sharedSupportURL as? NSURL)?.fileSystemRepresentation
-    squirrelTraits.user_data_dir = (Self.userDataDir as NSURL).fileSystemRepresentation
-    squirrelTraits.distribution_code_name = ("Squirrel" as NSString).utf8String
-    squirrelTraits.distribution_name = ("鼠鬚管" as NSString).utf8String
-    squirrelTraits.distribution_version = (Bundle.main.object(forInfoDictionaryKey: kCFBundleVersionKey as String) as? NSString)?.utf8String
-    squirrelTraits.app_name = ("rime.squirrel" as NSString).utf8String
+    squirrelTraits.shared_data_dir = Bundle.main.sharedSupportURL?.withUnsafeFileSystemRepresentation(\.unsafelyUnwrapped)
+    squirrelTraits.user_data_dir = Self.userDataDir.withUnsafeFileSystemRepresentation(\.unsafelyUnwrapped)
+    squirrelTraits.distribution_code_name = "Squirrel".utf8CString.withUnsafeBufferPointer(\.baseAddress)
+    squirrelTraits.distribution_name = "鼠鬚管".utf8CString.withUnsafeBufferPointer(\.baseAddress)
+    squirrelTraits.distribution_version = Bundle.main.object(forInfoDictionaryKey: kCFBundleVersionKey as String) as? UnsafePointer<CChar>
+    squirrelTraits.app_name = "rime.squirrel".utf8CString.withUnsafeBufferPointer(\.baseAddress)
     RimeApi.setup(&squirrelTraits)
   }
 
@@ -266,77 +266,96 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
   func loadSettings() {
     switcherKeyModifierMask = []
     switcherKeyEquivalent = .XK_VoidSymbol
-    let defaulConfig = SquirrelConfig("default")
-    if let hotkey = defaulConfig.string(forOption: "switcher/hotkeys/@0") {
+    let defaultConfig: SquirrelConfig = .init(.default)
+    SquirrelInputController.goodOldCapsLock = defaultConfig.boolValue(for: "ascii_composer/good_old_caps_lock") ?? false
+    if let hotkey: String = defaultConfig.stringValue(for: "switcher/hotkeys/@0") {
       let keys: [String] = hotkey.components(separatedBy: "+")
-      for i in 0 ..< (keys.count - 1) {
-        if let modifier = RimeModifiers(name: keys[i]) {
-          switcherKeyModifierMask.insert(modifier)
-        }
+      switcherKeyModifierMask = keys.dropLast().reduce([], { $0.union(RimeModifiers(name: $1) ?? []) })
+      switcherKeyEquivalent = RimeKeyCode(name: keys.last!)
+    }
+    defaultConfig.close()
+    MainActor.assumeIsolated {
+      let baseConfig: SquirrelConfig = .init()
+      guard baseConfig.openBaseConfig() else { return }
+      showNotifications = switch baseConfig.stringValue(for: "show_notifications_when") {
+      case "never": .never
+      case "always": .always
+      default: .whenAppropriate
       }
-      switcherKeyEquivalent = RimeKeycode(name: keys.last!)
+      SquirrelInputController.keyboardLayout = baseConfig.stringValue(for: "keyboard_layout")
+      SquirrelInputController.chordDuration = if let duration: Double = baseConfig.doubleValue(for: "chord_duration"), duration.isNormal { duration } else { 0.1 }
+      panel.optionSwitcher = SquirrelOptionSwitcher()
+      SquirrelTheme.light.updateTheme(withConfig: baseConfig, styleOptions: panel.optionSwitcher.optionStates, scriptVariant: panel.optionSwitcher.currentScriptVariant)
+      if #available(macOS 10.14, *) {
+        SquirrelTheme.dark.updateTheme(withConfig: baseConfig, styleOptions: panel.optionSwitcher.optionStates, scriptVariant: panel.optionSwitcher.currentScriptVariant)
+      }
+      panel.getLocked()
+      panel.updateDisplayParameters()
+      baseConfig.close()
     }
-    defaulConfig.close()
-
-    let config = SquirrelConfig()
-    if !config.openBaseConfig() {
-      return
-    }
-
-    let showNotificationsWhen = config.string(forOption: "show_notifications_when")
-    if showNotificationsWhen?.caseInsensitiveCompare("never") == .orderedSame {
-      showNotifications = .never
-    } else if showNotificationsWhen?.caseInsensitiveCompare("always") == .orderedSame {
-      showNotifications = .always
-    } else {
-      showNotifications = .whenAppropriate
-    }
-    panel.loadConfig(config)
-    config.close()
   }
 
-  func loadSchemaSpecificSettings(schemaId: String, withRimeSession sessionId: RimeSessionId) {
-    if schemaId.isEmpty || schemaId.hasPrefix(".") {
-      return
-    }
+  func loadSchemaSpecificSettings(schemaId: String) {
+    guard !schemaId.isEmpty, !schemaId.hasPrefix(".") else { return }
     // update the list of switchers that change styles and color-themes
-    let baseConfig = SquirrelConfig("squirrel")
-    let schema = SquirrelConfig()
-    if schema.open(withSchemaId: schemaId, baseConfig: baseConfig) && schema.hasSection("style") {
-      panel.optionSwitcher = schema.optionSwitcherForSchema()
-      panel.optionSwitcher.update(withRimeSession: sessionId)
-      panel.loadConfig(schema)
-    } else {
-      panel.optionSwitcher = SquirrelOptionSwitcher(schemaId: schemaId)
-      panel.loadConfig(baseConfig)
+    MainActor.assumeIsolated {
+      let baseConfig: SquirrelConfig = .init(.base)
+      let schema: SquirrelConfig = .init()
+      if schema.open(schemaId: schemaId, baseConfig: baseConfig), schema.hasSection("style") {
+        panel.optionSwitcher = schema.optionSwitcher()
+        panel.optionSwitcher.update()
+        SquirrelTheme.light.updateTheme(withConfig: schema, styleOptions: panel.optionSwitcher.optionStates, scriptVariant: panel.optionSwitcher.currentScriptVariant)
+        if #available(macOS 10.14, *) {
+          SquirrelTheme.dark.updateTheme(withConfig: schema, styleOptions: panel.optionSwitcher.optionStates, scriptVariant: panel.optionSwitcher.currentScriptVariant)
+        }
+      } else {
+        panel.optionSwitcher = SquirrelOptionSwitcher(schemaId: schemaId)
+        SquirrelTheme.light.updateTheme(withConfig: baseConfig, styleOptions: panel.optionSwitcher.optionStates, scriptVariant: panel.optionSwitcher.currentScriptVariant)
+        if #available(macOS 10.14, *) {
+          SquirrelTheme.dark.updateTheme(withConfig: baseConfig, styleOptions: panel.optionSwitcher.optionStates, scriptVariant: panel.optionSwitcher.currentScriptVariant)
+        }
+      }
+      panel.getLocked()
+      panel.updateDisplayParameters()
+      schema.close()
+      baseConfig.close()
     }
-    schema.close()
-    baseConfig.close()
   }
 
   func loadSchemaSpecificLabels(schemaId: String) {
-    let defaultConfig = SquirrelConfig("default")
-    if schemaId.isEmpty || schemaId.hasPrefix(".") {
-      panel.loadLabelConfig(defaultConfig, directUpdate: true)
+    MainActor.assumeIsolated {
+      let defaultConfig: SquirrelConfig = .init(.default)
+      if schemaId.isEmpty || schemaId.hasPrefix(".") {
+        SquirrelTheme.light.updateLabels(withConfig: defaultConfig, directUpdate: true)
+        if #available(macOS 10.14, *) {
+          SquirrelTheme.dark.updateLabels(withConfig: defaultConfig, directUpdate: true)
+        }
+        panel.updateDisplayParameters()
+      } else {
+        let schema: SquirrelConfig = .init()
+        if schema.open(schemaId: schemaId, baseConfig: defaultConfig), schema.hasSection("menu") {
+          SquirrelTheme.light.updateLabels(withConfig: schema, directUpdate: false)
+          if #available(macOS 10.14, *) {
+            SquirrelTheme.dark.updateLabels(withConfig: schema, directUpdate: false)
+          }
+        } else {
+          SquirrelTheme.light.updateLabels(withConfig: defaultConfig, directUpdate: false)
+          if #available(macOS 10.14, *) {
+            SquirrelTheme.dark.updateLabels(withConfig: defaultConfig, directUpdate: false)
+          }
+        }
+        schema.close()
+      }
       defaultConfig.close()
-      return
     }
-    let schema = SquirrelConfig()
-    if schema.open(withSchemaId: schemaId, baseConfig: defaultConfig) && schema.hasSection("menu") {
-      panel.loadLabelConfig(schema, directUpdate: false)
-    } else {
-      panel.loadLabelConfig(defaultConfig, directUpdate: false)
-    }
-    schema.close()
-    defaultConfig.close()
   }
 
   // prevent freezing the system
   func problematicLaunchDetected() -> Bool {
     var detected: Bool = false
-    let logfile = URL(fileURLWithPath: "squirrel_launch.dat", isDirectory: false, relativeTo: FileManager.default.temporaryDirectory).standardizedFileURL
+    let logfile: URL = .init(fileURLWithPath: "squirrel_launch.dat", isDirectory: false, relativeTo: FileManager.default.temporaryDirectory).standardizedFileURL
     print("[DEBUG] archive: \(logfile)")
-    if let archive = try? Data(contentsOf: logfile, options: [.uncached]) {
+    if let archive: Data = try? Data(contentsOf: logfile, options: [.uncached]) {
       if let previousLaunch: NSDate = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSDate.self, from: archive), previousLaunch.timeIntervalSinceNow >= -2 {
         detected = true
       }
@@ -347,143 +366,100 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
     return detected
   }
 
-  func workspaceWillPowerOff(_ notification: Notification) {
-    print("Finalizing before logging out.")
-    shutdownRime()
-  }
-
-  func rimeNeedsReload(_ notification: Notification) {
-    print("Reloading rime on demand.")
-    deploy(nil)
-  }
-
-  func rimeNeedsSync(_ notification: Notification) {
-    print("Sync rime on demand.")
-    syncUserData(nil)
-  }
-
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
     print("Squirrel is quitting.")
     RimeApi.cleanup_all_sessions()
     return .terminateNow
   }
+}  // SquirrelApplicationDelegate
 
-  func inputSourceChanged(_ notification: Notification) {
-    let inputSource: TISInputSource = TISCopyCurrentKeyboardInputSource().takeUnretainedValue()
-    if let inputSourceID: CFString = bridge(ptr: TISGetInputSourceProperty(inputSource, kTISPropertyInputSourceID)), !(inputSourceID as String).hasPrefix(SquirrelApp.bundleId) {
-      isCurrentInputMethod = false
-    }
-  }
-}
-
-private func showNotification(message: String) {
+private func ShowNotification(message: String) {
   if #available(macOS 10.14, *) {
-    let center = UNUserNotificationCenter.current()
+    let center: UNUserNotificationCenter = .current()
     center.requestAuthorization(options: [.alert, .provisional]) { granted, error in
       if error != nil {
         print("User notification authorization error: \(error.debugDescription)")
       }
     }
     center.getNotificationSettings { settings in
-      if (settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional) && (settings.alertSetting == .enabled) {
-        let content = UNMutableNotificationContent()
-        content.title = NSLocalizedString("Squirrel", comment: "")
-        content.subtitle = NSLocalizedString(message, comment: "")
-        if #available(macOS 12.0, *) {
-          content.interruptionLevel = .active
-        }
-        let request = UNNotificationRequest(identifier: "SquirrelNotification", content: content, trigger: nil)
-        center.add(request) { error in
-          if error != nil {
-            print("User notification request error: \(error.debugDescription)")
-          }
+      guard (settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional), settings.alertSetting == .enabled else { return }
+      let content: UNMutableNotificationContent = .init()
+      content.title = Bundle.main.localizedString(forKey: "Squirrel", value: nil, table: "Notifications")
+      content.subtitle = Bundle.main.localizedString(forKey: message, value: nil, table: "Notifications")
+      if #available(macOS 12.0, *) { content.interruptionLevel = .active }
+      let request: UNNotificationRequest = .init(identifier: SquirrelApplicationDelegate.notifIdentifier, content: content, trigger: nil)
+      center.add(request) { error in
+        if error != nil {
+          print("User notification request error: \(error.debugDescription)")
         }
       }
     }
   } else {
-    let notification = NSUserNotification()
-    notification.title = NSLocalizedString("Squirrel", comment: "")
-    notification.subtitle = NSLocalizedString(message, comment: "")
-
-    let notificationCenter = NSUserNotificationCenter.default
+    let notification: NSUserNotification = .init()
+    notification.title = Bundle.main.localizedString(forKey: "Squirrel", value: nil, table: "Notifications")
+    notification.subtitle = Bundle.main.localizedString(forKey: message, value: nil, table: "Notifications")
+    let notificationCenter: NSUserNotificationCenter = .default
     notificationCenter.removeAllDeliveredNotifications()
     notificationCenter.deliver(notification)
   }
 }
 
-private func notificationHandler(context_object: UnsafeMutableRawPointer?, session_id: RimeSessionId, message_type: UnsafePointer<CChar>?, message_value: UnsafePointer<CChar>?) {
-  if let type = message_type {
-    switch String(cString: type) {
-    case "deploy":
-      if let message = message_value {
-        switch String(cString: message) {
-        case "start":
-          showNotification(message: "deploy_start")
-        case "success":
-          showNotification(message: "deploy_success")
-        case "failure":
-          showNotification(message: "deploy_failure")
-        default:
-          break
-        }
-      }
-    case "schema":
-      if let appDelegate: SquirrelApplicationDelegate = bridge(ptr: context_object), appDelegate.showNotifications != .never, let message = message_value {
-        let schemaName = String(cString: message).components(separatedBy: "/")
-        if schemaName.count == 2 {
-          appDelegate.panel.updateStatus(long: schemaName[1], short: schemaName[1])
-        }
-      }
-    case "option":
-      if let appDelegate: SquirrelApplicationDelegate = bridge(ptr: context_object), let message = message_value {
-        let optionState = String(cString: message)
-        let state: Bool = !optionState.hasPrefix("!")
-        let optionName = state ? optionState : String(optionState.suffix(optionState.count - 1))
-        let updateScriptVariant: Bool = appDelegate.panel.optionSwitcher.updateCurrentScriptVariant(optionState)
-        var updateStyleOptions: Bool = false
-        if appDelegate.panel.optionSwitcher.updateGroupState(optionState, ofOption: optionName) {
-          updateStyleOptions = true
-          let schemaId: String = appDelegate.panel.optionSwitcher.schemaId
-          appDelegate.loadSchemaSpecificLabels(schemaId: schemaId)
-          appDelegate.loadSchemaSpecificSettings(schemaId: schemaId, withRimeSession: session_id)
-        }
-        if updateScriptVariant && !updateStyleOptions {
-          appDelegate.panel.updateScriptVariant()
-        }
-        if appDelegate.showNotifications != .never {
-          let longLabel = RimeApi.get_state_label_abbreviated(session_id, optionName, state, false)
-          let shortLabel = RimeApi.get_state_label_abbreviated(session_id, optionName, state, true)
-          if longLabel.str != nil || shortLabel.str != nil {
-            let long = longLabel.str == nil ? nil : String(cString: longLabel.str!)
-            let short = shortLabel.str == nil || shortLabel.length < strlen(shortLabel.str) ? nil : String(cString: shortLabel.str!)
-            appDelegate.panel.updateStatus(long: long, short: short)
-          }
-        }
-      }
-    default:
-      break
+private let notificationHandler: @convention(c) (UnsafeMutableRawPointer?, RimeSessionId, UnsafePointer<CChar>?, UnsafePointer<CChar>?) -> Void = { contextObject, sessionId, messageType, messageValue in
+  guard let messageType = messageType else { return }
+  switch String(cString: messageType) {
+  case "deploy":
+    guard let messageValue = messageValue else { break }
+    switch String(cString: messageValue) {
+    case "start": ShowNotification(message: "deploy_start")
+    case "success": ShowNotification(message: "deploy_success")
+    case "failure": ShowNotification(message: "deploy_failure")
+    default: break
     }
-  }
-}
-
-extension NSApplication {
-  var SquirrelAppDelegate: SquirrelApplicationDelegate {
-    delegate as! SquirrelApplicationDelegate
+  case "schema":
+    guard let appDelegate: SquirrelApplicationDelegate = bridge(ptr: contextObject), appDelegate.showNotifications != .never, let messageValue = messageValue else { break }
+    let schemaName: [String] = String(cString: messageValue).components(separatedBy: "/")
+    if schemaName.count == 2 {
+      MainActor.assumeIsolated { appDelegate.panel.updateStatus(long: schemaName[1], short: schemaName[1]) }
+    }
+  case "option":
+    guard let appDelegate: SquirrelApplicationDelegate = bridge(ptr: contextObject), let messageValue = messageValue else { break }
+    let optionState: String = .init(cString: messageValue)
+    MainActor.assumeIsolated {
+      guard let (optionName, state) : (String, Bool) = appDelegate.panel.optionSwitcher.optionAliases[optionState] else { return }
+      let updateScriptVariant: Bool = appDelegate.panel.optionSwitcher.updateCurrentScriptVariant(optionState)
+      var updateStyleOptions: Bool = false
+      if appDelegate.panel.optionSwitcher.updateGroupState(optionState, ofOption: optionName) {
+        updateStyleOptions = true
+        let schemaId: String = appDelegate.panel.optionSwitcher.schemaId
+        appDelegate.loadSchemaSpecificLabels(schemaId: schemaId)
+        appDelegate.loadSchemaSpecificSettings(schemaId: schemaId)
+      }
+      if updateScriptVariant, !updateStyleOptions {
+        appDelegate.panel.updateScriptVariant()
+      }
+      guard appDelegate.showNotifications != .never else { return }
+      var longLabel: RimeStringSlice = RimeApi.get_state_label_abbreviated(sessionId, optionName, state, false)
+      var shortLabel: RimeStringSlice = RimeApi.get_state_label_abbreviated(sessionId, optionName, state, true)
+      let long: String? = longLabel.str == nil ? nil : String(cString: longLabel.str)
+      let short: String? = shortLabel.str == nil || shortLabel.length < strlen(shortLabel.str) ? nil : String(cString: shortLabel.str)
+      appDelegate.panel.updateStatus(long: long, short: short)
+    }
+  default: break
   }
 }
 
 // MARK: Bridging
 
-func bridge<T: AnyObject>(obj: T?) -> UnsafeMutableRawPointer? {
-  return obj != nil ? Unmanaged.passUnretained(obj!).toOpaque() : nil
+func bridge<T: AnyObject>(obj: T!) -> UnsafeMutableRawPointer! {
+  obj == nil ? nil : Unmanaged.passUnretained(obj).toOpaque()
 }
 
-func bridge<T: AnyObject>(ptr: UnsafeMutableRawPointer?) -> T? {
-  return ptr != nil ? Unmanaged<T>.fromOpaque(ptr!).takeUnretainedValue() : nil
+func bridge<T: AnyObject>(ptr: UnsafeMutableRawPointer!, as type: T.Type = T.self) -> T! {
+  ptr == nil ? nil : Unmanaged<T>.fromOpaque(ptr).takeUnretainedValue()
 }
 
-let RimeApi = rime_get_api_stdbool().pointee
 typealias RimeSessionId = UInt
+var RimeApi: RimeApi_stdbool { rime_get_api_stdbool().pointee }
 
 protocol RimeStruct {
   var data_size: CInt { get set }
@@ -495,8 +471,8 @@ extension RimeCommit: RimeStruct {}
 extension RimeStatus_stdbool: RimeStruct {}
 extension RimeContext_stdbool: RimeStruct {}
 
-func RimeStructInit<T: RimeStruct>() -> T {
-  var rimeStruct = T.init()
+func RimeStructInit<T: RimeStruct>(Type: T.Type = T.self) -> T {
+  var rimeStruct: T = .init()
   rimeStruct.data_size = CInt(MemoryLayout<T>.size - MemoryLayout.size(ofValue: rimeStruct.data_size))
   return rimeStruct
 }

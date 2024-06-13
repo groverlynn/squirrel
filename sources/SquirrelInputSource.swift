@@ -1,158 +1,146 @@
 import Carbon
 import Foundation
 
-struct RimeInputModes: OptionSet, Sendable {
+struct RimeInputModes: OptionSet, Sendable, Hashable {
   let rawValue: CInt
-  static let DEFAULT = RimeInputModes(rawValue: 1 << 0)
-  static let HANS = RimeInputModes(rawValue: 1 << 0)
-  static let HANT = RimeInputModes(rawValue: 1 << 1)
-  static let CANT = RimeInputModes(rawValue: 1 << 2)
 
-  init(rawValue: CInt) {
-    self.rawValue = rawValue
-  }
+  static let Default: Self = .init(rawValue: 1 << 0)
+  static let Hans: Self = .init(rawValue: 1 << 0)
+  static let Hant: Self = .init(rawValue: 1 << 1)
+  static let Cant: Self = .init(rawValue: 1 << 2)
+
+  init(rawValue: CInt) { self.rawValue = rawValue }
 
   init?(code: String) {
     switch code {
-    case "HANS", "Hans", "hans":
-      self = .HANS
-    case "HANT", "Hant", "hant":
-      self = .HANT
-    case "CANT", "Cant", "cant":
-      self = .CANT
-    default:
-      return nil
+    case "Hans": self = .Hans
+    case "Hant": self = .Hant
+    case "Cant": self = .Cant
+    default: return nil
     }
   }
-}
+}  // RimeInputModes
 
-final class SquirrelInputSource {
-  static let property: NSDictionary = [kTISPropertyBundleID!: Bundle.main.bundleIdentifier! as NSString]
-  static let InputModeIDHans = "im.rime.inputmethod.Squirrel.Hans"
-  static let InputModeIDHant = "im.rime.inputmethod.Squirrel.Hant"
-  static let InputModeIDCant = "im.rime.inputmethod.Squirrel.Cant"
-  static let preferences = Bundle.preferredLocalizations(from: ["zh-Hans", "zh-Hant", "zh-HK"], forPreferences: nil)
+extension SquirrelApp {
+  static private let inputModeIDHans: String = "\(bundleId).Hans"
+  static private let inputModeIDHant: String = "\(bundleId).Hant"
+  static private let inputModeIDCant: String = "\(bundleId).Cant"
+  static private let inputModeIDs: Set<String> = [inputModeIDHans, inputModeIDHant, inputModeIDCant]
+  static private let inputModeToID: [(mode: RimeInputModes, id: String)] = [(.Hans, inputModeIDHans), (.Hant, inputModeIDHant), (.Cant, inputModeIDCant)]
+  static private let preferences: [String] = Bundle.preferredLocalizations(from: ["zh-Hans", "zh-Hant", "zh-HK"], forPreferences: nil)
+  static private var property: CFDictionary { [kTISPropertyBundleID : bundleId] as CFDictionary }
 
   static func RegisterInputSource() {
-    if !GetEnabledInputModes().isEmpty { // Already registered
+    guard !GetEnabledInputModes(includeAllInstalled: true).isEmpty else {
+      // Already registered
       print("Squirrel is already registered."); return
     }
-    let bundlePath = NSURL(fileURLWithPath: "/Library/Input Methods/Squirrel.App", isDirectory: false)
-    let registerError = TISRegisterInputSource(bundlePath)
+    let bundlePath: NSURL = .init(fileURLWithPath: "/Library/Input Methods/Squirrel.App", isDirectory: false)
+    let registerError: OSStatus = TISRegisterInputSource(bundlePath)
     if registerError == noErr {
-      print("Squirrel has been successfully registered at \(bundlePath.absoluteString!) .")
+      print("Squirrel has been successfully registered at \(bundlePath.path!)")
     } else {
-      let error = NSError(domain: NSOSStatusErrorDomain, code: Int(registerError), userInfo: nil)
-      print("Squirrel failed to register at \(bundlePath.absoluteString!) (\(error.debugDescription)")
+      print("Squirrel failed to register at \(bundlePath.path!) (error code: \(registerError))")
     }
   }
 
   static func EnableInputSource(_ modes: RimeInputModes) {
-    if !GetEnabledInputModes().isEmpty { // keep user's manually enabled input modes
+    guard !GetEnabledInputModes(includeAllInstalled: false).isEmpty else {
+      // keep user's manually enabled input modes
       print("Squirrel input method(s) is already enabled."); return
     }
     var inputModesToEnable: RimeInputModes = modes
     if inputModesToEnable.isEmpty {
       if !preferences.isEmpty {
-        if preferences[0].caseInsensitiveCompare("zh-Hans") == .orderedSame {
-          inputModesToEnable.insert(.HANS)
-        } else if preferences[0].caseInsensitiveCompare("zh-Hant") == .orderedSame {
-          inputModesToEnable.insert(.HANT)
-        } else if preferences[0].caseInsensitiveCompare("zh-HK") == .orderedSame {
-          inputModesToEnable.insert(.CANT)
+        inputModesToEnable = switch preferences.first {
+        case "zh-Hans": [.Hans]
+        case "zh-Hant": [.Hant]
+        case "zh-HK": [.Cant]
+        default: []
         }
       } else {
-        inputModesToEnable = [.HANS]
+        inputModesToEnable = [.Hans]
       }
     }
-    let sourceList = TISCreateInputSourceList(property, true).takeUnretainedValue() as! [TISInputSource]
+    let inputModeIDsToEnable: [String] = inputModeToID.filter({ inputModesToEnable.contains($0.mode) }).map(\.id)
+    let sourceList: [TISInputSource] = TISCreateInputSourceList(property, true).takeRetainedValue() as! [TISInputSource]
     for source in sourceList {
-      if let sourceID: CFString = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceID)), (sourceID as String == InputModeIDHans && inputModesToEnable.contains(.HANS)) || (sourceID as String == InputModeIDHant && inputModesToEnable.contains(.HANT)) || (sourceID as String == InputModeIDCant && inputModesToEnable.contains(.CANT)) {
-        // print("Examining input source: \(sourceID)")
-        if let isEnabled: CFBoolean = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceIsEnabled)), !CFBooleanGetValue(isEnabled) {
-          let enableError: OSStatus = TISEnableInputSource(source)
-          if enableError != noErr {
-            let error = NSError(domain: NSOSStatusErrorDomain, code: Int(enableError), userInfo: nil)
-            print("Failed to enable input source: \(sourceID) (\(error.debugDescription))")
-          } else {
-            print("Enabled input source: \(sourceID)")
-          }
-        }
+      guard let sourceID: String = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceID), as: CFString.self) as? String, inputModeIDsToEnable.contains(sourceID) else { continue }
+      // print("Examining input source: \(sourceID)")
+      guard let isEnabled: CFBoolean = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceIsEnabled)), !CFBooleanGetValue(isEnabled) else { continue }
+      let enableError: OSStatus = TISEnableInputSource(source)
+      if enableError == noErr {
+        print("Enabled input source: \(sourceID)")
+      } else {
+        print("Failed to enable input source: \(sourceID) (error code: \(enableError))")
       }
     }
   }
 
-  static func SelectInputSource(_ mode: RimeInputModes?) {
-    let enabledInputModes: RimeInputModes = GetEnabledInputModes()
-    var inputModeToSelect: RimeInputModes? = mode
-    if inputModeToSelect == nil || !enabledInputModes.contains(inputModeToSelect!) {
+  static func SelectInputSource(_ modes: RimeInputModes) {
+    let enabledInputModes: RimeInputModes = GetEnabledInputModes(includeAllInstalled: false)
+    var inputModeToSelect: RimeInputModes = modes.intersection(enabledInputModes)
+    if inputModeToSelect.isEmpty {
       for language in preferences {
-        if language.caseInsensitiveCompare("zh-Hans") == .orderedSame && enabledInputModes.contains(.HANS) {
-          inputModeToSelect = .HANS; break
+        switch language {
+        case "zh-Hans": if enabledInputModes.contains(.Hans) { inputModeToSelect = .Hans }
+        case "zh-Hant": if enabledInputModes.contains(.Hant) { inputModeToSelect = .Hant }
+        case "zh-HK": if enabledInputModes.contains(.Cant) { inputModeToSelect = .Cant }
+        default: continue
         }
-        if language.caseInsensitiveCompare("zh-Hant") == .orderedSame && enabledInputModes.contains(.HANT) {
-          inputModeToSelect = .HANT; break
-        }
-        if language.caseInsensitiveCompare("zh-HK") == .orderedSame && enabledInputModes.contains(.CANT) {
-          inputModeToSelect = .CANT; break
-        }
+        break
       }
     }
-    if inputModeToSelect == nil {
+    if inputModeToSelect.isEmpty {
       print("No enabled input sources."); return
     }
-    let sourceList = TISCreateInputSourceList(property, false).takeUnretainedValue() as! [TISInputSource]
+    let inputModeIDToSelect: [String] = inputModeToID.filter({ inputModeToSelect.contains($0.mode) }).map(\.id)
+    let sourceList: [TISInputSource] = TISCreateInputSourceList(property, false).takeRetainedValue() as! [TISInputSource]
     for source in sourceList {
-      if let sourceID: CFString = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceID)), (sourceID as String == InputModeIDHans && inputModeToSelect == .HANS) || (sourceID as String == InputModeIDHant && inputModeToSelect == .HANT) || (sourceID as String == InputModeIDCant && inputModeToSelect == .CANT) {
-        // print("Examining input source: \(sourceID)")
-        // select the first enabled input mode in Squirrel
-        if let isSelectable: CFBoolean = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceIsSelectCapable)), let isSelected: CFBoolean = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceIsSelected)), !CFBooleanGetValue(isSelected) && CFBooleanGetValue(isSelectable) {
-          let selectError: OSStatus = TISSelectInputSource(source)
-          if selectError != noErr {
-            let error = NSError(domain: NSOSStatusErrorDomain, code: Int(selectError))
-            print("Failed to select input source: \(sourceID) (\(error.debugDescription))")
-          } else {
-            print("Selected input source: \(sourceID)"); break
-          }
-        }
+      guard let sourceID: String = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceID), as: CFString.self) as? String, inputModeIDToSelect.contains(sourceID) else { continue }
+      // print("Examining input source: \(sourceID)")
+      // select the first enabled input mode in Squirrel
+      guard let isSelectable: CFBoolean = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceIsSelectCapable)), let isSelected: CFBoolean = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceIsSelected)), !CFBooleanGetValue(isSelected), CFBooleanGetValue(isSelectable) else { continue }
+      let selectError: OSStatus = TISSelectInputSource(source)
+      if selectError == noErr {
+        print("Selected input source: \(sourceID)"); break
+      } else {
+        print("Failed to select input source: \(sourceID) (error code: \(selectError))")
       }
     }
   }
 
   static func DisableInputSource() {
-    let sourceList = TISCreateInputSourceList(property, false).takeUnretainedValue() as! [TISInputSource]
+    let sourceList: [TISInputSource] = TISCreateInputSourceList(property, false).takeRetainedValue() as! [TISInputSource]
     for source in sourceList {
-      if let sourceID: CFString = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceID)), sourceID as String == InputModeIDHans || sourceID as String == InputModeIDHant || sourceID as String == InputModeIDCant {
-        // print("Examining input source: \(sourceID)")
-        let disableError: OSStatus = TISDisableInputSource(source)
-        if disableError != noErr {
-          let error = NSError(domain: NSOSStatusErrorDomain, code: Int(disableError))
-          print("Failed to disable input source: \(sourceID) (\(error.debugDescription))")
-        } else {
-          print("Disabled input source: \(sourceID)")
-        }
+      guard let sourceID: String = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceID), as: CFString.self) as? String, inputModeIDs.contains(sourceID) else { continue }
+      // print("Examining input source: \(sourceID)")
+      let disableError: OSStatus = TISDisableInputSource(source)
+      if disableError == noErr {
+        print("Disabled input source: \(sourceID)")
+      } else {
+        print("Failed to disable input source: \(sourceID) (error code: \(disableError))")
       }
     }
   }
 
-  private static func GetEnabledInputModes() -> RimeInputModes {
+  static private func GetEnabledInputModes(includeAllInstalled: Bool) -> RimeInputModes {
     var inputModes: RimeInputModes = []
-    let sourceList = TISCreateInputSourceList(property, false).takeUnretainedValue() as! [TISInputSource]
+    let sourceList: [TISInputSource] = TISCreateInputSourceList(property, includeAllInstalled).takeRetainedValue() as! [TISInputSource]
     for source in sourceList {
-      if let sourceID: CFString = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceID)) {
-        // print("Examining input source: \(sourceID)")
-        switch sourceID as String {
-        case InputModeIDHans:
-          inputModes.insert(.HANS)
-        case InputModeIDHant:
-          inputModes.insert(.HANT)
-        case InputModeIDCant:
-          inputModes.insert(.CANT)
-        default:
-          break
-        }
+      guard let sourceID: String = bridge(ptr: TISGetInputSourceProperty(source, kTISPropertyInputSourceID), as: CFString.self) as? String else { continue }
+      // print("Examining input source: \(sourceID)")
+      switch sourceID {
+      case inputModeIDHans: inputModes.insert(.Hans)
+      case inputModeIDHant: inputModes.insert(.Hant)
+      case inputModeIDCant: inputModes.insert(.Cant)
+      default: continue
       }
     }
     return inputModes
   }
+}  // SquirrelApp
+
+extension CFString {
+  var length: Int { CFStringGetLength(self) }
 }
