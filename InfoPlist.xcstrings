@@ -2,36 +2,36 @@
   "sourceLanguage" : "en",
   "strings" : {
     "CFBundleDisplayName" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Squirrel"
+            "value" : "Squirrel Input Method"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "鼠须管"
+            "value" : "鼠须管输入法"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "鼠鬚管"
+            "value" : "鼠鬚管輸入法"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "鼠鬚筆"
+            "value" : "鼠鬚筆輸入法"
           }
         }
       }
     },
     "CFBundleName" : {
-      "comment" : "Bundle name",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -60,7 +60,7 @@
       }
     },
     "im.rime.inputmethod.Squirrel" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -89,7 +89,7 @@
       }
     },
     "im.rime.inputmethod.Squirrel.Cant" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -118,7 +118,7 @@
       }
     },
     "im.rime.inputmethod.Squirrel.Hans" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -147,7 +147,7 @@
       }
     },
     "im.rime.inputmethod.Squirrel.Hant" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -176,7 +176,7 @@
       }
     },
     "NSHumanReadableCopyright" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {

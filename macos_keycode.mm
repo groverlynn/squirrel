@@ -3,27 +3,40 @@
 #import <rime/key_table.h>
 #import <Carbon/Carbon.h>
 
-int RimeModifiers(NSEventModifierFlags modifiers) {
+// `modiferKeyState` for UCKeyTranslate, defined as
+// ((EventRecord.modifiers) >> 8) & 0xFF;
+uint modifierKeyState(NSEventModifierFlags mac_modifiers) {
+  uint ret = 0;
+
+  if ((mac_modifiers & NSEventModifierFlagCommand) != 0)
+    ret |= 1 << (cmdKeyBit - 8);
+  if ((mac_modifiers & NSEventModifierFlagShift) != 0)
+    ret |= 1 << (shiftKeyBit - 8);
+  if ((mac_modifiers & NSEventModifierFlagCapsLock) != 0)
+    ret |= 1 << (alphaLockBit - 8);
+  if ((mac_modifiers & NSEventModifierFlagOption) != 0)
+    ret |= 1 << (optionKeyBit - 8);
+  if ((mac_modifiers & NSEventModifierFlagControl) != 0)
+    ret |= 1 << (controlKeyBit - 8);
+
+  return ret & 0xFF;
+}
+
+int RimeModifiers(NSEventModifierFlags mac_modifiers) {
   int ret = 0;
 
-  if ((modifiers & NSEventModifierFlagCapsLock) != 0) {
+  if ((mac_modifiers & NSEventModifierFlagCapsLock) != 0)
     ret |= kLockMask;
-  }
-  if ((modifiers & NSEventModifierFlagShift) != 0) {
+  if ((mac_modifiers & NSEventModifierFlagShift) != 0)
     ret |= kShiftMask;
-  }
-  if ((modifiers & NSEventModifierFlagControl) != 0) {
+  if ((mac_modifiers & NSEventModifierFlagControl) != 0)
     ret |= kControlMask;
-  }
-  if ((modifiers & NSEventModifierFlagOption) != 0) {
+  if ((mac_modifiers & NSEventModifierFlagOption) != 0)
     ret |= kAltMask;
-  }
-  if ((modifiers & NSEventModifierFlagCommand) != 0) {
+  if ((mac_modifiers & NSEventModifierFlagCommand) != 0)
     ret |= kSuperMask;
-  }
-  if ((modifiers & NSEventModifierFlagFunction) != 0) {
+  if ((mac_modifiers & NSEventModifierFlagFunction) != 0)
     ret |= kHyperMask;
-  }
 
   return ret;
 }
@@ -112,14 +125,11 @@ int RimeKeycode(ushort mac_keycode) {
 
 int RimeKeycode(unichar keychar, bool shift, bool caps) {
   // NOTE: IBus/Rime use different keycodes for uppercase/lowercase letters.
-  if (keychar >= 'a' && keychar <= 'z' && (shift != caps)) {
-    // lowercase -> Uppercase
+  if (keychar >= 'a' && keychar <= 'z' && (shift != caps)) // lowercase -> Uppercase
     return keychar - 'a' + 'A';
-  }
 
-  if (keychar >= ' ' && keychar <= '~') {
+  if (keychar >= ' ' && keychar <= '~')
     return keychar;
-  }
 
   switch (keychar) {
     // ASCII control characters
@@ -175,14 +185,14 @@ static const char* rime_modidifers[] = {
 };
 
 int RimeModifiers(const char* modifier_name) {
-  if (modifier_name == NULL) {
+  if (modifier_name == NULL)
     return 0;
-  }
+
   for (int i = 0; i < 6; ++i) {
-    if (strcmp(modifier_name, rime_modidifers[i]) == 0) {
+    if (strcmp(modifier_name, rime_modidifers[i]) == 0)
       return 1 << (i < 4 ? i : i + 22);
-    }
   }
+
   return 0;
 }
 

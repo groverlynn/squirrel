@@ -5,41 +5,49 @@
 #import <Cocoa/Cocoa.h>
 #import <InputMethodKit/InputMethodKit.h>
 
+typedef CF_OPTIONS(CFIndex, RimeInputMode) {
+  DEFAULT_INPUT_MODE = 1 << 0,
+  HANS_INPUT_MODE = 1 << 0,
+  HANT_INPUT_MODE = 1 << 1,
+  CANT_INPUT_MODE = 1 << 2
+};
+
 void RegisterInputSource(void);
 void DisableInputSource(void);
-void EnableInputSource(void);
-void SelectInputSource(void);
-
-// Each input method needs a unique connection name.
-// Note that periods and spaces are not allowed in the connection name.
-static NSString* const kConnectionName = @"Squirrel_1_Connection";
+void EnableInputSource(RimeInputMode modesToEnable);
+void SelectInputSource(RimeInputMode modeToSelect);
 
 int main(int argc, char* argv[]) {
   if (argc > 1 && strcmp("--quit", argv[1]) == 0) {
     NSString* bundleId = NSBundle.mainBundle.bundleIdentifier;
-    NSArray<NSRunningApplication*>* runningSquirrels =
-      [NSRunningApplication runningApplicationsWithBundleIdentifier:bundleId];
-    for (NSRunningApplication* squirrelApp in runningSquirrels) {
+    for (NSRunningApplication* squirrelApp in [NSRunningApplication runningApplicationsWithBundleIdentifier:bundleId])
       [squirrelApp terminate];
-    }
     return 0;
   }
 
   if (argc > 1 && strcmp("--reload", argv[1]) == 0) {
-    [NSDistributedNotificationCenter.defaultCenter
-     postNotificationName:@"SquirrelReloadNotification"
-                   object:nil];
+    [NSDistributedNotificationCenter.defaultCenter postNotificationName:kWillReloadNotification object:nil];
     return 0;
   }
 
-  if (argc > 1 && (strcmp("--register-input-source", argv[1]) == 0 ||
-                   strcmp("--install", argv[1]) == 0)) {
+  if (argc > 1 && (strcmp("--register-input-source", argv[1]) == 0 || strcmp("--install", argv[1]) == 0)) {
     RegisterInputSource();
     return 0;
   }
 
   if (argc > 1 && strcmp("--enable-input-source", argv[1]) == 0) {
-    EnableInputSource();
+    RimeInputMode modesToEnable = 0;
+    if (argc > 2) {
+      for (int i = 2; i < argc; ++i) {
+        if (strcmp("Hans", argv[i]) == 0 || strcmp("hans", argv[i]) == 0 || strcmp("HANS", argv[i]))
+          modesToEnable |= HANS_INPUT_MODE;
+        else if (strcmp("Hant", argv[i]) == 0 || strcmp("hant", argv[i]) == 0 || strcmp("HANT", argv[i]))
+          modesToEnable |= HANT_INPUT_MODE;
+        else if (strcmp("Cant", argv[i]) == 0 || strcmp("cant", argv[i]) == 0 || strcmp("CANT", argv[i]))
+          modesToEnable |= CANT_INPUT_MODE;
+      }
+    }
+    EnableInputSource(modesToEnable);
     return 0;
   }
 
@@ -49,7 +57,18 @@ int main(int argc, char* argv[]) {
   }
 
   if (argc > 1 && strcmp("--select-input-source", argv[1]) == 0) {
-    SelectInputSource();
+    RimeInputMode modeToSelect = 0;
+    if (argc > 2) {
+      for (int i = 2; i < argc; ++i) {
+        if (strcmp("Hans", argv[i]) == 0 || strcmp("hans", argv[i]) == 0 || strcmp("HANS", argv[i]))
+          modeToSelect |= HANS_INPUT_MODE;
+        else if (strcmp("Hant", argv[i]) == 0 || strcmp("hant", argv[i]) == 0 || strcmp("HANT", argv[i]))
+          modeToSelect |= HANT_INPUT_MODE;
+        else if (strcmp("Cant", argv[i]) == 0 || strcmp("cant", argv[i]) == 0 || strcmp("CANT", argv[i]))
+          modeToSelect |= CANT_INPUT_MODE;
+      }
+    }
+    SelectInputSource(modeToSelect);
     return 0;
   }
 
@@ -65,9 +84,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (argc > 1 && strcmp("--sync", argv[1]) == 0) {
-    [NSDistributedNotificationCenter.defaultCenter
-     postNotificationName:@"SquirrelSyncNotification"
-                   object:nil];
+    [NSDistributedNotificationCenter.defaultCenter postNotificationName:kWillSyncNotification object:nil];
     return 0;
   }
 
@@ -84,13 +101,17 @@ int main(int argc, char* argv[]) {
                       topLevelObjects:nil];
 
     // opencc will be configured with relative dictionary paths
-    [NSFileManager.defaultManager
-     changeCurrentDirectoryPath:NSBundle.mainBundle.sharedSupportPath];
+    [NSFileManager.defaultManager changeCurrentDirectoryPath:NSBundle.mainBundle.sharedSupportPath];
 
-    if (NSApp.squirrelAppDelegate.problematicLaunchDetected) {
+    if (NSApp.SquirrelAppDelegate.problematicLaunchDetected) {
       NSLog(@"Problematic launch detected!");
-      NSArray<NSString*>* args = @[@"-v", NSLocalizedString(@"say_voice", nil),
-                                          NSLocalizedString(@"problematic_launch", nil)];
+      NSArray<NSString*>* args = @[@"-v",
+                                   [NSBundle.mainBundle localizedStringForKey:@"say_voice"
+                                                                        value:nil
+                                                                        table:@"Notifications"],
+                                   [NSBundle.mainBundle localizedStringForKey:@"problematic_launch"
+                                                                        value:nil
+                                                                        table:@"Notifications"]];
       if (@available(macOS 10.13, *)) {
         NSURL* say = [NSURL fileURLWithPath:@"/usr/bin/say" isDirectory:NO];
         [NSTask launchedTaskWithExecutableURL:say
@@ -98,13 +119,12 @@ int main(int argc, char* argv[]) {
                                         error:nil
                            terminationHandler:nil];
       } else {
-        [NSTask launchedTaskWithLaunchPath:@"/usr/bin/say"
-                                 arguments:args];
+        [NSTask launchedTaskWithLaunchPath:@"/usr/bin/say" arguments:args];
       }
     } else {
-      [NSApp.squirrelAppDelegate setupRime];
-      [NSApp.squirrelAppDelegate startRimeWithFullCheck:false];
-      [NSApp.squirrelAppDelegate loadSettings];
+      [NSApp.SquirrelAppDelegate setupRime];
+      [NSApp.SquirrelAppDelegate startRimeWithFullCheck:false];
+      [NSApp.SquirrelAppDelegate loadSettings];
       NSLog(@"Squirrel reporting!");
     }
 

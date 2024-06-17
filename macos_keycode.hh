@@ -23,6 +23,8 @@ enum {
 
 // conversion functions
 
+uint modifierKeyState(NSEventModifierFlags mac_modifiers);
+
 int RimeModifiers(NSEventModifierFlags mac_modifiers);
 int RimeKeycode(ushort mac_keycode);
 int RimeKeycode(unichar keychar, bool shift, bool caps);

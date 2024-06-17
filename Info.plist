@@ -7,13 +7,15 @@
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
-	<string>RimeIcon.icns</string>
+	<string>$(ASSETCATALOG_COMPILER_APPICON_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>${PRODUCT_NAME}</string>
+	<key>CFBundleDisplayName</key>
+	<string>${INFOPLIST_KEY_CFBundleDisplayName}</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleSignature</key>
@@ -30,8 +32,13 @@
 		<dict>
 			<key>im.rime.inputmethod.Squirrel.Hans</key>
 			<dict>
+				<key>TISIconLabels</key>
+				<dict>
+					<key>Primary</key>
+					<string>ㄓ⃣</string>
+				</dict>
 				<key>TISInputSourceID</key>
-				<string>${PRODUCT_BUNDLE_IDENTIFIER}.Hans</string>
+				<string>im.rime.inputmethod.Squirrel.Hans</string>
 				<key>TISIntendedLanguage</key>
 				<string>zh-Hans</string>
 				<key>tsInputModeCharacterRepertoireKey</key>
@@ -42,21 +49,24 @@
 				<true/>
 				<key>tsInputModeIsVisibleKey</key>
 				<true/>
-				<key>tsInputModeKeyEquivalentModifiersKey</key>
-				<integer>4608</integer>
 				<key>tsInputModeMenuIconFileKey</key>
-				<string>rime.pdf</string>
+				<string>rime.svg</string>
 				<key>tsInputModePaletteIconFileKey</key>
-				<string>rime.pdf</string>
+				<string>rime.svg</string>
 				<key>tsInputModePrimaryInScriptKey</key>
 				<true/>
 				<key>tsInputModeScriptKey</key>
-				<string>smUnicodeScript</string>
+				<string>smSimpChinese</string>
 			</dict>
 			<key>im.rime.inputmethod.Squirrel.Hant</key>
 			<dict>
+				<key>TISIconLabels</key>
+				<dict>
+					<key>Primary</key>
+					<string>ㄓ⃣</string>
+				</dict>
 				<key>TISInputSourceID</key>
-				<string>${PRODUCT_BUNDLE_IDENTIFIER}.Hant</string>
+				<string>im.rime.inputmethod.Squirrel.Hant</string>
 				<key>TISIntendedLanguage</key>
 				<string>zh-Hant</string>
 				<key>tsInputModeCharacterRepertoireKey</key>
@@ -67,21 +77,24 @@
 				<true/>
 				<key>tsInputModeIsVisibleKey</key>
 				<true/>
-				<key>tsInputModeKeyEquivalentModifiersKey</key>
-				<integer>4608</integer>
 				<key>tsInputModeMenuIconFileKey</key>
-				<string>rime.pdf</string>
+				<string>rime.svg</string>
 				<key>tsInputModePaletteIconFileKey</key>
-				<string>rime.pdf</string>
+				<string>rime.svg</string>
 				<key>tsInputModePrimaryInScriptKey</key>
 				<true/>
 				<key>tsInputModeScriptKey</key>
-				<string>smUnicodeScript</string>
+				<string>smTradChinese</string>
 			</dict>
 			<key>im.rime.inputmethod.Squirrel.Cant</key>
 			<dict>
+				<key>TISIconLabels</key>
+				<dict>
+					<key>Primary</key>
+					<string>ㄓ⃣</string>
+				</dict>
 				<key>TISInputSourceID</key>
-				<string>${PRODUCT_BUNDLE_IDENTIFIER}.Cant</string>
+				<string>im.rime.inputmethod.Squirrel.Cant</string>
 				<key>TISIntendedLanguage</key>
 				<string>yue-Hant</string>
 				<key>tsInputModeCharacterRepertoireKey</key>
@@ -92,16 +105,14 @@
 				<true/>
 				<key>tsInputModeIsVisibleKey</key>
 				<true/>
-				<key>tsInputModeKeyEquivalentModifiersKey</key>
-				<integer>4608</integer>
 				<key>tsInputModeMenuIconFileKey</key>
-				<string>rime.pdf</string>
+				<string>rime.svg</string>
 				<key>tsInputModePaletteIconFileKey</key>
-				<string>rime.pdf</string>
+				<string>rime.svg</string>
 				<key>tsInputModePrimaryInScriptKey</key>
 				<true/>
 				<key>tsInputModeScriptKey</key>
-				<string>smUnicodeScript</string>
+				<string>smTradChinese</string>
 			</dict>
 		</dict>
 		<key>tsVisibleInputModeOrderedArrayKey</key>
@@ -121,6 +132,8 @@
 	<false/>
 	<key>LSUIElement</key>
 	<string>1</string>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
@@ -140,6 +153,6 @@
 		<string>Hani</string>
 	</array>
 	<key>tsInputMethodIconFileKey</key>
-	<string>rime.pdf</string>
+	<string>rime.svg</string>
 </dict>
 </plist>

@@ -1,6 +1,10 @@
 #import <InputMethodKit/InputMethodKit.h>
 
+NS_HEADER_AUDIT_BEGIN(nullability, sendability)
+
 @interface SquirrelInputController : IMKInputController
+
+typedef uintptr_t RimeSessionId;
 
 // kPROCESS accepts miscellaneous / function keys (e.g. XK_Escape)
 // The remaining 3 actions accept candidate indices (int), starting from item 0 on page 0
@@ -32,9 +36,13 @@ typedef NS_ENUM(NSUInteger, SquirrelIndex) {
 };
 
 @property(nonatomic, readonly, weak, nullable, direct, class) SquirrelInputController* currentController;
+@property(nonatomic, strong, nullable, direct, class) NSString* keyboardLayout;
+@property(nonatomic, direct, class) NSTimeInterval chordDuration;
+@property(nonatomic, direct, class) BOOL goodOldCapsLock;
 @property(nonatomic, readonly, strong, nonnull) NSAppearance* viewEffectiveAppearance API_AVAILABLE(macos(10.14));
 @property(nonatomic, readonly, strong, nonnull, direct) NSMutableArray<NSString*>* candidateTexts;
 @property(nonatomic, readonly, strong, nonnull, direct) NSMutableArray<NSString*>* candidateComments;
+@property(nonatomic, readonly, direct) RimeSessionId session;
 
 - (void)moveCursor:(NSUInteger)cursorPosition
         toPosition:(NSUInteger)targetPosition
@@ -44,3 +52,5 @@ typedef NS_ENUM(NSUInteger, SquirrelIndex) {
               onIndex:(SquirrelIndex)index __attribute__((objc_direct));
 
 @end  // SquirrelInputController
+
+NS_HEADER_AUDIT_END(nullability, sendability)

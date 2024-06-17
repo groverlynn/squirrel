@@ -1,9 +1,10 @@
 #import <Cocoa/Cocoa.h>
 
+NS_HEADER_AUDIT_BEGIN(nullability, sendability)
+
 @class SquirrelConfig;
 @class SquirrelPanel;
 @class SquirrelOptionSwitcher;
-typedef uintptr_t RimeSessionId;
 
 // Note: the SquirrelApplicationDelegate is instantiated automatically as an outlet of NSApp's instance
 @interface SquirrelApplicationDelegate : NSObject <NSApplicationDelegate>
@@ -32,8 +33,7 @@ typedef NS_CLOSED_ENUM(NSUInteger, SquirrelNotificationPolicy) {
 - (void)setupRime __attribute__((objc_direct));
 - (void)startRimeWithFullCheck:(bool)fullCheck __attribute__((objc_direct));
 - (void)loadSettings __attribute__((objc_direct));
-- (void)loadSchemaSpecificSettings:(NSString* _Nonnull)schemaId
-                   withRimeSession:(RimeSessionId)sessionId __attribute__((objc_direct));
+- (void)loadSchemaSpecificSettings:(NSString* _Nonnull)schemaId __attribute__((objc_direct));
 - (void)loadSchemaSpecificLabels:(NSString* _Nonnull)schemaId __attribute__((objc_direct));
 
 @end  // SquirrelApplicationDelegate
@@ -41,10 +41,14 @@ typedef NS_CLOSED_ENUM(NSUInteger, SquirrelNotificationPolicy) {
 
 @interface NSApplication (SquirrelApp)
 
-@property(nonatomic, strong, readonly, nonnull, direct) SquirrelApplicationDelegate* squirrelAppDelegate;
+@property(nonatomic, strong, readonly, nonnull, direct) SquirrelApplicationDelegate* SquirrelAppDelegate;
 
 @end  // NSApplication (SquirrelApp)
 
 
 // also used in main.mm
 extern void show_notification(const char* _Nonnull msg_text);
+static NSString* _Nonnull const kWillReloadNotification = @"SquirrelWillReload";
+static NSString* _Nonnull const kWillSyncNotification = @"SquirrelWillSync";
+
+NS_HEADER_AUDIT_END(nullability, sendability)

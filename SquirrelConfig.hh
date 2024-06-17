@@ -1,6 +1,11 @@
 #import <Cocoa/Cocoa.h>
 
-typedef uintptr_t RimeSessionId;
+NS_HEADER_AUDIT_BEGIN(nullability, sendability)
+
+typedef struct {
+  const char* name;
+  bool state;
+} NameState;
 
 __attribute__((objc_direct_members))
 @interface SquirrelOptionSwitcher : NSObject
@@ -12,20 +17,21 @@ __attribute__((objc_direct_members))
 @property(nonatomic, readonly, strong, nonnull) NSDictionary<NSString*, NSString*>* scriptVariantOptions;
 @property(nonatomic, readonly, strong, nonnull) NSMutableDictionary<NSString*, NSString*>* switcher;
 @property(nonatomic, readonly, strong, nonnull) NSDictionary<NSString*, NSOrderedSet<NSString*>*>* optionGroups;
+@property(nonatomic, readonly, strong, nonnull) NSDictionary<NSString*, NSValue*>* optionAliases;
 
 - (instancetype _Nonnull)initWithSchemaId:(NSString* _Nullable)schemaId
                                  switcher:(NSMutableDictionary<NSString*, NSString*>* _Nullable)switcher
                              optionGroups:(NSDictionary<NSString*, NSOrderedSet<NSString*>*>* _Nullable)optionGroups
                      defaultScriptVariant:(NSString* _Nullable)defaultScriptVariant
                      scriptVariantOptions:(NSDictionary<NSString*, NSString*>* _Nullable)scriptVariantOptions
-  NS_DESIGNATED_INITIALIZER;
+                            optionAliases:(NSDictionary<NSString*, NSValue*>* _Nullable)optionAliases NS_DESIGNATED_INITIALIZER;
 - (instancetype _Nonnull)initWithSchemaId:(NSString* _Nullable)schemaId;
 // return whether switcher options has been successfully updated
 - (BOOL)updateSwitcher:(NSMutableDictionary<NSString*, NSString*>* _Nonnull)switcher;
 - (BOOL)updateGroupState:(NSString* _Nonnull)optionState
                 ofOption:(NSString* _Nonnull)optionName;
 - (BOOL)updateCurrentScriptVariant:(NSString* _Nonnull)scriptVariant;
-- (void)updateWithRimeSession:(RimeSessionId)session;
+- (void)update;
 
 @end  // SquirrelOptionSwitcher
 
@@ -33,9 +39,9 @@ __attribute__((objc_direct_members))
 __attribute__((objc_direct_members))
 @interface SquirrelAppOptions : NSDictionary<NSString*, NSNumber*>
 
-- (bool)boolValueForKey:(NSString* _Nonnull)key;
-- (int)intValueForKey:(NSString* _Nonnull)key;
-- (double)doubleValueForKey:(NSString* _Nonnull)key;
+- (bool)boolValueForOption:(NSString* _Nonnull)option;
+- (int)intValueForOption:(NSString* _Nonnull)option;
+- (double)doubleValueForOption:(NSString* _Nonnull)option;
 
 @end  // SquirrelAppOptions
 
@@ -46,7 +52,7 @@ __attribute__((objc_direct_members))
 @property(nonatomic, strong, readonly, nullable) NSString* schemaId;
 @property(nonatomic, strong, nonnull) NSString* colorSpace;
 
-- (instancetype _Nonnull)initWithArg:(NSString* _Nonnull)arg;
+- (instancetype _Nonnull)initWithType:(NSString* _Nonnull)arg;
 - (BOOL)openBaseConfig;
 - (BOOL)openWithSchemaId:(NSString* _Nonnull)schemaId
               baseConfig:(SquirrelConfig* _Nullable)config;
@@ -112,3 +118,16 @@ __attribute__((objc_direct_members))
 - (NSString* _Nonnull)keyPathByReplacingLastComponentWith:(NSString* _Nonnull)replacement;
 
 @end
+
+extern inline NSUInteger fmin(NSUInteger x, NSUInteger y) {
+  return x < y ? x : y;
+}
+extern inline NSUInteger fmax(NSUInteger x, NSUInteger y) {
+  return x < y ? y : x;
+}
+template <typename T> extern inline T clamp(T x, T min, T max) {
+  const auto y = x < min ? min : x;
+  return y > max ? max : y;
+}
+
+NS_HEADER_AUDIT_END(nullability, sendability)
