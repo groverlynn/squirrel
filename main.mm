@@ -10,10 +10,6 @@ void DisableInputSource(void);
 void EnableInputSource(void);
 void SelectInputSource(void);
 
-// Each input method needs a unique connection name.
-// Note that periods and spaces are not allowed in the connection name.
-static NSString* const kConnectionName = @"Squirrel_1_Connection";
-
 int main(int argc, char* argv[]) {
   if (argc > 1 && strcmp("--quit", argv[1]) == 0) {
     NSString* bundleId = NSBundle.mainBundle.bundleIdentifier;
@@ -89,8 +85,8 @@ int main(int argc, char* argv[]) {
 
     if (NSApp.squirrelAppDelegate.problematicLaunchDetected) {
       NSLog(@"Problematic launch detected!");
-      NSArray<NSString*>* args = @[@"-v", NSLocalizedString(@"say_voice", nil),
-                                          NSLocalizedString(@"problematic_launch", nil)];
+      NSArray<NSString*>* args = @[@"-v", NSLocalizedStringFromTable(@"say_voice", @"Notifications", nil),
+                                   NSLocalizedStringFromTable(@"problematic_launch", @"Notifications", nil)];
       if (@available(macOS 10.13, *)) {
         NSURL* say = [NSURL fileURLWithPath:@"/usr/bin/say" isDirectory:NO];
         [NSTask launchedTaskWithExecutableURL:say

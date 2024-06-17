@@ -121,24 +121,24 @@ static NSArray<NSString*>* const scripts = @[@"zh-Hans", @"zh-Hant", @"zh-TW", @
 
 @implementation SquirrelAppOptions
 
-- (bool)boolValueForKey:(NSString*)key {
-  if (NSNumber* value = self[key];
+- (bool)boolValueForOption:(NSString*)option {
+  if (NSNumber* value = self[option];
       value != nil && strcmp(value.objCType, @encode(BOOL)) == 0) {
     return value.boolValue;
   }
   return NO;
 }
 
-- (int)intValueForKey:(NSString*)key {
-  if (NSNumber* value = self[key];
+- (int)intValueForOption:(NSString*)option {
+  if (NSNumber* value = self[option];
       value != nil && strcmp(value.objCType, @encode(int)) == 0) {
     return value.intValue;
   }
   return 0;
 }
 
-- (double)doubleValueForKey:(NSString*)key {
-  if (NSNumber* value = self[key];
+- (double)doubleValueForOption:(NSString*)option {
+  if (NSNumber* value = self[option];
       value != nil && strcmp(value.objCType, @encode(double)) == 0) {
     return value.doubleValue;
   }
@@ -245,10 +245,10 @@ static NSDictionary<NSString*, NSColorSpace*>* const colorSpaceMap =
 
 - (void)close {
   if (_isOpen && rime_get_api_stdbool()->config_close(&_config)) {
-    _baseConfig = nil;
-    _schemaId = nil;
     _isOpen = NO;
   }
+  _baseConfig = nil;
+  _schemaId = nil;
 }
 
 - (void)dealloc {
@@ -572,13 +572,14 @@ static NSString* codeForScriptVariant(NSString* scriptVariant) {
 }
 
 - (SquirrelAppOptions*)appOptionsForApp:(NSString*)bundleId {
-  if (SquirrelAppOptions* cachedValue = [self cachedValueOfClass:SquirrelAppOptions.class forKey:bundleId]) {
+  NSString* rootKey = [@"app_options/" append:bundleId];
+  if (SquirrelAppOptions* cachedValue = [self cachedValueOfClass:SquirrelAppOptions.class forKey:rootKey]) {
     return cachedValue;
   }
-  NSString* rootKey = [@"app_options/" append:bundleId];
   NSMutableDictionary<NSString*, NSNumber*>* appOptions = NSMutableDictionary.alloc.init;
   RimeConfigIterator iterator;
   if (!rime_get_api_stdbool()->config_begin_map(&iterator, &_config, rootKey.UTF8String)) {
+    [_cache setObject:appOptions forKey:rootKey];
     return appOptions.copy;
   }
   while (rime_get_api_stdbool()->config_next(&iterator)) {
@@ -590,7 +591,7 @@ static NSString* codeForScriptVariant(NSString* scriptVariant) {
     }
   }
   rime_get_api_stdbool()->config_end(&iterator);
-  [_cache setObject:appOptions forKey:bundleId];
+  [_cache setObject:appOptions forKey:rootKey];
   return appOptions.copy;
 }
 

@@ -32,6 +32,7 @@ typedef NS_ENUM(NSUInteger, SquirrelIndex) {
 };
 
 @property(nonatomic, readonly, weak, nullable, direct, class) SquirrelInputController* currentController;
+@property(nonatomic, direct, class) NSTimeInterval chordDuration;
 @property(nonatomic, readonly, strong, nonnull) NSAppearance* viewEffectiveAppearance API_AVAILABLE(macos(10.14));
 @property(nonatomic, readonly, strong, nonnull, direct) NSMutableArray<NSString*>* candidateTexts;
 @property(nonatomic, readonly, strong, nonnull, direct) NSMutableArray<NSString*>* candidateComments;

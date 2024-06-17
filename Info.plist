@@ -121,6 +121,8 @@
 	<false/>
 	<key>LSUIElement</key>
 	<string>1</string>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

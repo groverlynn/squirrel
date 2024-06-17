@@ -66,8 +66,8 @@ extern void show_notification(const char* msg_text) {
            settings.authorizationStatus == UNAuthorizationStatusProvisional) &&
           (settings.alertSetting == UNNotificationSettingEnabled)) {
         UNMutableNotificationContent* content = UNMutableNotificationContent.alloc.init;
-        content.title = NSLocalizedString(@"Squirrel", nil);
-        content.subtitle = NSLocalizedString(@(msg_text), nil);
+        content.title = NSLocalizedStringFromTable(@"Squirrel", @"Notifications", nil);
+        content.subtitle = NSLocalizedStringFromTable(@(msg_text), @"Notifications", nil);
         if (@available(macOS 12.0, *)) {
           content.interruptionLevel = UNNotificationInterruptionLevelActive;
         }
@@ -84,8 +84,8 @@ extern void show_notification(const char* msg_text) {
     }];
   } else {
     NSUserNotification* notification = NSUserNotification.alloc.init;
-    notification.title = NSLocalizedString(@"Squirrel", nil);
-    notification.subtitle = NSLocalizedString(@(msg_text), nil);
+    notification.title = NSLocalizedStringFromTable(@"Squirrel", @"Notifications", nil);
+    notification.subtitle = NSLocalizedStringFromTable(@(msg_text), @"Notifications", nil);
 
     NSUserNotificationCenter* notificationCenter =
       NSUserNotificationCenter.defaultUserNotificationCenter;
@@ -219,7 +219,10 @@ static void notification_handler(void* context_object,
   } else {
     _showNotifications = kShowNotificationsWhenAppropriate;
   }
+  CGFloat chordDuration = [[config nullableDoubleForOption:@"chord_duration"] doubleValue];
+  SquirrelInputController.chordDuration = chordDuration > DBL_EPSILON ? chordDuration : 0.1;
   [_panel loadConfig:config];
+  [config close];
 }
 
 - (void)loadSchemaSpecificSettings:(NSString*)schemaId

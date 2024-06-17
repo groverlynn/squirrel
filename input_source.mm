@@ -14,7 +14,7 @@ typedef CF_OPTIONS(CFIndex, RimeInputMode) {
   CANT_INPUT_MODE = 1 << 2
 };
 
-RimeInputMode GetEnabledInputModes(void);
+RimeInputMode GetEnabledInputModes(Boolean includeAllInstalled);
 
 CFArrayRef GetPreferredLocale(void) {
   CFTypeRef locales[] = {CFSTR("zh-Hans"), CFSTR("zh-Hant"), CFSTR("zh-HK")};
@@ -35,7 +35,7 @@ CFArrayRef GetInputSourceList(Boolean includeAllInstalled) {
 }
 
 void RegisterInputSource(void) {
-  if (GetEnabledInputModes() != 0) { // Already registered
+  if (GetEnabledInputModes(true) != 0) { // Already registered
     NSLog(@"Squirrel is already registered.");
     return;
   }
@@ -46,15 +46,13 @@ void RegisterInputSource(void) {
     if (registerError == noErr) {
       NSLog(@"Squirrel has been successfully registered at %@", installPath);
     } else {
-      NSLog(@"Squirrel failed to register at %@ (%@)", installPath,
-            [NSError errorWithDomain:NSOSStatusErrorDomain
-                                code:registerError userInfo:nil]);
+      NSLog(@"Squirrel failed to register at %@ (error code: %d)", installPath, registerError);
     }
   }
 }
 
 void EnableInputSource(void) {
-  if (GetEnabledInputModes() != 0) {
+  if (GetEnabledInputModes(false) != 0) {
     // keep user's manually enabled input modes
     NSLog(@"Squirrel input method(s) is already enabled.");
     return;
@@ -94,9 +92,7 @@ void EnableInputSource(void) {
         (inputSource, kTISPropertyInputSourceIsEnabled);
       if (!CFBooleanGetValue(isEnabled)) {
         if (OSStatus enableError = TISEnableInputSource(inputSource) != noErr) {
-          NSLog(@"Failed to enable input source: %@ (%@)", sourceID,
-                [NSError errorWithDomain:NSOSStatusErrorDomain
-                                    code:enableError userInfo:nil]);
+          NSLog(@"Failed to enable input source: %@ (error code: %d)", sourceID, enableError);
         } else {
           NSLog(@"Enabled input source: %@", sourceID);
         }
@@ -107,7 +103,7 @@ void EnableInputSource(void) {
 }
 
 void SelectInputSource(void) {
-  RimeInputMode enabled_input_modes = GetEnabledInputModes();
+  RimeInputMode enabled_input_modes = GetEnabledInputModes(false);
   RimeInputMode input_mode_to_select = 0;
   CFArrayRef preferred = GetPreferredLocale();
   for (CFIndex i = 0; i < CFArrayGetCount(preferred); ++i) {
@@ -151,9 +147,7 @@ void SelectInputSource(void) {
           inputSource, kTISPropertyInputSourceIsSelected);
       if (!CFBooleanGetValue(isSelected) && CFBooleanGetValue(isSelectable)) {
         if (OSStatus selectError = TISSelectInputSource(inputSource) != 0) {
-          NSLog(@"Failed to select input source: %@ (%@)", sourceID,
-                [NSError errorWithDomain:NSOSStatusErrorDomain
-                                    code:selectError userInfo:nil]);
+          NSLog(@"Failed to select input source: %@ (error code: %d)", sourceID, selectError);
         } else {
           NSLog(@"Selected input source: %@", sourceID);
           break;
@@ -176,9 +170,7 @@ void DisableInputSource(void) {
         CFStringCompare(sourceID, kHantInputModeID, 0) == kCFCompareEqualTo ||
         CFStringCompare(sourceID, kCantInputModeID, 0) == kCFCompareEqualTo) {
       if (OSStatus disableError = TISDisableInputSource(inputSource) != 0) {
-        NSLog(@"Failed to disable input source: %@ (%@)", sourceID,
-              [NSError errorWithDomain:NSOSStatusErrorDomain
-                                  code:disableError userInfo:nil]);
+        NSLog(@"Failed to disable input source: %@ (error code: %d)", sourceID, disableError);
       } else {
         NSLog(@"Disabled input source: %@", sourceID);
       }
@@ -187,9 +179,9 @@ void DisableInputSource(void) {
   CFRelease(sourceList);
 }
 
-RimeInputMode GetEnabledInputModes(void) {
+RimeInputMode GetEnabledInputModes(Boolean includeAllInstalled) {
   RimeInputMode input_modes = 0;
-  CFArrayRef sourceList = GetInputSourceList(false);
+  CFArrayRef sourceList = GetInputSourceList(includeAllInstalled);
   for (CFIndex i = 0; i < CFArrayGetCount(sourceList); ++i) {
     TISInputSourceRef inputSource = (TISInputSourceRef)
       CFArrayGetValueAtIndex(sourceList, i);

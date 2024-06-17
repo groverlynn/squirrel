@@ -33,9 +33,9 @@ __attribute__((objc_direct_members))
 __attribute__((objc_direct_members))
 @interface SquirrelAppOptions : NSDictionary<NSString*, NSNumber*>
 
-- (bool)boolValueForKey:(NSString* _Nonnull)key;
-- (int)intValueForKey:(NSString* _Nonnull)key;
-- (double)doubleValueForKey:(NSString* _Nonnull)key;
+- (bool)boolValueForOption:(NSString* _Nonnull)option;
+- (int)intValueForOption:(NSString* _Nonnull)option;
+- (double)doubleValueForOption:(NSString* _Nonnull)option;
 
 @end  // SquirrelAppOptions
 

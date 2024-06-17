@@ -71,8 +71,8 @@ PUBLIC "-//W3C//DTD SVG 1.1//EN"
   </g>
   <line id="Baseline-L" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" x2="3036" y1="1556" y2="1556"/>
   <line id="Capline-L" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" x2="3036" y1="1485.54" y2="1485.54"/>
-  <line id="left-margin" style="fill:none;stroke:#00AEEF;stroke-width:0.5;opacity:1.0;" x1="1384.65" x2="1384.65" y1="1030.79" y2="1150.12"/>
-  <line id="right-margin" style="fill:none;stroke:#00AEEF;stroke-width:0.5;opacity:1.0;" x1="1515.04" x2="1515.04" y1="1030.79" y2="1150.12"/>
+  <line id="left-margin" style="fill:none;stroke:#00AEEF;stroke-width:0.5;opacity:1.0;" x1="1382.47" x2="1382.47" y1="1030.79" y2="1150.12"/>
+  <line id="right-margin" style="fill:none;stroke:#00AEEF;stroke-width:0.5;opacity:1.0;" x1="1517.22" x2="1517.22" y1="1030.79" y2="1150.12"/>
  </g>
   <g id="Symbols">
     <g id="Black-L" transform="translate(2839.92,1531.8965)">

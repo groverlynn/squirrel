@@ -37,7 +37,7 @@ static const int N_KEY_ROLL_OVER = 50;
   int _inlineOffset;
   // for chord-typing
   NSTimer* _chordTimer;
-  NSTimeInterval _chordDuration;
+
   int _chordKeyCodes[N_KEY_ROLL_OVER];
   int _chordModifiers[N_KEY_ROLL_OVER];
   int _chordKeyCount;
@@ -45,6 +45,7 @@ static const int N_KEY_ROLL_OVER = 50;
 
 static SquirrelInputController* __weak _currentController = nil;
 static NSString* _currentApp;
+static NSTimeInterval _chordDuration = 0.1;
 static int _asciiMode = -1;
 
 + (void)setCurrentController:(SquirrelInputController*)controller {
@@ -54,6 +55,14 @@ static int _asciiMode = -1;
 
 + (SquirrelInputController*)currentController {
   return _currentController;
+}
+
++ (void)setChordDuration:(NSTimeInterval)chordDuration {
+  _chordDuration = chordDuration;
+}
+
++ (NSTimeInterval)chordDuration {
+  return _chordDuration;
 }
 
 - (NSAppearance*)viewEffectiveAppearance API_AVAILABLE(macos(10.14)) {
@@ -808,16 +817,17 @@ static NSString* getOptionLabel(RimeSessionId session, const char* option, bool 
   NSString* app = self.client.bundleIdentifier;
   // NSLog(@"createSession: %@", app);
   _session = rime_get_api_stdbool()->create_session();
-  _schemaId = nil;
+  SquirrelPanel* panel = NSApp.squirrelAppDelegate.panel;
+  _schemaId = panel.optionSwitcher.schemaId.copy;
   if (_session != 0) {
     SquirrelConfig* config = [SquirrelConfig.alloc initWithArg:@"squirrel"];
     _appOptions = [config appOptionsForApp:app];
-    CGFloat chordDuration = [[config nullableDoubleForOption:@"chord_duration"] doubleValue];
-    _chordDuration = chordDuration > 0 ? chordDuration : 0.1;
     [config close];
-    _panellessCommitFix = [_appOptions boolValueForKey:@"panelless_commit_fix"];
-    _inlinePlaceholder = [_appOptions boolValueForKey:@"inline_placeholder"];
-    _inlineOffset = [_appOptions intValueForKey:@"inline_offset"];
+    _inlinePreedit = (panel.inlinePreedit && ![_appOptions boolValueForOption:@"no_inline"]) || [_appOptions boolValueForOption:@"inline"];
+    _inlineCandidate = panel.inlineCandidate && ![_appOptions boolValueForOption:@"no_inline"];
+    _panellessCommitFix = [_appOptions boolValueForOption:@"panelless_commit_fix"];
+    _inlinePlaceholder = [_appOptions boolValueForOption:@"inline_placeholder"];
+    _inlineOffset = [_appOptions intValueForOption:@"inline_offset"];
     if ([app isEqualToString:_currentApp] && _asciiMode >= 0) {
       rime_get_api_stdbool()->set_option(_session, "ascii_mode", _asciiMode);
     }
@@ -885,9 +895,9 @@ static inline NSUInteger fmax(NSUInteger x, NSUInteger y) {
         [NSApp.squirrelAppDelegate loadSchemaSpecificSettings:_schemaId
                                               withRimeSession:_session];
         // inline preedit
-        _inlinePreedit = (panel.inlinePreedit && ![_appOptions boolValueForKey:@"no_inline"]) ||
-                         [_appOptions boolValueForKey:@"inline"];
-        _inlineCandidate = panel.inlineCandidate && ![_appOptions boolValueForKey:@"no_inline"];
+        _inlinePreedit = (panel.inlinePreedit && ![_appOptions boolValueForOption:@"no_inline"]) ||
+                         [_appOptions boolValueForOption:@"inline"];
+        _inlineCandidate = panel.inlineCandidate && ![_appOptions boolValueForOption:@"no_inline"];
         // if not inline, embed soft cursor in preedit string
         rime_get_api_stdbool()->set_option(_session, "soft_cursor", !_inlinePreedit);
       } else {
@@ -975,9 +985,7 @@ static inline NSUInteger fmax(NSUInteger x, NSUInteger y) {
                                     numCandidates + extraCandidates);
     _currentIndex = hilitedCandidate + _candidateIndices.location;
 
-    if (showingStatus) {
-      [self clearBuffer];
-    } else if (_showingSwitcherMenu) {
+    if (_showingSwitcherMenu) {
       if (_inlinePlaceholder) {
         [self updateComposition];
       }

@@ -1,205 +1,205 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "774.title" : {
+    "deploy_failure" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Deploy"
+            "state" : "translated",
+            "value" : "Error occurred. See log file $TMPDIR/rime.squirrel.INFO."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重新部署"
+            "value" : "有错误！请查看日志 $TMPDIR/rime.squirrel.INFO"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重新部署"
+            "value" : "有錯誤！請查看日誌 $TMPDIR/rime.squirrel.INFO"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重新部署"
+            "value" : "有錯誤！請查看日誌 $TMPDIR/rime.squirrel.INFO"
           }
         }
       }
     },
-    "776.title" : {
+    "deploy_start" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Check for updates…"
+            "state" : "translated",
+            "value" : "Deploying Rime input method engine…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "检查更新…"
+            "value" : "部署输入法引擎…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "檢查更新項目⋯"
+            "value" : "部署輸入法引擎⋯"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "檢查更新項目⋯"
+            "value" : "部署輸入法引擎⋯"
           }
         }
       }
     },
-    "780.title" : {
+    "deploy_success" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "ㄓ⃣Squirrel Switcher"
+            "state" : "translated",
+            "value" : "Squirrel is ready."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ㄓ⃣鼠须管〔方案菜单〕"
+            "value" : "部署完成。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ㄓ⃣鼠鬚管〔方案選單〕"
+            "value" : "部署完成。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ㄓ⃣鼠鬚筆〔方案選單〕"
+            "value" : "部署完成。"
           }
         }
       }
     },
-    "797.title" : {
+    "deploy_update" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Rime Wiki…"
+            "state" : "translated",
+            "value" : "Deploying Rime for updates…"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在线帮助…"
+            "value" : "更新输入法引擎…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "線上輔助說明⋯"
+            "value" : "更新輸入法引擎⋯"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "線上輔助説明⋯"
+            "value" : "更新輸入法引擎⋯"
           }
         }
       }
     },
-    "802.title" : {
+    "problematic_launch" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Settings…"
+            "state" : "translated",
+            "value" : "Problematic launch detected!\nSquirrel may be suffering a crash due to improper configurations.\nRevert previous modifications to see if the problem recurs."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用户设置…"
+            "value" : "检测到启动有问题！\n“鼠须管”可能因错误设置而崩溃。\n请尝试撤销之前的修改，然后查看问题是否仍旧存在。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "使用者設定⋯"
+            "value" : "啟動時偵測到問題！\n「鼠鬚管」可能因設定不當而崩潰。\n請嘗試回退先前的修改，然後查看問題是否依然存在。"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用户設定⋯"
+            "value" : "啟動時偵測到錯誤！\n「鼠鬚筆」可能由於設定不當而崩潰。\n請嘗試回退先前的改動，然後查看問題是否仍然存在。"
           }
         }
       }
     },
-    "804.title" : {
+    "say_voice" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Sync user data"
+            "state" : "translated",
+            "value" : "Alex"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同步用户数据"
+            "value" : "TingTing"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同步使用者資料"
+            "value" : "MeiJia"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同步用户資料"
+            "value" : "Sinji"
           }
         }
       }
     },
-    "809.title" : {
+    "Squirrel" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Error and warning logs"
+            "state" : "translated",
+            "value" : "Squirrel"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "错误和警告日志"
+            "value" : "鼠须管"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "錯誤和警告記錄"
+            "value" : "鼠鬚管"
           }
         },
         "zh-HK" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "錯誤與警告記錄"
+            "value" : "鼠鬚筆"
           }
         }
       }
